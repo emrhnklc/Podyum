@@ -96,3 +96,20 @@ test("yeni giriş beklerken önceki hesabın token'ıyla istek gönderilmez", as
   gate.resolve(json(session("next"))); await login;
   assert.equal(manager.state.session?.accessToken, "next");
 });
+
+test("profil kaydından sonra görünen ad oturum özetinde yenilenir", async () => {
+  const manager = new SessionManager(async () => json({ ...me, user: { ...me.user, displayName: "Yeni ad" } }), storage(null));
+  manager.state = { ready: true, session: session(), me, error: null };
+  await manager.reloadMe();
+  assert.equal(manager.state.me?.user.displayName, "Yeni ad");
+});
+
+test("geç profil yenilemesi çıkış yapılan hesabı geri getiremez", async () => {
+  const gate = deferred<Response>();
+  const manager = new SessionManager(async () => gate.promise, storage(null));
+  manager.state = { ready: true, session: session(), me, error: null };
+  const reload = manager.reloadMe();
+  await manager.logout(false); gate.resolve(json(me));
+  await assert.rejects(reload, (error: ApiError) => error.code === "SESSION_CHANGED");
+  assert.equal(manager.state.me, null);
+});

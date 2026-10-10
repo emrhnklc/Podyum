@@ -42,3 +42,8 @@ Günlük oyunun saati hâlâ ürün kararı bekliyor. Gerçek OAuth/e-posta, oto
 E-posta girişi/yenileme/çıkış, gerçek Keşfet/filtre/cursor, yetkili görsel, tek tercih/sonuç/detay, kaydet/kaldır, ürün linkleri ve yorumlar bağlandı. Native güvenli token deposu, eski oturum yanıtlarını reddetme ve açık demo ayrımı var. [Rehber](../../mobile/docs/home-api-integration.md). Backend iş kuralları/şema değişmedi; yerel önizleme kurulum komutu eklendi. Kayıt/doğrulama arayüzü ve diğer sekmeler bekliyor.
 
 Mobil TypeScript/lint ve Expo paket eşleşmesi, 9 oturum testi, gerçek mobil istemciyle HTTP entegrasyon smoke ve Android/iOS/web export geçti. Cihaz üzerindeki kabul testi henüz yapılmadı. Yerel API ve Expo LAN üzerinden açık; önizleme giriş bilgileri Git dışında tutulur.
+
+
+## Mobil kayıt bağlantısı
+
+Yeni kayıt tasarımı gerçek register → yerel e-posta doğrulama → login → profil/avatar/stil akışına bağlandı. Mevcut auth/users/media iş kuralları ve şema korundu. Konum/Instagram/ilgi kategorileri toplanmaz; profil sekmesi ve paylaşım entegrasyonu ayrıca bekler. [Kayıt rehberi](../../mobile/docs/registration-api-integration.md). Gerçek API smoke doğrulama/replay, mevcut hesap korunması, profil/stil ve avatar onay/kalıcılık hattını geçti.

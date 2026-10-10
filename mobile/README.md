@@ -1,6 +1,6 @@
 # Podyum — mobile
 
-Expo SDK 57 + React Native + Expo Router + TypeScript. Ana ekran e-posta girişinden sonra gerçek backend kullanır: akış, tercih/sonuç, kaydetme, ürün linkleri ve yorumlar bağlıdır. Kayıt ve diğer sekmelerin entegrasyonu sıradadır. [Bağlantı rehberi](docs/home-api-integration.md).
+Expo SDK 57 + React Native + Expo Router + TypeScript. Ana ekran e-posta girişinden sonra gerçek backend kullanır: akış, tercih/sonuç, kaydetme, ürün linkleri ve yorumlar bağlıdır. Kayıt, yerel e-posta doğrulama ve profil/stil/avatar kurulumu da bağlıdır; diğer sekmelerin entegrasyonu sıradadır. [Kayıt rehberi](docs/registration-api-integration.md). [Bağlantı rehberi](docs/home-api-integration.md).
 
 ## Çalıştırma
 
@@ -65,7 +65,7 @@ Tercih ve kaydetmeler `DemoPollsProvider` ile yalnız bellekte tutulur; sekme/de
 
 Eksik demo fotoğraflarında pastel yer tutucu gösterilir. Native, eski `/demo/...` web yollarını HTTP adresi gibi çağırmaz. Yerel özel `public/demo/` dosyaları korunur; native görsel için uygun static asset kaynağı veya tam erişilebilir medya URL'si gerekir. Yerel fotoğrafları görmek için `mobile/.env.local` içine `EXPO_PUBLIC_DEMO_MEDIA_BASE_URL=http://<Mac'in-LAN-adresi>:8081` yaz: Expo geliştirme sunucusu `public/` klasörünü de sunduğu için `/demo/...` yolları bu adrese göre çözülür. Değişken yoksa davranış aynıdır, ağ isteği yapılmaz. Kişisel fotoğraf/video Git'e eklenmez. Eski video desteği taşınmadı; ilk backend medya hattı fotoğraftır.
 
-`src/lib/api/client.ts` gerçek ana ekran, oturum ve medya isteklerinde kullanılır. `EXPO_PUBLIC_API_BASE_URL` `/v1` dahil tam API adresidir; telefon için Mac'in LAN adresi kullanılmalıdır. `EXPO_PUBLIC_*` içine sır/token yazılmaz. E-posta girişi, tek uçuşlu yenileme ve native güvenli token deposu bağlıdır; kayıt ve diğer feature entegrasyonları sıradadır.
+`src/lib/api/client.ts` gerçek ana ekran, oturum ve medya isteklerinde kullanılır. `EXPO_PUBLIC_API_BASE_URL` `/v1` dahil tam API adresidir; telefon için Mac'in LAN adresi kullanılmalıdır. `EXPO_PUBLIC_*` içine sır/token yazılmaz. E-posta girişi, tek uçuşlu yenileme ve native güvenli token deposu bağlıdır; kayıt/doğrulama ve profil kurulumu bağlıdır; diğer feature entegrasyonları sıradadır.
 
 ## Kontroller
 

@@ -37,7 +37,7 @@ const FRAME_RATIO = 0.86;
 const SCRIPT_SPACE = 46;
 
 // Karşılama ekranı kaydırmadan tek ekrana sığar. E-posta girişi bağlı;
-// Apple/Google sonraki adımda. Kayıt ekranı ve "Başla" önizlemeyi açar.
+// Kayıt/doğrulama bağlı; Apple/Google sonraki adımda. "Başla" önizlemeyi açar.
 export function AuthScreen() {
   const message = usePreviewMessage();
   const [area, setArea] = useState({ width: 0, height: 0 });
@@ -222,17 +222,6 @@ export function AuthScreen() {
           >
             <Text style={styles.accountText}>Hesabın yok mu?</Text>
             <Text style={styles.accountAction}>Kayıt ol</Text>
-          </Pressable>
-          <View style={styles.accountDivider} />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Zaten hesabın var mı? Giriş yap"
-            onPress={() => router.push("/auth/login")}
-            hitSlop={6}
-            style={styles.accountLink}
-          >
-            <Text style={styles.accountText}>Hesabın var mı?</Text>
-            <Text style={styles.accountAction}>Giriş yap</Text>
           </Pressable>
         </View>
 
@@ -441,7 +430,6 @@ const styles = StyleSheet.create({
   },
   accountText: { fontSize: 14, color: colors.text },
   accountAction: { fontSize: 14, fontFamily: fonts.bold, color: sand.brown },
-  accountDivider: { width: 1, height: 18, backgroundColor: sand.line },
   terms: {
     fontSize: 11,
     lineHeight: 16,

@@ -15,7 +15,9 @@
     "lint": "eslint src",
     "check:expo": "expo install --check",
     "test:session": "tsx --test tests/session-manager.test.ts",
-    "test:home-api": "tsx scripts/smoke-home.mts"
+    "test:home-api": "tsx scripts/smoke-home.mts",
+    "test:registration": "tsx --test tests/registration.test.ts",
+    "test:registration-api": "tsx scripts/smoke-registration.mts"
   },
   "dependencies": {
     "@expo-google-fonts/hanken-grotesk": "^0.4.3",

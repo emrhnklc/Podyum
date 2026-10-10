@@ -1,6 +1,6 @@
 # Ekran ve API haritası
 
-10 Ekim 2026. Mobile Expo + React Native + Expo Router kullanır. [Çalıştırma ve sınırlar](../README.md). Girişten sonraki Keşfet, gerçek detay ve yorumlar API'ye bağlıdır; diğer ekranlar demo önizlemesidir. [İlk ana ekran bağlantısı ve kontroller](home-api-integration.md). Backend'in uçları [API sözleşmesinde](../../backend/docs/api-contract.md) belgelenir.
+10 Ekim 2026. Mobile Expo + React Native + Expo Router kullanır. [Çalıştırma ve sınırlar](../README.md). Girişten sonraki Keşfet, gerçek detay ve yorumlar API'ye bağlıdır; diğer ekranlar demo önizlemesidir. [İlk ana ekran bağlantısı ve kontroller](home-api-integration.md). [Kayıt ve profil kurulumu](registration-api-integration.md). Backend'in uçları [API sözleşmesinde](../../backend/docs/api-contract.md) belgelenir.
 
 ## Route ve feature
 
@@ -15,12 +15,13 @@
 | `/u/:username` | profile/ProfileScreen | "Profil": lig rozeti, Takip Et/Mesaj, öne çıkanlar; bilinmeyen kullanıcı için boş durum |
 | `/polls/:id` | polls/PollDetailScreen | UUID için gerçek detay/sonuç; demo kimliği için demo detay |
 | `/profile/edit` | profile/EditProfileScreen | Profili Düzenle: kapak/avatar seçimi, ad, bio, konum, stil etiketleri, sosyal hesaplar; Kaydet bellekte tutar |
-| `/auth/register` | auth/RegisterScreen | 3 adımlı kayıt (hesap, profil, stil); sunucu yok, tamamlanınca önizleme profiline yazar ve Keşfet'i açar |
+| `/auth/register` | auth/RegisterScreen | Gerçek kayıt; arada e-posta doğrulama, sonra profil/avatar/stil kurulumu |
 | `/settings` | settings/SettingsScreen | Gerçek çıkış ve yerel oturum temizliği; bildirim rotası açılır, diğer ayarlar henüz bağlı değil |
 | `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
 | `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |
 | `/games` | → `/defile` | Eski bağlantılar Defile sekmesine yönlenir |
 | `/auth` | auth/AuthScreen | Karşılama: Başla önizlemeye, Giriş yap gerçek e-posta girişine gider; Apple/Google bekliyor |
+| `/auth/verify-email` | auth/VerifyEmailScreen | Yerel posta anahtarıyla doğrulama, yeniden isteme ve girişe devam |
 | `/auth/login` | auth/LoginScreen | Mevcut doğrulanmış e-posta hesabıyla gerçek giriş |
 | `/comments/:pollId` | polls/CommentsScreen | Sayfalı gerçek yorumlar, ekleme/silme |
 | bilinmeyen route | +not-found | Güvenli Keşfet'e dönüş |
@@ -31,14 +32,14 @@ Alt menü Keşfet, Trendler, Paylaş, Defile, Profil içerir. Günlük podyum ve
 
 | Kullanım | Backend karşılığı | Durum |
 | --- | --- | --- |
-| Oturum | `/auth/login`, `/auth/me`, `/auth/refresh`, `/auth/logout` | E-posta girişi/yenileme/çıkış bağlı; kayıt arayüzü önizleme; doğrulama ve OAuth bağlantısı bekliyor |
-| Kendi/başka profil | Users API | Backend hazır; frontend bağlanmadı |
+| Oturum | `/auth/login`, `/auth/me`, `/auth/refresh`, `/auth/logout` | Kayıt/doğrulama/giriş/yenileme/çıkış bağlı; yerel posta, gerçek OAuth bekliyor |
+| Kendi/başka profil | Users API | Kayıt profil kurulumu bağlı; profil sekmesi/başka profiller henüz demo |
 | Arkadaş/engel | Social API | Backend hazır; frontend bağlanmadı |
 | Keşfet listesi | `GET /v1/feed` | Bağlı: scope/category/cursor/yenileme |
 | Kombin detayı | `GET /v1/polls/:id` | UUID route'u bağlı; demo kimlikleri demo ekranı |
 | Tercih | `PUT /v1/polls/:id/vote` `{ optionId }` | Gerçek kart UUID gönderir; sunucunun tek tercih kuralı geçerli |
 | Sonuç | `GET /v1/polls/:id/results` | Bağlı; gerçek demografi henüz yok |
-| Fotoğraf | Medya upload/process/approve API'leri | Backend hazır; Paylaş'ta galeriden seçim çalışır (yalnız cihazda). Yükleme hattı oturum, blur bölgesi seçimi ve önizleme onayı ekranlarını bekliyor |
+| Fotoğraf | Medya upload/process/approve API'leri | Kayıtta avatar yükleme/önizleme/onay bağlı; Paylaş'ta galeriden seçim çalışır (yalnız cihazda). Yükleme hattı oturum, blur bölgesi seçimi ve önizleme onayı ekranlarını bekliyor |
 | Taslak/yayın | Polls oluştur/düzenle/publish API'leri | Backend hazır; form henüz API kullanmaz |
 | Kaydet/yorum/bildirim | Sosyal etkileşim uçları | Ana ekran kaydet/kaldır ve yorumlar bağlı; bildirim ekranı bekliyor |
 | Trendler | Trend API | Arkadaşın backend kolu; henüz yok |
@@ -67,6 +68,6 @@ Günlük oyun 30 dakika fotoğraf + 30 dakika oy, yalnız etkinlik üyeleri oy v
 ## Sonraki sıra
 
 1. Ana ekran/kombin detayının tasarımını cihazda gözden geçir.
-2. Ana ekran bağlantısı hazır; kayıt/doğrulama arayüzü ve gerçek profil/sosyal ekranları bağla.
+2. Ana ekran ve kayıt/doğrulama/profil kurulumu hazır; gerçek profil sekmesini ve sosyal ekranları bağla.
 3. Medya seçme/önizleme/onay ve gerçek paylaş formunu bağla.
 4. Sosyal uçlar, trend kolu ve oyun/QR teslimleriyle entegrasyona devam et.
