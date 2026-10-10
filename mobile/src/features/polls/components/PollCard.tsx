@@ -59,7 +59,7 @@ export function PollCard({ post }: { post: DemoPost }) {
       <Text style={{ fontFamily: fonts.bold, fontSize: 21, lineHeight: 26 }}>
         {post.question}
       </Text>
-      <PollOptions post={post} style={{ height: 380, marginHorizontal: -8 }} />
+      <PollOptions post={post} style={{ marginHorizontal: -8 }} />
       <Text style={{ fontSize: 13, color: colors.muted, textAlign: "center" }}>
         {mine
           ? "Kendi paylaşımına oy veremezsin"

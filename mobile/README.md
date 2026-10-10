@@ -51,7 +51,9 @@ Her özellik ihtiyaç duydukça `screens`, `components`, `hooks`, `data`, `api`,
 - Oylama açıkken diğer seçeneğe dokunarak tercih değiştirilebilir (demo). Backend bugün ilk oyu sabit tutar; bu açık ürün kararı [ekran ve API haritasında](docs/ekran-ve-api-haritasi.md) yazılı. Kendi paylaşımına oy verilmez. Normal tercih yıldız/puan üretmez. Eski +10/çoğunluğu tahmin davranışı kaldırıldı.
 - Sonuç detayları: toplam oy, seçenek başına oy ve oy verenlerin cinsiyet/yaş dağılımı; hepsi mock veridir.
 - Kombin detayları, kullanıcı profilleri, kendi profilindeki paylaşımlar/kaydedilenler ve örnek arkadaş listesi. Alt ekranlarda sol üstte sade geri oku vardır.
-- Trendler: hafta/ay, kategori, tercih yapan grup ve fiyat filtreleri. Küçük örneklem demo eşiği korunur; gerçek backend gizlilik eşiği olarak kabul edilmez.
+- Kombin görselleri 9:16 oranındadır (Keşfet, detay, Paylaş kutuları, profil kareleri).
+- Kombindeki parçalar: Keşfet'te aşağı kaydırınca ve detay ekranında, oy verilsin verilmesin her seçeneğin parçaları küçük görsel, ad, örnek fiyat ve "Benzerlerini gör" bağlantısıyla listelenir. Parçalar fotoğrafa bakılarak adlandırıldı (`features/polls/data/demo-products.ts`); marka ve gerçek ürün eşleşmesi yoktur, bağlantı benzer ürün aramasına gider. Küçük görseller `public/demo/products/` altında, Git dışındadır.
+- Trendler: liste bu parçalardan hesaplanır (parçanın etiketlendiği seçeneklere verilen demo oyların toplamı). Dönem, kategori, tercih yapan grup ve fiyat tek bir filtre çubuğunda toplanır; çubuk seçili filtreleri özetler, dokununca açılır. Küçük örneklem demo eşiği korunur; gerçek backend gizlilik eşiği olarak kabul edilmez.
 - Paylaş formu: A ve B için galeriden fotoğraf seçme (`expo-image-picker`), değiştirme ve kaldırma; soru, kategori, süre, görünürlük ve yorum/blur ayarları. Seçilen fotoğraflar yalnız cihazda kalır. Sunucuya yükleme, blur işleme ve yayın henüz bağlı değildir; önizleme gerçek paylaşım oluşturmaz.
 - Bildirim boş durumu; auth ve oyun alanları hazırlık ekranıdır. Günlük 30+30 ve QR lobileri planda; oyun çalışıyor gibi gösterilmez.
 

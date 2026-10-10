@@ -12,6 +12,7 @@ import {
 } from "../data/demo-demographics";
 import { demoResults, useDemoPolls } from "../hooks/use-demo-polls";
 import { PollCard } from "../components/PollCard";
+import { OptionProducts } from "../components/OptionProducts";
 
 export function PollDetailScreen({ id }: { id: string }) {
   const { votes } = useDemoPolls();
@@ -40,6 +41,7 @@ export function PollDetailScreen({ id }: { id: string }) {
         </Text>
       </View>
       <PollCard post={post} />
+      <OptionProducts post={post} />
       {revealed ? (
         <>
           <View style={common.card}>

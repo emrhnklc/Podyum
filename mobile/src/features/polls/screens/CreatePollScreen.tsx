@@ -195,7 +195,7 @@ export function CreatePollScreen() {
 const styles = StyleSheet.create({
   slot: {
     flex: 1,
-    height: 260,
+    aspectRatio: 9 / 16,
     borderRadius: 20,
     overflow: "hidden",
     alignItems: "center",

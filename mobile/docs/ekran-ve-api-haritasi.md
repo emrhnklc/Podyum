@@ -47,7 +47,9 @@ Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı 
 
 **Sonuç detayları:** Oy verildikten sonra detay ekranı toplam oyu, seçenek başına oyu ve oy verenlerin cinsiyet/yaş dağılımını gösterir. Dağılımlar gönderi kimliğinden türetilen mock değerlerdir (`features/polls/data/demo-demographics.ts`). Backend'in ilk sonuç sözleşmesinde demografik kırılım yoktur; bağlanırken izin ve küçük grup eşiği sunucuda uygulanmalıdır.
 
-**Keşfet düzeni:** Fotoğraflar ekranı doldurur; filtreler üst satırdaki sekmelere ve tek bir ikona indirildi, eylemler alt satırda ikonlardır. "Senin oylaman" şeridi Keşfet'ten kaldırıldı; kendi oylamalarına Profil'den ulaşılır.
+**Kombindeki parçalar ve trendler:** Her seçenek, parça kimliklerinin listesini taşır (`products: string[]`); parça adı, kategori, örnek fiyat, küçük görsel ve arama sorgusu `features/polls/data/demo-products.ts` içindedir. Gerçek bağlantıda bunların karşılığı seçenek başına ProductTag ve katalogdaki ortak ürün kimliğidir; "Benzerlerini gör" yerine etiketin `externalUrl` adresi açılır. Demo trend listesi aynı parçalardan hesaplanır: parçanın etiketlendiği seçeneklere verilen oyların toplamı. Bu, mentör notundaki "seçilen kombinlerde yer alan ürünler" ölçümüdür; ürün oyu ya da satış değildir.
+
+**Keşfet düzeni:** Görseller 9:16 oranındadır, altında parçalar listelenir. Fotoğraflar ekranı doldurur; filtreler üst satırdaki sekmelere ve tek bir ikona indirildi, eylemler alt satırda ikonlardır. "Senin oylaman" şeridi Keşfet'ten kaldırıldı; kendi oylamalarına Profil'den ulaşılır.
 
 Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş filtreleri ve gerçek katalog kimliği ayrıca bağlanacak.
 

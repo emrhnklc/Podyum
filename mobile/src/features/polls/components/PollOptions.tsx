@@ -80,10 +80,10 @@ export function PollOptions({
                 <Text style={styles.mineText}>Senin seçimin</Text>
               </View>
             )}
-            {!revealed && (
+            {!revealed && option.products.length > 0 && (
               <View style={styles.products}>
                 <Text style={styles.productsText}>
-                  {option.productCount} ürün
+                  {option.products.length} ürün
                 </Text>
               </View>
             )}
@@ -96,8 +96,10 @@ export function PollOptions({
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: 4 },
+  // Kombin görselleri dikey 9:16 oranındadır.
   option: {
     flex: 1,
+    aspectRatio: 9 / 16,
     borderRadius: 20,
     overflow: "hidden",
     borderWidth: 3,

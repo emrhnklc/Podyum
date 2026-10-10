@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
@@ -6,6 +6,7 @@ import { colors, common, fonts } from "@/theme";
 import { CATEGORY_LABEL } from "@/constants/poll-categories";
 import { getUser } from "@/features/profile/data/demo-users";
 import { PollOptions } from "@/features/polls/components/PollOptions";
+import { OptionProducts } from "@/features/polls/components/OptionProducts";
 import {
   demoResults,
   useDemoPolls,
@@ -31,7 +32,11 @@ export function FeedPoll({
   const openDetails = () =>
     router.push({ pathname: "/polls/[id]", params: { id: post.id } });
   return (
-    <View style={{ flex: 1, gap: 10 }}>
+    <ScrollView
+      style={{ flex: 1 }}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ gap: 10, paddingBottom: 28 }}
+    >
       <View style={styles.header}>
         <View style={common.spread}>
           <Pressable
@@ -70,7 +75,7 @@ export function FeedPoll({
           {post.question}
         </Text>
       </View>
-      <PollOptions post={post} style={{ flex: 1, marginHorizontal: 6 }} />
+      <PollOptions post={post} style={{ marginHorizontal: 6 }} />
       <View style={styles.footer}>
         <View style={{ flex: 1 }}>
           {picked ? (
@@ -114,7 +119,10 @@ export function FeedPoll({
           <Ionicons name="arrow-forward" size={22} color={colors.onAccent} />
         </Pressable>
       </View>
-    </View>
+      <View style={{ paddingHorizontal: 16, paddingTop: 6 }}>
+        <OptionProducts post={post} />
+      </View>
+    </ScrollView>
   );
 }
 

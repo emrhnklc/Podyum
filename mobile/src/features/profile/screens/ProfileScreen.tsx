@@ -180,7 +180,7 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 }
                 style={{
                   width: "31.5%",
-                  aspectRatio: 0.78,
+                  aspectRatio: 9 / 16,
                   borderRadius: 12,
                   overflow: "hidden",
                   justifyContent: "flex-end",
