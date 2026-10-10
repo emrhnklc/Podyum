@@ -3,10 +3,23 @@ import { Image, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme";
 
+// Yerel demo fotoğrafları Git dışında, public/demo/ altında durur.
+// EXPO_PUBLIC_DEMO_MEDIA_BASE_URL tanımlıysa /demo/... yolları o adrese
+// göre çözülür (ör. public/ klasörünü de sunan Expo geliştirme sunucusu).
+const demoMediaBase = process.env.EXPO_PUBLIC_DEMO_MEDIA_BASE_URL?.replace(
+  /\/+$/,
+  "",
+);
+
+function resolveDemoUri(uri?: string) {
+  if (uri?.startsWith("/demo/") && demoMediaBase) return demoMediaBase + uri;
+  return uri;
+}
+
 // Native'de yalnız tam http(s) URL veya yerel picker URI'si kullanılır.
-// Eski /demo yolları dosya yokken ağ isteği üretmez; pastel alan korunur.
+// Adres tanımlı değilse eski /demo yolları ağ isteği üretmez; pastel alan korunur.
 export function PreviewImage({
-  uri,
+  uri: rawUri,
   tone = colors.avatar,
   icon = "shirt-outline",
 }: {
@@ -14,6 +27,7 @@ export function PreviewImage({
   tone?: string;
   icon?: keyof typeof Ionicons.glyphMap;
 }) {
+  const uri = resolveDemoUri(rawUri);
   const [failedUri, setFailedUri] = useState<string>();
   const usable =
     uri &&
