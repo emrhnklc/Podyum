@@ -10,14 +10,15 @@ import type { CreateGameDto, GamePageDto } from "./dto/games.dto.js";
 import { GameAccessService, gameMissing } from "./game-access.service.js";
 import { decodeGameCursor, encodeGameCursor } from "./game-cursor.js";
 import { checkGameVersion, gameConflict, gameEvent, gameNow, gameTokenHash, lockGameUsers, type GameTx } from "./game-internals.js";
-import { GameLifecycleService } from "./game-lifecycle.service.js";
+import { GameLifecycleService, TURN_SECONDS } from "./game-lifecycle.service.js";
+import { leagueFor } from "./league.js";
 
 export function gameSummary(session: GameSession, now: Date) {
-  const phaseEndsAt = session.phase === "SCHEDULED" ? session.startsAt : session.phase === "WAITING" ? session.waitingExpiresAt
+  const phaseEndsAt = session.phase === "SCHEDULED" ? session.startsAt : session.phase === "WAITING" ? session.startsAt ?? session.waitingExpiresAt
     : session.phase === "SUBMISSION" ? session.submissionEndsAt : session.phase === "VOTING" ? session.votingEndsAt : null;
   return {
     id: session.id, kind: session.kind, phase: session.phase, themeTitle: session.themeTitle, rulesVersion: session.rulesVersion,
-    version: session.version, hostId: session.hostId, maxMembers: session.maxMembers,
+    version: session.version, hostId: session.hostId, maxMembers: session.maxMembers, isPublic: session.isPublic,
     submissionSeconds: session.submissionSeconds, votingSeconds: session.votingSeconds,
     startsAt: session.startsAt, submissionEndsAt: session.submissionEndsAt, votingStartsAt: session.votingStartsAt,
     votingEndsAt: session.votingEndsAt, waitingExpiresAt: session.waitingExpiresAt, finishedAt: session.finishedAt,
@@ -33,6 +34,16 @@ export class GamesService {
 
   private async activeActor(tx: GameTx, userId: string) {
     if (!await tx.user.count({ where: { id: userId, status: "ACTIVE" } })) throw new ApiError(401, "INVALID_SESSION", "Aktif oturum gerekli.");
+  }
+
+  // Planlı başlangıç en erken 1 dakika, en geç bekleme süresi (24 saat) içinde olmalı.
+  private startTime(value: string | null, now: Date, latest: Date) {
+    if (value === null) return null;
+    const startsAt = new Date(value);
+    if (startsAt.getTime() < now.getTime() + 60000 || startsAt > latest) {
+      throw new ApiError(422, "INVALID_START_TIME", "Başlangıç saati en erken 1 dakika, en geç 24 saat sonrası olmalı.");
+    }
+    return startsAt;
   }
 
   private host(session: GameSession, userId: string) {
@@ -74,8 +85,9 @@ export class GamesService {
       const active = await tx.gameSession.count({ where: { hostId: userId, phase: { in: ["WAITING", "SUBMISSION", "VOTING"] } } });
       const daily = await tx.gameSession.count({ where: { hostId: userId, createdAt: { gte: new Date(now.getTime() - 86400000) } } });
       if (active >= 10 || daily >= 100) throw new ApiError(429, "GAME_QUOTA_EXCEEDED", "Lobi oluşturma sınırına ulaştın.");
+      const waitingExpiresAt = new Date(now.getTime() + 86400000);
       const session = await tx.gameSession.create({ data: {
-        kind: "PRIVATE", phase: "WAITING", hostId: userId, ...dto, waitingExpiresAt: new Date(now.getTime() + 86400000),
+        kind: "PRIVATE", phase: "WAITING", hostId: userId, ...dto, startsAt: this.startTime(dto.startsAt, now, waitingExpiresAt), waitingExpiresAt,
         members: { create: { userId, ballotSeed: randomInt(2147483647) } },
       } });
       await gameEvent(tx, session, "game.created");
@@ -89,7 +101,8 @@ export class GamesService {
       if (session.phase !== "WAITING") throw gameConflict("GAME_ALREADY_STARTED", "Tema ve süreler yalnız başlamamış lobide değişir.");
       const count = await tx.gameMembership.count({ where: { sessionId: id, status: "ACTIVE" } });
       if (dto.maxMembers < count) throw gameConflict("CAPACITY_BELOW_MEMBERS", "Kapasite mevcut katılımcı sayısından küçük olamaz.");
-      const saved = await tx.gameSession.update({ where: { id }, data: { ...dto, version: { increment: 1 } } });
+      const startsAt = this.startTime(dto.startsAt, await gameNow(tx), session.waitingExpiresAt!);
+      const saved = await tx.gameSession.update({ where: { id }, data: { ...dto, startsAt, version: { increment: 1 } } });
       await gameEvent(tx, saved, "game.settings.changed"); return this.state(tx, saved, userId, await gameNow(tx));
     });
   }
@@ -166,11 +179,30 @@ export class GamesService {
       async (tx) => this.addMember(tx, await this.invited(tx, userId, token), userId));
   }
 
+  // Günlük etkinliğe veya herkese açık özel lobiye davetsiz katılım.
   joinDaily(userId: string, id: string, key: unknown) {
     return this.idempotency.execute(userId, `games.join-daily:${id}`, key, {}, 200, async (tx) => {
       const session = await this.lifecycle.lock(tx, id);
-      if (session.kind !== "DAILY") throw gameMissing();
+      if (session.kind !== "DAILY" && !(session.kind === "PRIVATE" && session.isPublic)) throw gameMissing();
+      if (session.kind === "PRIVATE" && !await tx.gameSession.count({ where: { id, ...this.access.hostVisibleWhere(userId) } })) throw gameMissing();
       return this.addMember(tx, await this.lifecycle.advance(tx, session, await gameNow(tx)), userId);
+    });
+  }
+
+  // Hızlı eşleş için katılınabilir herkese açık lobiler: bekleyen veya fotoğraf
+  // süresi devam eden, dolu olmayan, üyesi olmadığın ve engelli olmayan host.
+  openRooms(userId: string) {
+    return this.prisma.$transaction(async (tx) => {
+    const now = await gameNow(tx);
+    const rows = await tx.gameSession.findMany({
+      where: { kind: "PRIVATE", isPublic: true, ...this.access.hostVisibleWhere(userId),
+        OR: [{ phase: "WAITING", waitingExpiresAt: { gt: now } }, { phase: "SUBMISSION", submissionEndsAt: { gt: now } }],
+        members: { none: { userId, status: "ACTIVE" } } },
+      include: { _count: { select: { members: { where: { status: "ACTIVE" } } } } },
+      orderBy: [{ startsAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }], take: 50,
+    });
+    return rows.filter((row) => row.maxMembers === null || row._count.members < row.maxMembers).slice(0, 20)
+      .map(({ _count, ...row }) => ({ ...gameSummary(row, now), memberCount: _count.members }));
     });
   }
 
@@ -181,13 +213,9 @@ export class GamesService {
       if (await tx.gameMembership.count({ where: { sessionId: id, status: "ACTIVE", user: { status: "ACTIVE" } } }) < 2) {
         throw gameConflict("NOT_ENOUGH_PLAYERS", "Başlamak için en az iki katılımcı gerekli.");
       }
-      const now = await gameNow(tx); const end = new Date(now.getTime() + session.submissionSeconds * 1000);
-      const saved = await tx.gameSession.update({ where: { id }, data: {
-        phase: "SUBMISSION", startsAt: now, submissionEndsAt: end, votingStartsAt: end,
-        votingEndsAt: new Date(end.getTime() + session.votingSeconds * 1000), version: { increment: 1 },
-        ...(session.inviteHash ? { inviteExpiresAt: end } : {}),
-      } });
-      await gameEvent(tx, saved, "game.submission.opened"); return this.state(tx, saved, userId, now);
+      const now = await gameNow(tx);
+      const saved = await this.lifecycle.openSubmission(tx, session, now);
+      return this.state(tx, saved, userId, now);
     });
   }
 
@@ -288,6 +316,9 @@ export class GamesService {
       const row = await tx.gameScore.create({ data: { sessionId: id, submissionId, targetUserId: target.userId, voterId: userId, stars, createdAt: now } });
       const saved = await tx.gameSession.update({ where: { id }, data: { version: { increment: 1 } } });
       await gameEvent(tx, saved, "game.rating.cast", { submissionId, voterId: userId });
+      // Son oy ise sonuçlar hemen açılır.
+      await this.lifecycle.finishIfAllVoted(tx, saved, now, (voterId) => tx.gameSubmission.count({ where: {
+        sessionId: id, userId: { not: voterId }, ...this.access.eligibleSubmissionWhere(voterId) } }));
       return { sessionId: id, submissionId, stars, acceptedAt: row.createdAt };
     }, { timeout: 30000 });
   }
@@ -297,18 +328,62 @@ export class GamesService {
     return this.prisma.$transaction(async (tx) => {
       const session = await this.current(tx, id, userId);
       if (session.phase !== "COMPLETED") throw gameConflict("RESULTS_NOT_AVAILABLE", "Sonuçlar oylama tamamlandığında açılır.");
-      const rows = await tx.gameSubmission.findMany({ where: { sessionId: id, position: { gt: position }, ...this.access.eligibleSubmissionWhere(userId) },
-        orderBy: { position: "asc" }, take: query.limit + 1,
-        include: { outcome: true, member: { select: { user: { select: { id: true, username: true, displayName: true } } } } },
+      // Sıraya göre sayfalanır; cursor son görülen sıradır.
+      const rows = await tx.gameSubmission.findMany({ where: { sessionId: id, outcome: { rank: { gt: position } }, ...this.access.eligibleSubmissionWhere(userId) },
+        orderBy: { outcome: { rank: "asc" } }, take: query.limit + 1,
+        include: { outcome: true, member: { select: { user: { select: { id: true, username: true, displayName: true, avatarMediaId: true } } } } },
       });
       const page = rows.slice(0, query.limit); const last = page.at(-1);
-      return { ...gameSummary(session, await gameNow(tx)), official: false as const, awardedPoints: 0 as const,
-        items: page.map((row) => ({ ...this.card(row), author: row.member.user,
+      const ranked = this.lifecycle.ranked(session);
+      const mine = await tx.gameOutcome.findUnique({ where: { sessionId_userId: { sessionId: id, userId } } });
+      const totalPoints = ranked ? (await tx.gameLeaguePoint.aggregate({ where: { userId }, _sum: { delta: true } }))._sum.delta ?? 0 : null;
+      return { ...gameSummary(session, await gameNow(tx)), official: ranked, awardedPoints: mine?.awardedPoints ?? 0,
+        myRank: mine?.rank ?? null, totalPoints, league: totalPoints === null ? null : leagueFor(totalPoints),
+        items: page.map((row) => ({ ...this.card(row), author: { id: row.member.user.id, username: row.member.user.username,
+          displayName: row.member.user.displayName,
+          avatarPath: row.member.user.avatarMediaId ? `/v1/media/${row.member.user.avatarMediaId}/content?variant=thumbnail` : null },
+          rank: row.outcome!.rank, awardedPoints: row.outcome!.awardedPoints,
           ratingCount: row.outcome!.ratingCount, ratingSum: row.outcome!.ratingSum,
           averageStars: row.outcome!.ratingCount ? row.outcome!.ratingSum / row.outcome!.ratingCount : null,
-        })), nextCursor: rows.length > query.limit && last ? encodeGameCursor(last.position, id, userId, "results") : null,
+        })), nextCursor: rows.length > query.limit && last?.outcome?.rank ? encodeGameCursor(last.outcome.rank, id, userId, "results") : null,
       };
     }, { timeout: 30000 });
+  }
+
+  // Podyum Turu: o an herkese gösterilen yarışmacı, turun bitişi ve oy durumu.
+  // Sıra yarışmacı numarasıdır; tur sunucu saatinden hesaplanır.
+  turn(userId: string, id: string) {
+    return this.prisma.$transaction(async (tx) => {
+      const session = await this.current(tx, id, userId);
+      if (session.phase !== "VOTING") throw gameConflict("VOTING_CLOSED", "Oylama açık değil.");
+      const now = await gameNow(tx);
+      const entries = await tx.gameSubmission.findMany({ where: { sessionId: id, status: "FROZEN" }, orderBy: { position: "asc" },
+        select: { id: true, position: true, mediaId: true, userId: true } });
+      const start = session.votingStartsAt!.getTime();
+      const index = Math.min(entries.length - 1, Math.max(0, Math.floor((now.getTime() - start) / (TURN_SECONDS * 1000))));
+      const entry = entries[index];
+      const mine = entry.userId === userId;
+      // Engelli yazarın kombini bu kullanıcıya gösterilmez; tur yine sayılır.
+      const visible = mine || await tx.gameSubmission.count({ where: { id: entry.id, ...this.access.eligibleSubmissionWhere(userId) } }) > 0;
+      const myScore = await tx.gameScore.findUnique({ where: { submissionId_voterId: { submissionId: entry.id, voterId: userId } } });
+      const members = await tx.gameMembership.count({ where: { sessionId: id, status: "ACTIVE", user: { status: "ACTIVE" } } });
+      const myIndex = entries.findIndex((row) => row.userId === userId);
+      return {
+        index, total: entries.length, turnSeconds: TURN_SECONDS, serverNow: now,
+        turnEndsAt: new Date(start + (index + 1) * TURN_SECONDS * 1000),
+        current: visible ? { ...this.card(entry), mine, myStars: myScore?.stars ?? null } : null,
+        votedCount: await tx.gameScore.count({ where: { submissionId: entry.id } }),
+        voterCount: Math.max(0, members - 1),
+        myTurnIn: myIndex > index ? myIndex - index : null,
+        nextNumber: entries[index + 1]?.position ?? null,
+      };
+    }, { timeout: 30000 });
+  }
+
+  // Kullanıcının herkese açık defilelerden kazandığı toplam lig puanı ve ligi.
+  async league(userId: string) {
+    const totalPoints = (await this.prisma.gameLeaguePoint.aggregate({ where: { userId }, _sum: { delta: true } }))._sum.delta ?? 0;
+    return { totalPoints, league: leagueFor(totalPoints) };
   }
 
   history(userId: string, query: GamePageDto) {

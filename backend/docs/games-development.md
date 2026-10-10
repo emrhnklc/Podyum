@@ -28,8 +28,9 @@ Aşamalar: `SCHEDULED` / `WAITING` → `SUBMISSION` → `VOTING` → `COMPLETED`
 | Metot | Yol | Sözleşme |
 | --- | --- | --- |
 | GET | `/games/daily` | `{ scheduleConfigured, event }`; ayar yoksa `event: null` |
-| POST | `/games/:id/join` | Günlük etkinliğe katıl; boş gövde; Idempotency-Key |
-| POST | `/games/lobbies` | `{ themeTitle, submissionSeconds?, votingSeconds?, maxMembers? }`; 201 state; Idempotency-Key |
+| POST | `/games/:id/join` | Günlük etkinliğe veya herkese açık lobiye davetsiz katıl; boş gövde; Idempotency-Key |
+| GET | `/games/open` | Hızlı eşleş: katılınabilir herkese açık lobiler (bekleyen veya fotoğraf süresi süren, dolu olmayan, üyesi olmadığın), en fazla 20 |
+| POST | `/games/lobbies` | `{ themeTitle, submissionSeconds?, votingSeconds?, maxMembers?, startsAt?, isPublic? }`; 201 state; Idempotency-Key |
 | PUT | `/games/:id/settings` | Host, yalnız `WAITING`; tam ayar listesi + `expectedVersion`; Idempotency-Key |
 | POST | `/games/:id/invite` | Host; `{ expectedVersion }` → `{ token, deepLink, expiresAt, version }`; eski token iptal |
 | POST | `/games/:id/invite/revoke` | Host; daveti kapatır; Idempotency-Key |
@@ -41,8 +42,10 @@ Aşamalar: `SCHEDULED` / `WAITING` → `SUBMISSION` → `VOTING` → `COMPLETED`
 | GET | `/games/:id` | Üyeye özel state; yeniden bağlanınca tekrar okunur |
 | PUT | `/games/:id/submission` | `{ mediaId }`; süre içinde değiştirilebilir tek teslim |
 | GET | `/games/:id/ballot` | Henüz değerlendirilmemiş anonim kartlar; `limit`, `cursor` |
+| GET | `/games/:id/turn` | Podyum Turu: o an herkese gösterilen yarışmacı, tur bitişi, oy sayısı, sıradaki ve kendi sıran |
 | PUT | `/games/:id/submissions/:submissionId/rating` | `{ stars: 1–5 }`; tek değişmez değerlendirme |
-| GET | `/games/:id/results` | Yalnız `COMPLETED`; sayfalı sonuç ve yazar |
+| GET | `/games/:id/results` | Yalnız `COMPLETED`; sıraya göre sayfalı sonuç, yazar, oy sayısı; herkese açık defilede lig puanı |
+| GET | `/me/league` | Herkese açık defilelerden toplam lig puanı ve kademe |
 | GET | `/me/games` | Kendi katılım geçmişi; `joinedAt`/oturum kimliği cursor'ı |
 
 Idempotency-Key 8–100 karakterdir; aynı komut ve gövde tekrarında aynı anahtar aynı makbuzu döndürür, 24 saat saklanır. Davet üretme, teslim ve değerlendirme anahtar istemez: davet yanıtı ham token içerdiği için makbuzda saklanmaz; teslim ve değerlendirme doğal anahtarla tekilleşir.
@@ -126,3 +129,30 @@ Henüz yok:
 Ortak ADMIN yetkisiyle POST /v1/admin/games/:id/cancel, expectedVersion/Idempotency-Key/reason kullanır; MODERATION nedeni, davet kapanışı, game.cancelled ve audit atomiktir. Süre/sürüm ve bitmiş oyun koruması uygulanır. Hesap askıya alma mevcut oturum/cihaz/socket erişimini kapatır; hostun bütün oyunlarını otomatik iptal etmez. [Yönetim sözleşmesi](moderation-development.md).
 
 Hesap silme aktif özel host lobisini HOST_ACCOUNT_DELETED ile iptal eder; DAILY etkinlik diğer üyelerle sürer. Üyelik/teslim erişimi kapanır, eski yıldızlar başkalarının toplamlarını değiştirmez. [Hesap yaşam döngüsü](accounts-development.md).
+
+## Planlı başlangıç ve herkese açık lobi
+
+11 Ekim 2026. Özel lobi oluştururken (ve `WAITING` iken ayar değiştirirken) iki isteğe bağlı alan:
+
+- `startsAt` (ISO tarih, nullable): en erken 1 dakika, en geç bekleme süresi (24 saat) sonrası; aksi `422 INVALID_START_TIME`. Bu anda en az iki aktif üye varsa lobi kendiliğinden `SUBMISSION` aşamasına geçer; süreler planlı saatten hesaplanır, işçi gecikmesi pencereyi uzatmaz. İki üye yoksa `NOT_ENOUGH_PLAYERS` ile iptal olur. Host isterse saatten önce `start` ile başlatabilir. Bekleyen planlı lobide `phaseEndsAt` başlangıç saatidir.
+- `isPublic` (varsayılan `false`): `true` ise lobi `GET /games/open` listesinde görünür ve `POST /games/:id/join` ile davetsiz katılınır. `false` lobiye yalnız QR davetiyle girilir; davet edilenin host ile arkadaş olması gerekmez. Engel kuralları iki durumda da aynıdır. State/özet yanıtları `isPublic` içerir.
+
+Migration `20261011000200_game_public_scheduled_lobby` yalnız `GameSession.isPublic` sütununu ve `(isPublic, phase)` indeksini ekler; planlı başlangıç mevcut `startsAt` sütununu kullanır. Diğer bilgisayarda `npm run db:deploy` ve `npm run db:generate`; reset gerekmez. `npm run test:games` iki yeni test içerir.
+
+## Sıralama, lig puanı ve erken bitiş
+
+11 Ekim 2026. Oylama bittiğinde dondurulmuş teslimler sıralanır: ortalama yıldız (oy almayanlar sonda), eşitlikte oy sayısı, sonra yükleme sırası. Sıra `GameOutcome.rank` alanında saklanır; sonuçlar bu sıraya göre sayfalanır.
+
+- **Herkese açık defile** (günlük etkinlik veya `isPublic` lobi): ilk üçe sırasıyla 50, 30, 20 lig puanı verilir; hiç oy almayan kombin puan almaz. Puan `GameLeaguePoint` tablosuna oyun başına kullanıcıya tek kayıt olarak yazılır ve `GameOutcome.awardedPoints` alanında da durur. Sonuç yanıtı `official: true`, isteyen kullanıcının `myRank`, `awardedPoints`, `totalPoints` ve `league` bilgisini içerir.
+- **Davetli oda** (arkadaşlarla, `isPublic: false`): yalnız sıralama vardır; `official: false`, `awardedPoints: 0`, `totalPoints` ve `league` null. Puan yazılmaz.
+- Lig kademeleri `league.ts`: Bronz 0, Gümüş 500, Altın 1000, Platin 2000, Elmas 3500 (mobil `features/games/data/league.ts` ile aynı). Eski `PointsLedger` eski `GameRoom` tablosuna bağlı olduğu için kullanılmaz.
+- **Erken bitiş:** her yıldızdan sonra, odadaki her aktif üye kendi oy kartındaki bütün kombinleri oyladıysa oylama süreyi beklemeden kapanır ve sonuçlar açılır (`votingEndsAt` o an olur). Hiç oy vermemiş bir üye varsa süre beklenir.
+
+Migration `20261011000300_game_ranking_league_points`: `GameOutcome.rank`, `GameOutcome.awardedPoints` ve `GameLeaguePoint` tablosu. Testlerin temizlik adımları önce `gameLeaguePoint` kayıtlarını siler.
+
+## Podyum Turu (senkron oylama)
+
+11 Ekim 2026. Oylama, herkesin aynı yarışmacıyı aynı anda gördüğü turlarla yapılır. Kombinler yarışmacı numarası sırasıyla gösterilir; her tur `TURN_SECONDS` (10 sn, `game-lifecycle.service.ts`). Oylama penceresi `kombin sayısı x 10 sn` olur ve oylamanın planlanan başlangıcından sayılır; `votingSeconds` ayarı artık oylama süresini belirlemez. İşçi geç kalırsa geçen turlar telafi edilmez (pencere uzamaz).
+
+`GET /games/:id/turn` (yalnız `VOTING`, aksi `409 VOTING_CLOSED`): `index`, `total`, `turnSeconds`, `serverNow`, `turnEndsAt`, `current` (kart + `mine` + `myStars`; engelli yazarda null), `votedCount`, `voterCount` (yazar hariç aktif üye), `myTurnIn` (kendi kombinine kaç tur kaldı), `nextNumber`. Yıldız ucu değişmedi: değerlendirme tek ve değişmezdir, sunucu kartın turda olmasını zorlamaz. Herkes bütün kartları oyladıysa oylama erken biter. "Temaya uygun mu?" alanı yoktur.
+

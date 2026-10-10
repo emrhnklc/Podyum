@@ -160,6 +160,7 @@ model User {
   hostedRooms        GameRoom[]
   participations     GameParticipant[]
   gameMemberships    GameMembership[]
+  gameLeaguePoints   GameLeaguePoint[]
   hostedSessions     GameSession[]
   activeGame         ActiveGameMembership?
   points             PointsLedger[]
@@ -816,43 +817,47 @@ enum GameSubmissionStatus {
 }
 
 model GameSession {
-  id                String           @id @default(uuid()) @db.Uuid
+  id                String            @id @default(uuid()) @db.Uuid
   kind              GameSessionKind
   phase             GamePhase
-  hostId            String?          @db.Uuid
-  themeId           String?          @db.Uuid
-  themeTitle        String           @db.VarChar(120)
-  dailyKey          String?          @unique @db.VarChar(10)
-  scheduleTimeZone  String?          @db.VarChar(80)
-  scheduleStartTime String?          @db.VarChar(5)
-  rulesVersion      String           @default("podyum-v1") @db.VarChar(40)
-  submissionSeconds Int              @default(1800)
-  votingSeconds     Int              @default(1800)
+  hostId            String?           @db.Uuid
+  themeId           String?           @db.Uuid
+  themeTitle        String            @db.VarChar(120)
+  dailyKey          String?           @unique @db.VarChar(10)
+  scheduleTimeZone  String?           @db.VarChar(80)
+  scheduleStartTime String?           @db.VarChar(5)
+  rulesVersion      String            @default("podyum-v1") @db.VarChar(40)
+  submissionSeconds Int               @default(1800)
+  votingSeconds     Int               @default(1800)
   maxMembers        Int?
-  version           Int              @default(0)
-  ballotSlots       Int              @default(0)
-  waitingExpiresAt  DateTime?        @db.Timestamptz(3)
-  startsAt          DateTime?        @db.Timestamptz(3)
-  submissionEndsAt  DateTime?        @db.Timestamptz(3)
-  votingStartsAt    DateTime?        @db.Timestamptz(3)
-  votingEndsAt      DateTime?        @db.Timestamptz(3)
-  finishedAt        DateTime?        @db.Timestamptz(3)
-  cancelReason      String?          @db.VarChar(80)
-  inviteHash        String?          @unique @db.Char(64)
-  inviteExpiresAt   DateTime?        @db.Timestamptz(3)
-  createdAt         DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt         DateTime         @updatedAt @db.Timestamptz(3)
-  host              User?            @relation(fields: [hostId], references: [id], onDelete: Restrict)
-  theme             Theme?           @relation(fields: [themeId], references: [id], onDelete: Restrict)
+  // Özel lobi herkese açıksa davet gerekmeden Hızlı eşleş'te bulunur ve katılınır.
+  isPublic          Boolean           @default(false)
+  version           Int               @default(0)
+  ballotSlots       Int               @default(0)
+  waitingExpiresAt  DateTime?         @db.Timestamptz(3)
+  startsAt          DateTime?         @db.Timestamptz(3)
+  submissionEndsAt  DateTime?         @db.Timestamptz(3)
+  votingStartsAt    DateTime?         @db.Timestamptz(3)
+  votingEndsAt      DateTime?         @db.Timestamptz(3)
+  finishedAt        DateTime?         @db.Timestamptz(3)
+  cancelReason      String?           @db.VarChar(80)
+  inviteHash        String?           @unique @db.Char(64)
+  inviteExpiresAt   DateTime?         @db.Timestamptz(3)
+  createdAt         DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime          @updatedAt @db.Timestamptz(3)
+  host              User?             @relation(fields: [hostId], references: [id], onDelete: Restrict)
+  theme             Theme?            @relation(fields: [themeId], references: [id], onDelete: Restrict)
   members           GameMembership[]
   submissions       GameSubmission[]
   outcomes          GameOutcome[]
+  leaguePoints      GameLeaguePoint[]
 
   @@index([phase, submissionEndsAt])
   @@index([phase, votingEndsAt])
   @@index([phase, startsAt])
   @@index([phase, waitingExpiresAt])
   @@index([hostId, createdAt(sort: Desc)])
+  @@index([isPublic, phase])
 }
 
 model GameMembership {
@@ -906,14 +911,18 @@ model GameScore {
 }
 
 model GameOutcome {
-  sessionId    String         @db.Uuid
-  submissionId String         @unique @db.Uuid
-  userId       String         @db.Uuid
-  ratingCount  Int
-  ratingSum    Int
-  computedAt   DateTime       @default(now()) @db.Timestamptz(3)
-  session      GameSession    @relation(fields: [sessionId], references: [id], onDelete: Restrict)
-  submission   GameSubmission @relation(fields: [submissionId, sessionId, userId], references: [id, sessionId, userId], onDelete: Restrict)
+  sessionId     String         @db.Uuid
+  submissionId  String         @unique @db.Uuid
+  userId        String         @db.Uuid
+  ratingCount   Int
+  ratingSum     Int
+  // Ortalama yıldız, sonra oy sayısı, sonra yükleme sırasına göre 1'den başlayan sıra.
+  rank          Int?
+  // Yalnız herkese açık defilelerde ilk üçe verilen lig puanı; arkadaş odasında 0.
+  awardedPoints Int            @default(0)
+  computedAt    DateTime       @default(now()) @db.Timestamptz(3)
+  session       GameSession    @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  submission    GameSubmission @relation(fields: [submissionId, sessionId, userId], references: [id, sessionId, userId], onDelete: Restrict)
 
   @@id([sessionId, userId])
   @@unique([submissionId, sessionId, userId])
@@ -932,4 +941,21 @@ model AccountDeletion {
   user            User      @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@index([completedAt, requestedAt])
+}
+
+// Herkese açık defile sonucunda kazanılan lig puanı. Toplam puan bu kayıtların
+// toplamıdır; oyun başına kullanıcıya tek kayıt.
+model GameLeaguePoint {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @db.Uuid
+  sessionId String      @db.Uuid
+  rank      Int
+  delta     Int
+  createdAt DateTime    @default(now()) @db.Timestamptz(3)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  session   GameSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, sessionId])
+  @@index([userId])
+  @@index([sessionId])
 }

@@ -69,10 +69,13 @@ async function voting() {
   const opened = await command(row.id, "end-submission"); assert.equal(opened.body.phase, "VOTING", JSON.stringify(opened));
   return { ...row, first: first.body, second: second.body, opened: opened.body };
 }
+// Fotoğraf süresi az önce bitmiş gibi kurar; entireWindow ise oylama penceresi de tamamen geçmiştir.
+// Turlar planlanan oylama başlangıcından sayıldığı için açık oylama için başlangıç yakın olmalı.
 async function elapsed(id: string, entireWindow = false) {
   const now = Date.now();
-  await db.gameSession.update({ where: { id }, data: { startsAt: new Date(now - 180000), submissionEndsAt: new Date(now - 120000),
-    votingStartsAt: new Date(now - 120000), votingEndsAt: new Date(entireWindow ? now - 1000 : now + 120000) } });
+  const votingStartsAt = new Date(entireWindow ? now - 120000 : now - 1000);
+  await db.gameSession.update({ where: { id }, data: { startsAt: new Date(now - 180000), submissionEndsAt: votingStartsAt,
+    votingStartsAt, votingEndsAt: new Date(entireWindow ? now - 1000 : now + 120000) } });
 }
 async function upload(actor = actors[0]) {
   const grant = await call("POST", "/media/uploads", actor, { purpose: "GAME", mimeType: "image/png", byteSize: png.length, blurRequested: false });
@@ -115,6 +118,7 @@ afterEach(async () => {
     await db.$transaction(async (tx) => {
       await tx.outboxEvent.deleteMany({ where: { aggregateId: { in: [...sessions, ...users] } } });
       await tx.idempotencyRecord.deleteMany({ where: { userId: { in: users } } });
+      await tx.gameLeaguePoint.deleteMany({ where: { sessionId: { in: sessions } } });
       await tx.gameOutcome.deleteMany({ where: { sessionId: { in: sessions } } });
       await tx.gameScore.deleteMany({ where: { sessionId: { in: sessions } } });
       await tx.gameSubmission.deleteMany({ where: { sessionId: { in: sessions } } });
@@ -245,7 +249,7 @@ test("erken bitiş oylama süresini DB saatinden başlatır; tekrar süreyi/sür
   const current = await state(row.id); const key = randomUUID(); const body = { expectedVersion: current.version };
   assert.equal((await call("POST", `/games/${row.id}/end-submission`, actors[1], body)).status, 403);
   const opened = await call("POST", `/games/${row.id}/end-submission`, actors[0], body, key);
-  assert.equal(opened.body.phase, "VOTING"); assert.equal(new Date(opened.body.votingEndsAt).getTime() - new Date(opened.body.votingStartsAt).getTime(), 120000);
+  assert.equal(opened.body.phase, "VOTING"); assert.equal(new Date(opened.body.votingEndsAt).getTime() - new Date(opened.body.votingStartsAt).getTime(), 2 * 10000, "Oylama süresi kombin sayısı x tur süresi.");
   assert.deepEqual((await call("POST", `/games/${row.id}/end-submission`, actors[0], body, key)).body, opened.body);
   assert.equal((await command(row.id, "end-submission")).body.error.code, "SUBMISSION_CLOSED");
   assert.equal((await submit(row.id)).body.error.code, "SUBMISSION_CLOSED");
@@ -342,7 +346,9 @@ test("geç çalışan işçi kaçan fotoğraf/oy penceresini uzatmaz; sonuç ve 
   const lifecycle = app.get(GameLifecycleService);
   await Promise.all([lifecycle.scan(), lifecycle.scan()]);
   const saved = await db.gameSession.findUniqueOrThrow({ where: { id: row.id } });
-  assert.equal(saved.phase, "COMPLETED"); assert.equal(saved.votingEndsAt!.getTime(), before.votingEndsAt!.getTime()); assert.equal(saved.finishedAt!.getTime(), before.votingEndsAt!.getTime());
+  // Turlar planlanan oylama başlangıcından sayılır; geç işçi pencereyi uzatmaz.
+  const turnsEnd = before.votingStartsAt!.getTime() + 2 * 10000;
+  assert.equal(saved.phase, "COMPLETED"); assert.equal(saved.votingEndsAt!.getTime(), turnsEnd); assert.equal(saved.finishedAt!.getTime(), turnsEnd);
   assert.equal(await db.gameOutcome.count({ where: { sessionId: row.id } }), 2);
   assert.equal(await db.outboxEvent.count({ where: { aggregateId: row.id, type: "game.completed" } }), 1);
   assert.equal(await db.outboxEvent.count({ where: { aggregateId: row.id, type: "game.voting.opened" } }), 1);
@@ -449,3 +455,95 @@ test("OpenAPI oyun ve GAME medyasını belgeler; QR token ve yıldız doğal tek
   assert.equal(schema.components.schemas.GameScoreDto.properties.themeFits, undefined);
   assert.ok(schema.components.schemas.CreateUploadDto.properties.purpose.enum.includes("GAME"));
 });
+
+test("planlı lobi saatinde kendiliğinden başlar; iki üye yoksa iptal olur, geçersiz saat reddedilir", async () => {
+  const soon = new Date(Date.now() + 10000).toISOString();
+  const rejected = await call("POST", "/games/lobbies", actors[0], { themeTitle: "Plan", startsAt: soon });
+  assert.equal(rejected.status, 422); assert.equal(rejected.body.error.code, "INVALID_START_TIME");
+  const later = new Date(Date.now() + 7200000).toISOString();
+  const { id } = await group(2, { startsAt: later });
+  const waiting = await state(id);
+  assert.equal(waiting.phase, "WAITING"); assert.equal(waiting.isPublic, false);
+  assert.equal(new Date(waiting.phaseEndsAt).toISOString(), later, "Bekleyen planlı lobi başlangıca geri sayar.");
+  const startsAt = new Date(Date.now() - 1000);
+  await db.gameSession.update({ where: { id }, data: { startsAt } });
+  await app.get(GameLifecycleService).scan();
+  const started = await state(id);
+  assert.equal(started.phase, "SUBMISSION");
+  assert.equal(new Date(started.submissionEndsAt).getTime(), startsAt.getTime() + 60000, "Süre planlı saatten başlar, işçi gecikmesi uzatmaz.");
+  const alone = await lobby({ startsAt: later });
+  await db.gameSession.update({ where: { id: alone.id }, data: { startsAt: new Date(Date.now() - 1000) } });
+  await app.get(GameLifecycleService).scan();
+  const cancelled = await state(alone.id);
+  assert.equal(cancelled.phase, "CANCELLED"); assert.equal(cancelled.cancelReason, "NOT_ENOUGH_PLAYERS");
+});
+
+test("herkese açık lobi Hızlı eşleş'te listelenir ve davetsiz katılınır; davetli lobi listelenmez, dolu lobi çıkar", async () => {
+  const open = await lobby({ isPublic: true, maxMembers: 2 });
+  const invited = await lobby();
+  const listed = await call("GET", "/games/open", actors[1]);
+  assert.equal(listed.status, 200);
+  const ids = listed.body.map((row: { id: string }) => row.id);
+  assert.ok(ids.includes(open.id)); assert.ok(!ids.includes(invited.id));
+  assert.equal(listed.body.find((row: { id: string }) => row.id === open.id).memberCount, 1);
+  assert.equal((await call("POST", `/games/${invited.id}/join`, actors[1], {})).status, 404, "Davetli lobi oda kimliğiyle açılmaz.");
+  const joined = await call("POST", `/games/${open.id}/join`, actors[1], {});
+  assert.equal(joined.status, 200, JSON.stringify(joined.body)); assert.equal(joined.body.memberCount, 2);
+  const full = await call("GET", "/games/open", actors[2]);
+  assert.ok(!full.body.some((row: { id: string }) => row.id === open.id), "Dolu lobi listelenmez.");
+  assert.equal((await call("POST", `/games/${open.id}/join`, actors[2], {})).body.error.code, "ROOM_FULL");
+});
+
+test("herkes oylayınca oylama süreyi beklemeden biter; davetli odada sıralama var, lig puanı yok", async () => {
+  const row = await voting();
+  const rate = (actor: Actor, submissionId: string, stars: number) => call("PUT", `/games/${row.id}/submissions/${submissionId}/rating`, actor, { stars });
+  assert.equal((await rate(actors[2], row.first.submissionId, 5)).status, 200);
+  assert.equal((await rate(actors[2], row.second.submissionId, 3)).status, 200);
+  assert.equal((await rate(actors[0], row.second.submissionId, 4)).status, 200);
+  assert.equal((await state(row.id)).phase, "VOTING", "Bir üye henüz oylamadı.");
+  assert.equal((await rate(actors[1], row.first.submissionId, 4)).status, 200);
+  const finished = await state(row.id);
+  assert.equal(finished.phase, "COMPLETED", "Son oyla sonuçlar açılır.");
+  const result = await call("GET", `/games/${row.id}/results`, actors[2]);
+  assert.equal(result.status, 200);
+  assert.deepEqual(result.body.items.map((item: { rank: number; author: { id: string } }) => [item.rank, item.author.id]), [[1, actors[0].id], [2, actors[1].id]]);
+  assert.equal(result.body.official, false); assert.equal(result.body.league, null); assert.equal(result.body.totalPoints, null);
+  assert.equal(await db.gameLeaguePoint.count({ where: { sessionId: row.id } }), 0);
+});
+
+test("herkese açık defilede ilk üç 50/30/20 lig puanı alır; sonuç ve /me/league toplamı gösterir", async () => {
+  const { id } = await group(3, { isPublic: true });
+  assert.equal((await command(id, "start")).status, 200);
+  const subs = [];
+  for (const actor of actors.slice(0, 3)) { const result = await submit(id, actor); assert.equal(result.status, 200); subs.push(result.body.submissionId); }
+  assert.equal((await command(id, "end-submission")).body.phase, "VOTING");
+  const stars = [[null, 4, 2], [5, null, 2], [5, 4, null]];
+  for (const [voter, row] of stars.entries()) for (const [target, value] of row.entries()) {
+    if (value !== null) assert.equal((await call("PUT", `/games/${id}/submissions/${subs[target]}/rating`, actors[voter], { stars: value })).status, 200);
+  }
+  assert.equal((await state(id)).phase, "COMPLETED");
+  const result = await call("GET", `/games/${id}/results`, actors[0]);
+  assert.equal(result.body.official, true); assert.equal(result.body.myRank, 1); assert.equal(result.body.awardedPoints, 50);
+  assert.deepEqual(result.body.items.map((item: { rank: number; awardedPoints: number; ratingCount: number }) => [item.rank, item.awardedPoints, item.ratingCount]), [[1, 50, 2], [2, 30, 2], [3, 20, 2]]);
+  assert.equal(result.body.totalPoints, 50); assert.equal(result.body.league.name, "Bronz Lig"); assert.equal(result.body.league.remaining, 450);
+  assert.deepEqual((await call("GET", "/me/league", actors[1])).body, { totalPoints: 30, league: { name: "Bronz Lig", nextName: "Gümüş Lig", current: 30, span: 500, remaining: 470 } });
+});
+
+test("Podyum Turu herkese aynı yarışmacıyı sırayla gösterir; oy sayısı ve kendi sırası görünür", async () => {
+  const row = await voting();
+  const first = await call("GET", `/games/${row.id}/turn`, actors[0]);
+  assert.equal(first.status, 200, JSON.stringify(first.body));
+  assert.equal(first.body.index, 0); assert.equal(first.body.total, 2); assert.equal(first.body.turnSeconds, 10);
+  assert.equal(first.body.current.mine, true, "İlk yarışmacı host'un kombini.");
+  assert.equal(first.body.voterCount, 2); assert.equal(first.body.votedCount, 0); assert.ok(first.body.nextNumber > first.body.current.number, "Sıradaki yarışmacı numarası büyüktür.");
+  const other = await call("GET", `/games/${row.id}/turn`, actors[1]);
+  assert.equal(other.body.current.id, first.body.current.id, "Herkese aynı kart."); assert.equal(other.body.myTurnIn, 1);
+  assert.equal((await call("PUT", `/games/${row.id}/submissions/${first.body.current.id}/rating`, actors[1], { stars: 4 })).status, 200);
+  const voted = await call("GET", `/games/${row.id}/turn`, actors[1]);
+  assert.equal(voted.body.votedCount, 1); assert.equal(voted.body.current.myStars, 4);
+  const shifted = new Date(Date.now() - 11000);
+  await db.gameSession.update({ where: { id: row.id }, data: { startsAt: new Date(shifted.getTime() - 60000), submissionEndsAt: shifted, votingStartsAt: shifted, votingEndsAt: new Date(Date.now() + 9000) } });
+  const next = await call("GET", `/games/${row.id}/turn`, actors[1]);
+  assert.equal(next.body.index, 1); assert.equal(next.body.current.mine, true); assert.equal(next.body.myTurnIn, null); assert.equal(next.body.nextNumber, null);
+});
+

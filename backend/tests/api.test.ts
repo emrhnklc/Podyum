@@ -31,6 +31,7 @@ beforeEach(async () => {
   mailbox = await mkdtemp(join(tmpdir(), "kombin-auth-"));
   process.env.NODE_ENV = "test";
   process.env.AUTH_MOCK_ENABLED = "true";
+  process.env.AUTH_EMAIL_VERIFICATION_REQUIRED = "true";
   process.env.LOCAL_MAILBOX_DIR = mailbox;
   app = await createApp();
   await app.listen(0, "127.0.0.1");
@@ -58,7 +59,7 @@ afterEach(async () => {
   } finally {
     await app?.close();
     if (mailbox) await rm(mailbox, { recursive: true, force: true });
-    for (const key of ["NODE_ENV", "AUTH_MOCK_ENABLED", "LOCAL_MAILBOX_DIR"]) {
+    for (const key of ["NODE_ENV", "AUTH_MOCK_ENABLED", "AUTH_EMAIL_VERIFICATION_REQUIRED", "LOCAL_MAILBOX_DIR"]) {
       if (originalEnv[key] === undefined) delete process.env[key];
       else process.env[key] = originalEnv[key];
     }
@@ -285,4 +286,16 @@ test("cursor filtreyle doğrulanır; bozuk imleç ve yanlış ortam ayarı redde
   assert.throws(() => readEnvironment({ ...process.env, CORS_ORIGINS: "*" }));
   assert.throws(() => readEnvironment({ ...process.env, POLL_CLOSE_INTERVAL_MS: "0" }));
   assert.throws(() => readEnvironment({ ...process.env, POLL_CLOSE_WORKER_ENABLED: "yes" }));
+});
+
+test("e-posta onayı kapalıyken kayıt onaylı açılır ve hemen giriş yapılır", async () => {
+  process.env.AUTH_EMAIL_VERIFICATION_REQUIRED = "false";
+  const email = `${marker}@example.com`;
+  assert.equal((await call("/auth/register", { email, password, username: marker, displayName: "Onaysız" })).status, 202);
+  const mails = await readdir(mailbox);
+  assert.equal(mails.length, 0, "Onay kapalıyken doğrulama postası gönderilmemeli.");
+  const credential = await db.authCredential.findUnique({ where: { email } });
+  assert.ok(credential?.emailVerifiedAt, "Hesap onaylı açılmalı.");
+  const session = await login(email);
+  assert.ok(session.accessToken);
 });

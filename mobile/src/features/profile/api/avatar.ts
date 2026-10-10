@@ -20,11 +20,16 @@ function accountGuard(client: SessionManager) {
   };
 }
 
-export async function prepareAvatar(
+// Yükleme izni → dosya → işleme. Avatar ve oylama fotoğrafları aynı akışı
+// kullanır; bulanıklaştırma açıksa ve bölge seçilmemişse kullanıcının "yüz yok"
+// onayı (confirmNoFaces) gerekir, istemci bunu kendiliğinden göndermez.
+export async function uploadMedia(
   client: SessionManager,
   file: AvatarFile,
   byteSize: number,
   mimeType: string,
+  purpose: "AVATAR" | "POLL" | "GAME",
+  blur: { requested: boolean; confirmNoFaces?: boolean } = { requested: false },
 ) {
   const check = accountGuard(client);
   check();
@@ -34,16 +39,16 @@ export async function prepareAvatar(
   }>("/media/uploads", {
     method: "POST",
     body: JSON.stringify({
-      purpose: "AVATAR",
+      purpose,
       mimeType,
       byteSize,
-      blurRequested: false,
+      blurRequested: blur.requested,
     }),
   });
   check();
   const data = new FormData();
   // Native FormData yerel URI nesnesini, web ise Blob'u kabul eder.
-  if (file instanceof Blob) data.append("file", file, "avatar");
+  if (file instanceof Blob) data.append("file", file, purpose.toLowerCase());
   else data.append("file", file as unknown as Blob);
   await client.response(grant.upload.path, {
     method: "POST",
@@ -53,7 +58,26 @@ export async function prepareAvatar(
   check();
   return client.request<AvatarAsset>(`/media/${grant.asset.id}/complete`, {
     method: "POST",
-    body: "{}",
+    body: JSON.stringify(
+      blur.requested && blur.confirmNoFaces ? { confirmNoFaces: true } : {},
+    ),
+  });
+}
+
+export function prepareAvatar(
+  client: SessionManager,
+  file: AvatarFile,
+  byteSize: number,
+  mimeType: string,
+) {
+  return uploadMedia(client, file, byteSize, mimeType, "AVATAR");
+}
+
+// Kullanıcı son görüntüyü ekranda onayladığında çağrılır.
+export async function acceptPreview(client: SessionManager, mediaId: string) {
+  await client.request(`/media/${mediaId}/accept-preview`, {
+    method: "POST",
+    body: JSON.stringify({ confirmed: true }),
   });
 }
 

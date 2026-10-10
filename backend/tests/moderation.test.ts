@@ -99,6 +99,7 @@ afterEach(async () => {
       await tx.notification.deleteMany({ where: { userId: { in: users } } });
       await tx.idempotencyRecord.deleteMany({ where: { userId: { in: users } } });
       await tx.report.deleteMany({ where: { id: { in: reports } } });
+      await tx.gameLeaguePoint.deleteMany({ where: { sessionId: { in: games } } });
       await tx.gameOutcome.deleteMany({ where: { sessionId: { in: games } } });
       await tx.gameScore.deleteMany({ where: { sessionId: { in: games } } });
       await tx.gameSubmission.deleteMany({ where: { sessionId: { in: games } } });

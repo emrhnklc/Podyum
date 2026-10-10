@@ -6,6 +6,7 @@ export interface Environment {
   port: number;
   docsEnabled: boolean;
   authMockEnabled: boolean;
+  emailVerificationRequired: boolean;
   localMailboxDir: string;
   localMediaDir: string;
   corsOrigins: string[];
@@ -80,6 +81,8 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
     port: Number(portText),
     docsEnabled: flag(env.API_DOCS_ENABLED, true, "API_DOCS_ENABLED"),
     authMockEnabled,
+    // Ürün kararı: e-posta onayı şimdilik kapalı; kayıt olan hemen giriş yapabilir.
+    emailVerificationRequired: flag(env.AUTH_EMAIL_VERIFICATION_REQUIRED, false, "AUTH_EMAIL_VERIFICATION_REQUIRED"),
     localMailboxDir: env.LOCAL_MAILBOX_DIR ?? ".local/mailbox",
     localMediaDir: env.LOCAL_MEDIA_DIR ?? ".local/media",
     corsOrigins,

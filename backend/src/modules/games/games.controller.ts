@@ -5,7 +5,7 @@ import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
 import {
   CreateGameDto, DailyGameDto, GameBallotDto, GameHistoryDto, GameIdDto, GameInviteDto,
   GameInviteResponseDto, GameLeaveDto, GamePageDto, GameResultsDto, GameScoreDto, GameScoreParamsDto,
-  GameScoreReceiptDto, GameStateDto, GameSubmissionReceiptDto, GameSubmitDto, GameSummaryDto, GameVersionDto, UpdateGameSettingsDto,
+  GameScoreReceiptDto, GameStateDto, GameTurnDto, LeagueDto, OpenGameDto, GameSubmissionReceiptDto, GameSubmitDto, GameSummaryDto, GameVersionDto, UpdateGameSettingsDto,
 } from "./dto/games.dto.js";
 import { GameSchedulerService } from "./game-scheduler.service.js";
 import { GamesService } from "./games.service.js";
@@ -51,15 +51,30 @@ export class GamesController {
   @HttpCode(200)
   @Idempotent()
   @ApiOkResponse({ type: GameStateDto })
-  @ApiOperation({ summary: "Günlük etkinliğe katıl; fotoğraf süresi bitince yeni katılım kapanır" })
+  @ApiOperation({ summary: "Günlük etkinliğe veya herkese açık lobiye davetsiz katıl; fotoğraf süresi bitince yeni katılım kapanır" })
   joinDaily(@CurrentUser() user: AuthenticatedUser, @Param() params: GameIdDto, @Body(new EmptyGameBodyPipe()) _body: unknown, @Headers("idempotency-key") key?: string) {
     return this.games.joinDaily(user.userId, params.id, key);
   }
+
+  @Get("games/open")
+  @ApiOkResponse({ type: [OpenGameDto] })
+  @ApiOperation({ summary: "Hızlı eşleş: davet gerekmeden katılınabilir herkese açık lobiler (en fazla 20)" })
+  open(@CurrentUser() user: AuthenticatedUser) { return this.games.openRooms(user.userId); }
+
+  @Get("me/league")
+  @ApiOkResponse({ type: LeagueDto })
+  @ApiOperation({ summary: "Herkese açık defilelerden kazanılan toplam lig puanı ve lig kademesi" })
+  league(@CurrentUser() user: AuthenticatedUser) { return this.games.league(user.userId); }
 
   @Get("me/games")
   @ApiOkResponse({ type: GameHistoryDto })
   @ApiOperation({ summary: "Kendi oyun katılım/geçmiş listen; joinedAt/sessionId cursor" })
   history(@CurrentUser() user: AuthenticatedUser, @Query() query: GamePageDto) { return this.games.history(user.userId, query); }
+
+  @Get("games/:id/turn")
+  @ApiOkResponse({ type: GameTurnDto })
+  @ApiOperation({ summary: "Podyum Turu: o an herkese gösterilen yarışmacı, tur bitişi, kaç kişinin oyladığı ve sıradaki" })
+  turn(@CurrentUser() user: AuthenticatedUser, @Param() params: GameIdDto) { return this.games.turn(user.userId, params.id); }
 
   @Get("games/:id")
   @ApiOkResponse({ type: GameStateDto })

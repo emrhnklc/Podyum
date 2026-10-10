@@ -102,6 +102,7 @@ afterEach(async () => {
       await tx.notification.deleteMany({ where: { userId: { in: ids } } });
       await tx.deviceToken.deleteMany({ where: { userId: { in: ids } } });
       await tx.report.deleteMany({ where: { reporterId: { in: ids } } });
+      await tx.gameLeaguePoint.deleteMany({ where: { sessionId: { in: sessions } } });
       await tx.gameOutcome.deleteMany({ where: { sessionId: { in: sessions } } });
       await tx.gameScore.deleteMany({ where: { sessionId: { in: sessions } } });
       await tx.gameSubmission.deleteMany({ where: { sessionId: { in: sessions } } });

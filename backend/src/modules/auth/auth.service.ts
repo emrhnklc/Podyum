@@ -58,11 +58,13 @@ export class AuthService {
       return await this.prisma.$transaction(async (tx) => {
         await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtextextended(${`register:${dto.email}`}, 0))`;
         if (await tx.authCredential.findUnique({ where: { email: dto.email } })) return accepted;
+        // Onay kapalıyken hesap onaylı açılır ve doğrulama postası gönderilmez.
+        const verificationRequired = readEnvironment().emailVerificationRequired;
         const user = await tx.user.create({ data: {
           username: dto.username, displayName: dto.displayName, profileCompletedAt: new Date(),
-          credential: { create: { email: dto.email, passwordHash } },
+          credential: { create: { email: dto.email, passwordHash, emailVerifiedAt: verificationRequired ? null : new Date() } },
         } });
-        await this.issueAction(tx, user.id, dto.email, 1, "VERIFY_EMAIL");
+        if (verificationRequired) await this.issueAction(tx, user.id, dto.email, 1, "VERIFY_EMAIL");
         return accepted;
       });
     } catch (error) {
@@ -95,7 +97,7 @@ export class AuthService {
       const current = await tx.authCredential.findUnique({ where: { userId: credential.userId }, include: { user: true } });
       if (!current || current.version !== credential.version) throw new ApiError(401, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
       this.checkActive(current.user.status);
-      if (!current.emailVerifiedAt) throw new ApiError(403, "EMAIL_NOT_VERIFIED", "Önce e-posta adresini doğrula.");
+      if (!current.emailVerifiedAt && readEnvironment().emailVerificationRequired) throw new ApiError(403, "EMAIL_NOT_VERIFIED", "Önce e-posta adresini doğrula.");
       return this.createSession(tx, current.userId, "email");
     });
   }

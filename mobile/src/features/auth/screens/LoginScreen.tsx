@@ -18,7 +18,13 @@ import { markWelcomed } from "../welcome";
 
 export function LoginScreen() {
   const { client } = useAuth();
-  const params = useLocalSearchParams<{ onboarding?: string }>();
+  const params = useLocalSearchParams<{ onboarding?: string; next?: string }>();
+  // Girişten sonra yalnız davet sayfasına geri dönülür; dış adres kabul edilmez.
+  const next =
+    typeof params.next === "string" &&
+    /^\/games\/join\?token=[A-Za-z0-9_-]{43}$/.test(params.next)
+      ? params.next
+      : null;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,6 +41,10 @@ export function LoginScreen() {
       await client.login(email, password);
       setPassword("");
       markWelcomed();
+      if (next && !client.state.me?.profileSetupRequired) {
+        router.replace(next as `/games/join?token=${string}`);
+        return;
+      }
       router.replace(
         params.onboarding === "1" || client.state.me?.profileSetupRequired
           ? "/auth/register"
