@@ -135,7 +135,7 @@ export function TrendsScreen() {
             style={({ pressed }) => [
               styles.row,
               {
-                backgroundColor: index === 0 ? "#FBE7EB" : colors.surface,
+                backgroundColor: index === 0 ? "#EAD7C6" : colors.surface,
                 opacity: pressed ? 0.6 : 1,
               },
             ]}

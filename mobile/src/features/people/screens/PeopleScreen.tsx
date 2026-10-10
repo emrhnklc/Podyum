@@ -17,7 +17,7 @@ import { ME } from "@/constants/demo";
 import { getUser } from "@/features/profile/data/demo-users";
 import { compactCount } from "@/lib/format";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { brand, colors, common, fonts, serif } from "@/theme";
 import {
   PEOPLE_FILTERS,
   featuredCreators,
@@ -26,16 +26,25 @@ import {
   type PeopleFilter,
 } from "../data/demo-people";
 
-function matches(person: DemoPerson, filter: PeopleFilter | null, query: string) {
+function matches(
+  person: DemoPerson,
+  filter: PeopleFilter | null,
+  query: string,
+) {
   const user = getUser(person.username);
   if (filter === "CLOSE" && !person.closeTaste) return false;
   if (filter === "NEW" && !person.isNew) return false;
-  if (filter && filter !== "CLOSE" && filter !== "NEW" && !person.tags.includes(filter))
+  if (
+    filter &&
+    filter !== "CLOSE" &&
+    filter !== "NEW" &&
+    !person.tags.includes(filter)
+  )
     return false;
   const needle = query.trim().toLocaleLowerCase("tr");
   if (!needle) return true;
-  return [person.username, user?.displayName ?? "", ...person.tags].some((text) =>
-    text.toLocaleLowerCase("tr").includes(needle),
+  return [person.username, user?.displayName ?? "", ...person.tags].some(
+    (text) => text.toLocaleLowerCase("tr").includes(needle),
   );
 }
 
@@ -51,8 +60,12 @@ export function PeopleScreen() {
   // Yalnız önizleme; gerçek arkadaşlık isteği gönderilmez.
   const [requested, setRequested] = useState<string[]>([]);
   const message = usePreviewMessage();
-  const featured = featuredCreators.filter((person) => matches(person, filter, query));
-  const suggested = suggestedPeople.filter((person) => matches(person, filter, query));
+  const featured = featuredCreators.filter((person) =>
+    matches(person, filter, query),
+  );
+  const suggested = suggestedPeople.filter((person) =>
+    matches(person, filter, query),
+  );
   const toggleRequest = (username: string) =>
     setRequested((previous) =>
       previous.includes(username)
@@ -73,7 +86,9 @@ export function PeopleScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Geri"
-            onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/")
+            }
             style={styles.round}
           >
             <Ionicons name="arrow-back" size={22} color={colors.text} />
@@ -193,7 +208,13 @@ export function PeopleScreen() {
   );
 }
 
-function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => void }) {
+function SectionHeader({
+  title,
+  onSeeAll,
+}: {
+  title: string;
+  onSeeAll: () => void;
+}) {
   return (
     <View style={[common.spread, { marginTop: 4 }]}>
       <Text style={styles.section}>{title}</Text>
@@ -202,10 +223,16 @@ function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => voi
         onPress={onSeeAll}
         style={[common.row, { gap: 4 }]}
       >
-        <Text style={{ fontSize: 14, color: blush.pink, fontFamily: fonts.medium }}>
+        <Text
+          style={{
+            fontSize: 14,
+            color: brand.accent,
+            fontFamily: fonts.medium,
+          }}
+        >
           Tümünü gör
         </Text>
-        <Ionicons name="chevron-forward" size={15} color={blush.pink} />
+        <Ionicons name="chevron-forward" size={15} color={brand.accent} />
       </Pressable>
     </View>
   );
@@ -215,10 +242,21 @@ function Photo({ person, style }: { person: DemoPerson; style: object }) {
   const user = getUser(person.username);
   return (
     <View style={[{ overflow: "hidden", backgroundColor: person.tone }, style]}>
-      <PreviewImage uri={user?.avatar} tone={person.tone} icon="person-outline" />
-      {!user?.avatar && (
+      {user?.avatar ? (
+        <PreviewImage
+          uri={user.avatar}
+          tone={person.tone}
+          icon="person-outline"
+        />
+      ) : (
         <View style={[StyleSheet.absoluteFill, styles.initials]}>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 22, color: blush.wine }}>
+          <Text
+            style={{
+              fontFamily: fonts.bold,
+              fontSize: 22,
+              color: brand.accentDark,
+            }}
+          >
             {user?.initials ?? "?"}
           </Text>
         </View>
@@ -251,22 +289,38 @@ function AddButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={
-        mine ? "Profilini aç" : requested ? `${username} isteğini geri al` : `${username} arkadaş ekle`
+        mine
+          ? "Profilini aç"
+          : requested
+            ? `${username} isteğini geri al`
+            : `${username} arkadaş ekle`
       }
       onPress={mine ? () => router.push("/profil") : onToggle}
       style={({ pressed }) => [
         styles.add,
         compact && { paddingHorizontal: 14, minHeight: 44 },
-        requested && { backgroundColor: blush.surface },
+        requested && { backgroundColor: brand.surface },
         { opacity: pressed ? 0.75 : 1 },
       ]}
     >
       <Ionicons
-        name={mine ? "person-outline" : requested ? "checkmark" : "person-add-outline"}
+        name={
+          mine
+            ? "person-outline"
+            : requested
+              ? "checkmark"
+              : "person-add-outline"
+        }
         size={18}
-        color={blush.wine}
+        color={brand.accentDark}
       />
-      <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: blush.wine }}>
+      <Text
+        style={{
+          fontFamily: fonts.semibold,
+          fontSize: 14,
+          color: brand.accentDark,
+        }}
+      >
         {mine ? "Profilin" : requested ? "İstek gitti" : "Arkadaş ekle"}
       </Text>
     </Pressable>
@@ -286,39 +340,58 @@ function FeaturedCard({
 }) {
   const user = getUser(person.username);
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${person.username} profilini aç`}
-      onPress={() => openProfile(person.username)}
-      style={[styles.featured, tinted && { backgroundColor: "#F6E9F6", borderColor: "#EBD3EB" }]}
+    // Profil alanı ve ekleme düğmesi kardeş; iç içe düğme web'de geçersiz.
+    <View
+      style={[
+        styles.featured,
+        tinted && { backgroundColor: "#EAD7C6", borderColor: brand.accentSoft },
+      ]}
     >
-      <Photo person={person} style={styles.featuredPhoto} />
-      <View style={{ flex: 1, gap: 8 }}>
-        <View style={[common.spread, { alignItems: "flex-start", gap: 6 }]}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: fonts.bold, fontSize: 17 }} numberOfLines={1}>
-              {person.username}
-            </Text>
-            <Text style={{ fontSize: 13, color: colors.muted }} numberOfLines={1}>
-              {user?.displayName}
-            </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${person.username} profilini aç`}
+        onPress={() => openProfile(person.username)}
+        style={styles.featuredMain}
+      >
+        <Photo person={person} style={styles.featuredPhoto} />
+        <View style={{ flex: 1, gap: 8, paddingBottom: 56 }}>
+          <View style={[common.spread, { alignItems: "flex-start", gap: 6 }]}>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ fontFamily: fonts.bold, fontSize: 17 }}
+                numberOfLines={1}
+              >
+                {person.username}
+              </Text>
+              <Text
+                style={{ fontSize: 13, color: colors.muted }}
+                numberOfLines={1}
+              >
+                {user?.displayName}
+              </Text>
+            </View>
+            <View style={styles.stars}>
+              <Ionicons name="star" size={13} color={brand.accent} />
+              <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
+                {compactCount(user?.counts.stars ?? 0)}
+              </Text>
+            </View>
           </View>
-          <View style={styles.stars}>
-            <Ionicons name="star" size={13} color={blush.pink} />
-            <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
-              {compactCount(user?.counts.stars ?? 0)}
-            </Text>
+          <View style={styles.tags}>
+            {person.tags.map((tag) => (
+              <Tag key={tag} label={tag} />
+            ))}
           </View>
         </View>
-        <View style={styles.tags}>
-          {person.tags.map((tag) => (
-            <Tag key={tag} label={tag} />
-          ))}
-        </View>
-        <View style={{ flex: 1 }} />
-        <AddButton username={person.username} requested={requested} onToggle={onToggle} />
+      </Pressable>
+      <View style={styles.featuredAdd}>
+        <AddButton
+          username={person.username}
+          requested={requested}
+          onToggle={onToggle}
+        />
       </View>
-    </Pressable>
+    </View>
   );
 }
 
@@ -333,42 +406,55 @@ function SuggestedRow({
 }) {
   const user = getUser(person.username);
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${person.username} profilini aç`}
-      onPress={() => openProfile(person.username)}
-      style={styles.row}
-    >
-      <Photo person={person} style={styles.avatar} />
-      <View style={{ flex: 1, gap: 6 }}>
-        <Text numberOfLines={1}>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 16 }}>{person.username}</Text>
-          <Text style={{ fontSize: 13, color: colors.muted }}>  {user?.displayName}</Text>
-        </Text>
-        <View style={styles.tags}>
-          {person.tags.map((tag) => (
-            <Tag key={tag} label={tag} />
-          ))}
-        </View>
-        <View style={[common.row, { gap: 6 }]}>
-          <Ionicons name="people-outline" size={15} color={colors.muted} />
-          <Text style={{ fontSize: 12, color: colors.muted }}>
-            {person.mutualFriends} ortak arkadaş
-          </Text>
-        </View>
+    // Üstte fotoğraf, ad ve düğme; altta tam genişlikte etiketler.
+    <View style={styles.row}>
+      <View style={[common.row, { gap: 12 }]}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${person.username} profilini aç`}
+          onPress={() => openProfile(person.username)}
+          style={styles.rowMain}
+        >
+          <Photo person={person} style={styles.avatar} />
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{ fontFamily: fonts.bold, fontSize: 16 }}
+              numberOfLines={1}
+            >
+              {person.username}
+            </Text>
+            <Text
+              style={{ fontSize: 13, color: colors.muted }}
+              numberOfLines={1}
+            >
+              {user?.displayName}
+            </Text>
+            <View style={[common.row, { gap: 5, marginTop: 2 }]}>
+              <Ionicons name="people-outline" size={14} color={colors.muted} />
+              <Text style={{ fontSize: 12, color: colors.muted }}>
+                {person.mutualFriends} ortak arkadaş
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+        <AddButton
+          username={person.username}
+          requested={requested}
+          onToggle={onToggle}
+          compact
+        />
       </View>
-      <AddButton
-        username={person.username}
-        requested={requested}
-        onToggle={onToggle}
-        compact
-      />
-    </Pressable>
+      <View style={styles.tags}>
+        {person.tags.map((tag) => (
+          <Tag key={tag} label={tag} />
+        ))}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: brand.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 14 },
   title: {
@@ -390,9 +476,9 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -403,15 +489,15 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: blush.pink,
+    backgroundColor: brand.accent,
   },
   search: {
     flex: 1,
     minHeight: 54,
     borderRadius: 27,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
@@ -431,17 +517,20 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 10,
     borderRadius: 22,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
+  featuredMain: { flex: 1, flexDirection: "row", gap: 12 },
+  // Ekleme düğmesi sağ sütunun altına, fotoğrafın yanına yerleşir.
+  featuredAdd: { position: "absolute", left: 138, right: 10, bottom: 10 },
   featuredPhoto: { width: 116, borderRadius: 16 },
   initials: { alignItems: "center", justifyContent: "center" },
   stars: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
     paddingHorizontal: 9,
     paddingVertical: 5,
     borderRadius: 14,
@@ -451,27 +540,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
   },
   add: {
     minHeight: 46,
     paddingHorizontal: 12,
     borderRadius: 23,
-    backgroundColor: blush.pinkSoft,
+    backgroundColor: brand.accentSoft,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
   },
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+    gap: 10,
     padding: 12,
     borderRadius: 22,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
-  avatar: { width: 64, height: 64, borderRadius: 32 },
+  avatar: { width: 56, height: 56, borderRadius: 28 },
+  rowMain: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12 },
 });

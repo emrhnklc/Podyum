@@ -19,17 +19,17 @@ import {
   CATEGORY_LABEL,
   type PollCategory,
 } from "@/constants/poll-categories";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { brand, colors, common, fonts, serif } from "@/theme";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 
 const MAX_OPTIONS = 4;
 const MAX_QUESTION = 100;
 const LETTERS = ["A", "B", "C", "D"];
-const TONES = ["#F6DCDC", "#ECDDF1", "#DDE6F1", "#F1EBDA"];
+const TONES = ["#EAD7C6", "#E4D6CB", "#DDE2E6", "#F1EBDA"];
 const BADGE_TONES = [
-  "rgba(204,92,134,0.85)",
-  "rgba(160,112,160,0.85)",
-  "rgba(96,124,168,0.85)",
+  "rgba(183,118,74,0.9)",
+  "rgba(107,65,40,0.85)",
+  "rgba(140,120,100,0.85)",
   "rgba(170,140,90,0.85)",
 ];
 const DURATIONS = [
@@ -54,15 +54,13 @@ type Photo = { uri: string; mimeType?: string; fileSize?: number };
 type Option = { id: number; photo?: Photo };
 
 export function CreatePollScreen() {
-  const [options, setOptions] = useState<Option[]>([
-    { id: 1 },
-    { id: 2 },
-  ]);
+  const [options, setOptions] = useState<Option[]>([{ id: 1 }, { id: 2 }]);
   const [nextId, setNextId] = useState(3);
   const [question, setQuestion] = useState("");
   const [category, setCategory] = useState<PollCategory>("OUTFIT");
   const [duration, setDuration] = useState(1800);
-  const [gender, setGender] = useState<(typeof GENDERS)[number]["value"]>("ALL");
+  const [gender, setGender] =
+    useState<(typeof GENDERS)[number]["value"]>("ALL");
   const [age, setAge] = useState<(typeof AGES)[number]["value"]>("ALL");
   const [myStyle, setMyStyle] = useState(false);
   const [friendsOnly, setFriendsOnly] = useState(false);
@@ -140,28 +138,43 @@ export function CreatePollScreen() {
           contentContainerStyle={{ gap: 10 }}
         >
           {options.map((option, index) => (
-            <Pressable
-              key={option.id}
-              accessibilityRole="button"
-              accessibilityLabel={
-                option.photo
-                  ? `${LETTERS[index]} fotoğrafını değiştir`
-                  : `${LETTERS[index]} fotoğrafı ekle`
-              }
-              onPress={() => pick(option.id)}
-              style={styles.tile}
-            >
-              <PreviewImage uri={option.photo?.uri} tone={TONES[index]} />
-              {!option.photo && (
-                <Text style={styles.tileHint}>Fotoğraf ekle</Text>
-              )}
-              <View
-                style={[styles.badge, { backgroundColor: BADGE_TONES[index] }]}
+            // Kaldır düğmesi fotoğraf düğmesinin içinde değil yanında durur;
+            // iç içe düğme web'de geçersiz HTML üretir.
+            <View key={option.id} style={styles.tile}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={
+                  option.photo
+                    ? `${LETTERS[index]} fotoğrafını değiştir`
+                    : `${LETTERS[index]} fotoğrafı ekle`
+                }
+                onPress={() => pick(option.id)}
+                style={styles.tilePress}
               >
-                <Text style={{ fontFamily: fonts.bold, color: colors.onAccent }}>
-                  {LETTERS[index]}
-                </Text>
-              </View>
+                <PreviewImage uri={option.photo?.uri} tone={TONES[index]} />
+                {!option.photo && (
+                  <Text style={styles.tileHint}>Fotoğraf ekle</Text>
+                )}
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: BADGE_TONES[index] },
+                  ]}
+                >
+                  <Text
+                    style={{ fontFamily: fonts.bold, color: colors.onAccent }}
+                  >
+                    {LETTERS[index]}
+                  </Text>
+                </View>
+                {option.photo && (
+                  <View style={styles.products}>
+                    <Text style={{ fontSize: 13, fontFamily: fonts.semibold }}>
+                      Değiştir
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${LETTERS[index]} seçeneğini kaldır`}
@@ -171,14 +184,7 @@ export function CreatePollScreen() {
               >
                 <Ionicons name="close" size={18} color={colors.text} />
               </Pressable>
-              {option.photo && (
-                <View style={styles.products}>
-                  <Text style={{ fontSize: 13, fontFamily: fonts.semibold }}>
-                    Değiştir
-                  </Text>
-                </View>
-              )}
-            </Pressable>
+            </View>
           ))}
           {options.length < MAX_OPTIONS && (
             <Pressable
@@ -188,7 +194,7 @@ export function CreatePollScreen() {
               style={[styles.tile, styles.addTile]}
             >
               <View style={styles.plus}>
-                <Ionicons name="add" size={28} color={blush.pink} />
+                <Ionicons name="add" size={28} color={brand.accent} />
               </View>
               <Text style={{ fontFamily: fonts.bold, fontSize: 16 }}>
                 Seçenek ekle
@@ -209,7 +215,7 @@ export function CreatePollScreen() {
             maxLength={MAX_QUESTION}
             placeholder="Cuma akşamı ilk buluşma. Hangisi?"
             placeholderTextColor={colors.muted}
-            selectionColor={blush.pink}
+            selectionColor={brand.accent}
             multiline
             style={styles.input}
           />
@@ -250,12 +256,12 @@ export function CreatePollScreen() {
                 <Ionicons
                   name="time-outline"
                   size={20}
-                  color={active ? blush.wine : colors.text}
+                  color={active ? brand.accentDark : colors.text}
                 />
                 <Text
                   style={{
                     fontFamily: fonts.bold,
-                    color: active ? blush.wine : colors.text,
+                    color: active ? brand.accentDark : colors.text,
                   }}
                 >
                   {option.label}
@@ -268,7 +274,7 @@ export function CreatePollScreen() {
         <View style={styles.audience}>
           <View style={common.row}>
             <View style={styles.audienceIcon}>
-              <Ionicons name="people" size={22} color={blush.wine} />
+              <Ionicons name="people" size={22} color={brand.accentDark} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: fonts.bold, fontSize: 17 }}>
@@ -361,7 +367,9 @@ export function CreatePollScreen() {
           </Text>
           <Ionicons name="sparkles" size={20} color={colors.onAccent} />
         </Pressable>
-        <Text style={{ fontSize: 12, color: colors.muted, textAlign: "center" }}>
+        <Text
+          style={{ fontSize: 12, color: colors.muted, textAlign: "center" }}
+        >
           Seçtiğin fotoğraflar şimdilik yalnızca bu telefonda kalır. Giriş
           bağlandığında hesabınla birlikte sunucuya yüklenecek.
         </Text>
@@ -372,13 +380,21 @@ export function CreatePollScreen() {
 
 function Label({ children }: { children: string }) {
   return (
-    <Text style={{ fontFamily: fonts.semibold, fontSize: 16, marginBottom: -4 }}>
+    <Text
+      style={{ fontFamily: fonts.semibold, fontSize: 16, marginBottom: -4 }}
+    >
       {children}
     </Text>
   );
 }
 
-function ChoiceRow({ label, children }: { label: string; children: ReactNode }) {
+function ChoiceRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <View style={[common.row, { gap: 8 }]}>
       <Text style={{ width: 78, fontSize: 14 }}>{label}</Text>
@@ -412,13 +428,17 @@ function AudienceToggle({
       onPress={onPress}
       style={[styles.toggle, active && styles.toggleActive]}
     >
-      <Ionicons name={icon} size={18} color={active ? blush.wine : colors.text} />
+      <Ionicons
+        name={icon}
+        size={18}
+        color={active ? brand.accentDark : colors.text}
+      />
       <Text
         style={{
           flex: 1,
           fontSize: 13,
           fontFamily: active ? fonts.semibold : fonts.regular,
-          color: active ? blush.wine : colors.text,
+          color: active ? brand.accentDark : colors.text,
         }}
         numberOfLines={2}
       >
@@ -459,7 +479,7 @@ function SwitchRow({
         accessibilityLabel={title}
         value={value}
         onValueChange={onChange}
-        trackColor={{ true: blush.pink, false: blush.line }}
+        trackColor={{ true: brand.accent, false: brand.line }}
         thumbColor="#FFFFFF"
       />
     </View>
@@ -467,7 +487,7 @@ function SwitchRow({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: brand.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 16 },
   header: { minHeight: 44, justifyContent: "center" },
@@ -490,18 +510,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  tilePress: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   tileHint: { fontSize: 12, color: colors.photoText, marginTop: 70 },
   addTile: {
     borderWidth: 1.5,
     borderStyle: "dashed",
-    borderColor: blush.pinkSoft,
+    borderColor: brand.accentSoft,
     gap: 4,
   },
   plus: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 8,
@@ -538,9 +567,9 @@ const styles = StyleSheet.create({
   },
   inputBox: {
     borderRadius: 20,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
@@ -558,9 +587,9 @@ const styles = StyleSheet.create({
     padding: 4,
     minHeight: 56,
     borderRadius: 28,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
   segmentItem: {
     flex: 1,
@@ -570,20 +599,20 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 24,
   },
-  segmentActive: { backgroundColor: blush.pinkSoft },
+  segmentActive: { backgroundColor: brand.accentSoft },
   audience: {
     gap: 14,
     padding: 14,
     borderRadius: 24,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
   audienceIcon: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -596,29 +625,32 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     paddingRight: 8,
     borderRadius: 25,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
-  toggleActive: { backgroundColor: blush.pinkSoft, borderColor: blush.pink },
+  toggleActive: {
+    backgroundColor: brand.accentSoft,
+    borderColor: brand.accent,
+  },
   toggleDot: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: blush.pink,
+    backgroundColor: brand.accent,
     alignItems: "center",
     justifyContent: "center",
   },
-  divider: { height: 1, backgroundColor: blush.line, marginLeft: 36 },
+  divider: { height: 1, backgroundColor: brand.line, marginLeft: 36 },
   publish: {
     minHeight: 58,
     borderRadius: 29,
-    backgroundColor: blush.pink,
+    backgroundColor: brand.accent,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    shadowColor: blush.pink,
+    shadowColor: brand.accent,
     shadowOpacity: 0.3,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },

@@ -7,7 +7,7 @@ import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PreviewImage } from "@/components/media/PreviewImage";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { brand, colors, common, fonts, serif } from "@/theme";
 import { ME } from "@/constants/demo";
 import { compactCount } from "@/lib/format";
 import { useProfileUser } from "../hooks/use-profile-edits";
@@ -23,7 +23,7 @@ import { leagueFor } from "@/features/games/data/league";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 
 type IconName = keyof typeof Ionicons.glyphMap;
-type Tab = "POSTS" | "OUTFITS" | "POLLS" | "SAVED";
+type Tab = "POSTS" | "POLLS" | "SAVED";
 
 // Kendi profilin "Profilim", başkasınınki "Profil" düzeninde açılır.
 export function ProfileScreen({ username = ME }: { username?: string }) {
@@ -52,14 +52,11 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
   const rows =
     tab === "SAVED"
       ? posts.filter((post) => saved.includes(post.id))
-      : tab === "OUTFITS"
-        ? own.filter((post) => post.category === "OUTFIT")
-        : tab === "POLLS"
-          ? own.filter((post) => post.timeLeft !== "bitti")
-          : own;
+      : tab === "POLLS"
+        ? own.filter((post) => post.timeLeft !== "bitti")
+        : own;
   const tabs: { value: Tab; label: string; icon: IconName }[] = [
     { value: "POSTS", label: "Gönderiler", icon: "grid-outline" },
-    { value: "OUTFITS", label: "Kombinler", icon: "shirt-outline" },
     { value: "POLLS", label: "Oylamalar", icon: "stats-chart-outline" },
     ...(mine
       ? [{ value: "SAVED" as const, label: "Kaydedilenler", icon: "bookmark-outline" as const }]
@@ -77,11 +74,8 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
       >
         <View style={styles.header}>
           {mine ? (
-            <IconButton
-              label="Ayarlar"
-              icon="settings-outline"
-              onPress={() => router.push("/settings")}
-            />
+            // Ayarlar sağdaki menüden açılır; başlık ortada kalsın diye boşluk.
+            <View style={styles.iconButton} />
           ) : (
             <IconButton label="Geri" icon="chevron-back" onPress={back} />
           )}
@@ -139,7 +133,7 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 <Ionicons
                   name="checkmark-circle"
                   size={22}
-                  color={blush.pink}
+                  color={brand.accent}
                   accessibilityLabel="Onaylı hesap"
                 />
               )}
@@ -215,7 +209,7 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
               ]}
             >
               <Text
-                style={[styles.primaryText, following && { color: blush.wine }]}
+                style={[styles.primaryText, following && { color: brand.accentDark }]}
               >
                 {following ? "Takip ediliyor" : "Takip Et"}
               </Text>
@@ -229,8 +223,8 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 { opacity: pressed ? 0.85 : 1 },
               ]}
             >
-              <Ionicons name="paper-plane-outline" size={20} color={blush.wine} />
-              <Text style={{ fontFamily: fonts.bold, color: blush.wine }}>
+              <Ionicons name="paper-plane-outline" size={20} color={brand.accentDark} />
+              <Text style={{ fontFamily: fonts.bold, color: brand.accentDark }}>
                 Mesaj
               </Text>
             </Pressable>
@@ -287,13 +281,13 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 <Ionicons
                   name={option.icon}
                   size={18}
-                  color={active ? blush.wine : colors.muted}
+                  color={active ? brand.accentDark : colors.muted}
                 />
                 <Text
                   style={{
                     fontSize: 13,
                     fontFamily: active ? fonts.bold : fonts.medium,
-                    color: active ? blush.wine : colors.muted,
+                    color: active ? brand.accentDark : colors.muted,
                   }}
                   numberOfLines={1}
                 >
@@ -326,7 +320,7 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 >
                   <PreviewImage uri={leading.image} tone={leading.tone} />
                   <View style={styles.likes}>
-                    <Ionicons name="heart" size={12} color={blush.pink} />
+                    <Ionicons name="heart" size={12} color={brand.accent} />
                     <Text style={{ fontSize: 11, fontFamily: fonts.semibold }}>
                       {compactCount(post.totalVotes)}
                     </Text>
@@ -387,7 +381,7 @@ function Avatar({ user }: { user: DemoUser }) {
   return (
     <View style={styles.avatar}>
       {user.avatar ? (
-        <PreviewImage uri={user.avatar} tone={blush.pinkSoft} icon="person-outline" />
+        <PreviewImage uri={user.avatar} tone={brand.accentSoft} icon="person-outline" />
       ) : (
         <Text style={styles.initials}>{user.initials}</Text>
       )}
@@ -404,8 +398,8 @@ function LeaguePill({ stars }: { stars: number }) {
       onPress={() => router.push("/defile")}
       style={styles.league}
     >
-      <Ionicons name="trophy-outline" size={16} color="#5B3E8C" />
-      <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: "#5B3E8C" }}>
+      <Ionicons name="trophy-outline" size={16} color={brand.accentDark} />
+      <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: brand.accentDark }}>
         {league.name}
       </Text>
     </Pressable>
@@ -439,7 +433,7 @@ function Highlight({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: brand.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 16 },
   header: {
@@ -472,16 +466,16 @@ const styles = StyleSheet.create({
     borderRadius: 58,
     overflow: "hidden",
     borderWidth: 4,
-    borderColor: blush.card,
-    backgroundColor: blush.pinkSoft,
+    borderColor: brand.card,
+    backgroundColor: brand.accentSoft,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: blush.wine,
+    shadowColor: brand.accentDark,
     shadowOpacity: 0.12,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
   },
-  initials: { fontFamily: fonts.extraBold, fontSize: 36, color: blush.wine },
+  initials: { fontFamily: fonts.extraBold, fontSize: 36, color: brand.accentDark },
   avatarEdit: {
     position: "absolute",
     right: 0,
@@ -489,9 +483,9 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -510,13 +504,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: "#ECE3F7",
+    backgroundColor: brand.accentSoft,
   },
   stats: { flexDirection: "row", marginTop: 6 },
   stat: { flex: 1, gap: 1 },
   statDivider: {
     borderLeftWidth: 1,
-    borderLeftColor: blush.line,
+    borderLeftColor: brand.line,
     paddingLeft: 10,
   },
   statValue: { fontFamily: fonts.bold, fontSize: 18, color: colors.text },
@@ -525,17 +519,17 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 50,
     borderRadius: 25,
-    backgroundColor: blush.pink,
+    backgroundColor: brand.accent,
     alignItems: "center",
     justifyContent: "center",
   },
-  primaryMuted: { backgroundColor: blush.pinkSoft },
+  primaryMuted: { backgroundColor: brand.accentSoft },
   primaryText: { fontFamily: fonts.bold, fontSize: 16, color: colors.onAccent },
   squareButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -547,9 +541,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
   highlight: { width: 66, alignItems: "center", gap: 6 },
   highlightRing: {
@@ -558,7 +552,7 @@ const styles = StyleSheet.create({
     borderRadius: 33,
     padding: 3,
     borderWidth: 1.5,
-    borderColor: blush.pinkSoft,
+    borderColor: brand.accentSoft,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -569,12 +563,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  highlightNew: { backgroundColor: blush.card, borderColor: blush.line },
+  highlightNew: { backgroundColor: brand.card, borderColor: brand.line },
   highlightLabel: { fontSize: 12, color: colors.text },
   tabs: {
     flexGrow: 0,
     borderBottomWidth: 1,
-    borderBottomColor: blush.line,
+    borderBottomColor: brand.line,
   },
   // Sekmeler sığarsa eşit yayılır, sığmazsa yana kaydırılır.
   tab: {
@@ -589,7 +583,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "transparent",
     marginBottom: -1,
   },
-  tabActive: { borderBottomColor: blush.wine },
+  tabActive: { borderBottomColor: brand.accentDark },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   tile: {
     width: "32%",
@@ -604,7 +598,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 3,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 10,

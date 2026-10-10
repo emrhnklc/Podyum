@@ -1,7 +1,7 @@
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, type ColorValue } from "react-native";
-import { blush, colors, fonts } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 import { hasWelcomed } from "@/features/auth/welcome";
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -25,11 +25,11 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: blush.pink,
+        tabBarActiveTintColor: brand.accent,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: blush.surface,
-          borderTopColor: blush.line,
+          backgroundColor: brand.surface,
+          borderTopColor: brand.line,
           height: 76,
           paddingTop: 8,
         },
@@ -62,10 +62,10 @@ export default function TabsLayout() {
                 height: 52,
                 borderRadius: 26,
                 marginTop: -22,
-                backgroundColor: blush.pink,
+                backgroundColor: brand.accent,
                 alignItems: "center",
                 justifyContent: "center",
-                shadowColor: blush.pink,
+                shadowColor: brand.accent,
                 shadowOpacity: 0.35,
                 shadowRadius: 10,
                 shadowOffset: { width: 0, height: 4 },

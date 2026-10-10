@@ -16,16 +16,15 @@ import { Text } from "@/components/ui/Text";
 import { PreviewImage } from "@/components/media/PreviewImage";
 import { ME } from "@/constants/demo";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
-import { blush, colors, fonts } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 import {
   useProfileEdits,
   useProfileUser,
   type SocialLinks,
 } from "../hooks/use-profile-edits";
+import { HANDLE_HINT, HANDLE_PATTERN, MAX_BIO } from "../validation";
 
-const MAX_BIO = 150;
 const MAX_TAGS = 6;
-const HANDLE_PATTERN = /^[a-z0-9._]{3,30}$/;
 
 const SOCIALS: {
   key: keyof SocialLinks;
@@ -83,7 +82,7 @@ export function EditProfileScreen() {
 
   const handleError = HANDLE_PATTERN.test(handle)
     ? undefined
-    : "3–30 karakter; yalnız küçük harf, rakam, nokta ve alt çizgi.";
+    : HANDLE_HINT;
   const nameError = displayName.trim() ? undefined : "Görünen ad boş olamaz.";
   const canSave = !handleError && !nameError;
 
@@ -159,7 +158,7 @@ export function EditProfileScreen() {
             style={{
               fontFamily: fonts.bold,
               fontSize: 16,
-              color: canSave ? blush.pink : colors.muted,
+              color: canSave ? brand.accent : colors.muted,
             }}
           >
             Kaydet
@@ -175,7 +174,7 @@ export function EditProfileScreen() {
       >
         <View style={styles.coverWrap}>
           <View style={styles.cover}>
-            <PreviewImage uri={cover} tone={blush.pinkSoft} icon="image-outline" />
+            <PreviewImage uri={cover} tone={brand.accentSoft} icon="image-outline" />
             <CameraButton
               label="Kapak fotoğrafını değiştir"
               onPress={() => pick([3, 1], setCover)}
@@ -184,7 +183,7 @@ export function EditProfileScreen() {
           </View>
           <View style={styles.avatar}>
             {avatar ? (
-              <PreviewImage uri={avatar} tone={blush.pinkSoft} />
+              <PreviewImage uri={avatar} tone={brand.accentSoft} />
             ) : (
               <Text style={styles.initials}>{user.initials}</Text>
             )}
@@ -252,7 +251,7 @@ export function EditProfileScreen() {
                 style={styles.tag}
               >
                 <Text style={styles.tagText}>{tag}</Text>
-                <Ionicons name="close" size={14} color={blush.wine} />
+                <Ionicons name="close" size={14} color={brand.accentDark} />
               </Pressable>
             ))}
             {newTag !== null ? (
@@ -276,8 +275,8 @@ export function EditProfileScreen() {
                   onPress={() => setNewTag("")}
                   style={[styles.tag, styles.tagAdd]}
                 >
-                  <Ionicons name="add" size={16} color={blush.pink} />
-                  <Text style={[styles.tagText, { color: blush.pink }]}>
+                  <Ionicons name="add" size={16} color={brand.accent} />
+                  <Text style={[styles.tagText, { color: brand.accent }]}>
                     Etiket Ekle
                   </Text>
                 </Pressable>
@@ -348,7 +347,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <View style={[styles.field, error && { borderColor: blush.pink }]}>
+    <View style={[styles.field, error && { borderColor: brand.accent }]}>
       <Text style={styles.label}>{label}</Text>
       {children}
       {error && <Text style={styles.error}>{error}</Text>}
@@ -360,7 +359,7 @@ function Input({ style, ...props }: TextInputProps) {
   return (
     <TextInput
       placeholderTextColor={colors.muted}
-      selectionColor={blush.pink}
+      selectionColor={brand.accent}
       {...props}
       style={[styles.input, style]}
     />
@@ -390,7 +389,7 @@ function CameraButton({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: brand.background },
   header: {
     width: "100%",
     maxWidth: 520,
@@ -420,18 +419,18 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     overflow: "hidden",
     borderWidth: 4,
-    borderColor: blush.card,
-    backgroundColor: blush.pinkSoft,
+    borderColor: brand.card,
+    backgroundColor: brand.accentSoft,
     alignItems: "center",
     justifyContent: "center",
   },
-  initials: { fontFamily: fonts.extraBold, fontSize: 38, color: blush.wine },
+  initials: { fontFamily: fonts.extraBold, fontSize: 38, color: brand.accentDark },
   camera: {
     position: "absolute",
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",
@@ -445,9 +444,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 18,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     gap: 4,
   },
   label: { fontSize: 13, color: colors.muted },
@@ -459,7 +458,7 @@ const styles = StyleSheet.create({
   },
   inline: { flexDirection: "row", alignItems: "center", gap: 10 },
   counter: { alignSelf: "flex-end", fontSize: 12, color: colors.muted },
-  error: { fontSize: 12, color: blush.wine },
+  error: { fontSize: 12, color: brand.accentDark },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 6 },
   tag: {
     flexDirection: "row",
@@ -468,25 +467,25 @@ const styles = StyleSheet.create({
     minHeight: 40,
     paddingHorizontal: 14,
     borderRadius: 20,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
   },
-  tagText: { fontFamily: fonts.semibold, fontSize: 13, color: blush.wine },
+  tagText: { fontFamily: fonts.semibold, fontSize: 13, color: brand.accentDark },
   tagAdd: {
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.pinkSoft,
+    borderColor: brand.accentSoft,
   },
   tagInput: {
     minWidth: 120,
     fontFamily: fonts.semibold,
     fontSize: 13,
-    color: blush.wine,
+    color: brand.accentDark,
   },
   socialCard: {
     borderRadius: 18,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     overflow: "hidden",
   },
   socialTitle: {
@@ -496,7 +495,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
-  socialList: { backgroundColor: blush.card },
+  socialList: { backgroundColor: brand.card },
   socialRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -504,7 +503,7 @@ const styles = StyleSheet.create({
     minHeight: 54,
     paddingHorizontal: 16,
   },
-  socialDivider: { borderTopWidth: 1, borderTopColor: blush.line },
+  socialDivider: { borderTopWidth: 1, borderTopColor: brand.line },
   socialInput: {
     flex: 1,
     textAlign: "right",

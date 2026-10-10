@@ -37,7 +37,7 @@ export const featuredCreators: DemoPerson[] = [
   {
     username: "melisdgn",
     tags: ["Vintage", "Sokak stili", "Renkli"],
-    tone: "#F3D2E2",
+    tone: "#E8D3C3",
     mutualFriends: 21,
     closeTaste: true,
     isNew: true,
@@ -56,7 +56,7 @@ export const suggestedPeople: DemoPerson[] = [
   {
     username: "mertarsln",
     tags: ["Sokak stili", "Sneaker", "Oversize"],
-    tone: "#DCDDE6",
+    tone: "#DDD8D0",
     mutualFriends: 8,
     closeTaste: true,
     isNew: true,
@@ -64,7 +64,7 @@ export const suggestedPeople: DemoPerson[] = [
   {
     username: "zeynepdemir",
     tags: ["Vintage", "Retro", "Renkli"],
-    tone: "#F1D6D6",
+    tone: "#EBD9CC",
     mutualFriends: 15,
     closeTaste: true,
     isNew: false,
