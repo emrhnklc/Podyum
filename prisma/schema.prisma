@@ -363,14 +363,15 @@ model PollOption {
 }
 
 model ProductTag {
-  id          String     @id @default(uuid()) @db.Uuid
-  optionId    String     @db.Uuid
-  title       String     @db.VarChar(150)
-  brand       String?    @db.VarChar(100)
-  priceMinor  Int?
-  currency    String     @default("TRY") @db.Char(3)
-  externalUrl String     @db.VarChar(2048)
-  option      PollOption @relation(fields: [optionId], references: [id], onDelete: Restrict)
+  id              String     @id @default(uuid()) @db.Uuid
+  optionId        String     @db.Uuid
+  title           String     @db.VarChar(150)
+  brand           String?    @db.VarChar(100)
+  priceMinor      Int?
+  currency        String     @default("TRY") @db.Char(3)
+  externalUrl     String     @db.VarChar(2048)
+  priceRecordedAt DateTime?  @db.Timestamptz(3)
+  option          PollOption @relation(fields: [optionId], references: [id], onDelete: Restrict)
 
   @@index([optionId])
 }

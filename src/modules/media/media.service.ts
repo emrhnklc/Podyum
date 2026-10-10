@@ -179,10 +179,15 @@ export class MediaService {
     });
   }
 
-  // Oylama yayını aynı transaction içinde bunu çağırıp PollOption ilişkisini kurmalı.
-  async requirePublishableAsset(tx: Tx, userId: string, id: string, purpose: "POLL" | "AVATAR" = "POLL") {
+  // Taslak bağlantısı aynı transaction içinde sahiplik/amaç kontrolüyle kurulur.
+  async requireAttachableAsset(tx: Tx, userId: string, id: string, purpose: "POLL" | "AVATAR" = "POLL") {
     const row = await this.owned(tx, userId, id, true);
     if (row.purpose !== purpose) throw conflict("MEDIA_PURPOSE_MISMATCH", "Fotoğrafın kullanım amacı uygun değil.");
+    return row;
+  }
+
+  async requirePublishableAsset(tx: Tx, userId: string, id: string, purpose: "POLL" | "AVATAR" = "POLL") {
+    const row = await this.requireAttachableAsset(tx, userId, id, purpose);
     if (row.status !== "READY" || !row.previewAcceptedAt || !row.displayKey || !row.thumbnailKey) {
       throw conflict("MEDIA_NOT_APPROVED", "İşlenmiş fotoğrafın önizlemesini onayla.");
     }
