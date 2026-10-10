@@ -39,15 +39,18 @@ E-posta taşıyıcısı `.local/mailbox` altında dosyadır. Bu, gerçek e-posta
 | Adım | Karar |
 | --- | --- |
 | Dış kullanıcı testinden önce | Minimum yaş, kayıt sırasında yaş uygunluğu, gizlilik ve izin metinleri |
-| 7–8: oylama | Tek değişmez oy, sonuç görünürlüğü, yayın sonrası sabit alanlar ve iptal önerilerini ürün kararı haline getirme |
-| 10: sosyal etkileşim | Hazır etiketler ayrı tepki mi; kişi başına kaç etiket; düzenleme davranışı |
-| 12: oyun | 3–8 oyuncu, 600/30/20 saniye, eksik oy, beraberlik, engel sonrası oda davranışı önerileri |
-| 15: puan | Ödül formülü, arkadaş odası uygunluğu, lig/sezon/rozet/seri koşulları |
-| 16: haftalık yarışma | Katılım hakkı, oylama yöntemi, sponsor ödüllerinde beraberlik |
-| 17: Plus | Haklar, ücretsiz haftalık kota ve dönem, iade, demografik gösterim eşiği |
+| 8–9: oylama | Tek değişmez oy, sonuç görünürlüğü, yayın sonrası sabit alanlar ve iptal önerilerini ürün kararı haline getirme |
+| 11: sosyal etkileşim | Hazır etiketler ayrı tepki mi; kişi başına kaç etiket; düzenleme davranışı |
+| 19: oyun (Faz 2) | 3–8 oyuncu, 600/30/20 saniye, eksik oy, beraberlik, engel sonrası oda davranışı önerileri |
+| 22: puan (Faz 2) | Ödül formülü, arkadaş odası uygunluğu, lig/sezon/rozet/seri koşulları |
+| 23: haftalık yarışma (Faz 2) | Katılım hakkı, oylama yöntemi, sponsor ödüllerinde beraberlik |
+| 7, 13: ürün/trend | Kimlik, ölçüm türü, dönem/saat dilimi, fiyat ve örneklem kuralları |
+| 14–15: gelir | Plus/affiliate paketleri, ücretsiz hak/kota/iade, trend filtrelerine erişim ve reklam sıklığı |
 | 4–5: profil/görünürlük | Ayrı kapalı hesap özelliği gerekip gerekmediği; mevcut PUBLIC/FRIENDS kuralı korunur |
 
 Bu kararlar API temelini ve yerel auth'u engellemez. Henüz seçilmemiş ödül/Plus kuralları etkinmiş gibi davranan kod yazılmayacak.
+
+Güncel sahiplik: biz kullanıcı/kombin, arkadaş katalog/trend/gelir. İlk görevler profil ve katalogdur; önceki oyun görevi bekler. [İki kişilik plan](two-developer-plan.md), [güncel Claude metni](friend-claude-task.md).
 
 ## Harici entegrasyon listesi
 

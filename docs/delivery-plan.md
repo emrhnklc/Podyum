@@ -2,6 +2,8 @@
 
 Günlük uygulama sırası ve tüm ekran özelliklerini kapsayan ayrıntılı iş listesi [Backend çalışma planı](backend-roadmap.md) belgesindedir. Bu belge aşama ve doğrulama ölçütlerini destekler.
 
+Ana plan yeniden numaralandırıldı: 1–18 Faz 1, 19–23 Faz 2. Buradaki aşamalar ayrıntılı adımları gruplar. [İki kişilik planda](two-developer-plan.md) biz kullanıcı/kombin, arkadaş katalog/trend/gelir kolunu paralel geliştirir; profil ve katalog aynı anda başlayabilir.
+
 Bu plan iş sırasını verir; ekip büyüklüğü ve çalışma süresi bilinmediğinden takvim veya bütçe tahmini değildir. Her aşamada mobilin kullanabileceği bir akış tamamlanır. **10 Ekim mentör görüşmesiyle podyum/oyun Faz 2'ye ertelendi.** Faz 1 sosyal kombin, ürün trendleri ve affiliate/reklam/Plus özelliklerini kapsar; frontend teslimi oyunları beklemez. [Görüşme notu](mentor-notes-2026-10-10.md).
 
 ## Aşama 0 — mimari ve yerel veri temeli

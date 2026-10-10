@@ -4,6 +4,8 @@ Tarih: 10 Ekim 2026. Bu belge ürün konuşmasına dayanır. Kullanıcının ona
 
 **Öncelik güncellemesi:** Oyun/podyum ve oyuna bağlı canlı bağlantı/eşleşme/rekabet Faz 2'dedir. Aşağıdaki oyun mimarisi sonraki faz için korunur; Faz 1'i veya frontend teslimini bekletmez. Sosyal kombin, ürün kimliği/trendler ve affiliate/reklam/Plus işleri önce gelir. Ayrıntı: [mentör notu](mentor-notes-2026-10-10.md), [güncel sıra](backend-roadmap.md#uygulama-sırası).
 
+Faz 1 sahipliği: kullanıcı/sosyal/medya/oylama/bildirim ve ortak altyapı bizde; planlanan katalog/trend/billing/reklam modülleri arkadaşta. Ortak şema ve arayüz entegrasyonları [iki kişilik planda](two-developer-plan.md) açıklanır; yeni modüller henüz uygulanmadı.
+
 ## 1. Karar özeti
 
 **Onaylananlar:** Normal oy kişisel tercihtir; çoğunluğu seçme ödülü yoktur. Arkadaşlara özel kombini yalnızca arkadaşlar, herkese açık kombini herkes görür. Podyum, tema açıklanıp fotoğraf hazırlanması ve oyuncuların birbirini yıldızlarla değerlendirmesiyle oynanan eşzamanlı oyundur. Kamera yayını yoktur. Yerel geliştirmede Prisma kullanılacaktır.

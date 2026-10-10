@@ -10,6 +10,8 @@ E-posta teslimi şimdilik yerel dosyadır. Gerçek Google/Apple girişi tamamlan
 
 Adım adım geliştirmede takip edeceğimiz ana iş listesi: [Backend çalışma planı](docs/backend-roadmap.md).
 
+İki kişinin görevleri ve entegrasyon sınırları: [İki kişilik çalışma planı](docs/two-developer-plan.md). Biz kullanıcı/sosyal/medya/oylama, arkadaş ürün kataloğu/trend/Plus/affiliate/reklam kolunu geliştirir. Başlangıç: biz profil, arkadaş katalog. [Arkadaşın Claude'una verilecek güncel görev](docs/friend-claude-task.md).
+
 **10 Ekim öncelik güncellemesi:** İlk sürüm sosyal kombin, ürün trendleri ve affiliate/reklam/Plus gelir özelliklerine odaklanır. Oyun/podyum **Faz 2**'ye ertelendi. Yeni fikirler, açık kararlar ve yapılacaklar: [Mentör görüşmesi notu](docs/mentor-notes-2026-10-10.md). Bunlar planlanan özelliklerdir.
 
 İlk adımın seçilmiş/varsayılan/açık kararları: [Geliştirme kararları](docs/implementation-decisions.md).

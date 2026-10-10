@@ -2,6 +2,8 @@
 
 `health` ve `auth` çalışır. Auth: e-posta/şifre, yerel doğrulama/reset mesajları, opaque oturumlar ve Google/Apple mock. Diğer klasörler henüz controller/service içermezler. Auth ayrıntıları: [geliştirme rehberi](../../docs/auth-development.md).
 
+Faz 1 görev paylaşımı: biz `auth/users/social/media/polls/notifications` ve ortak altyapı; arkadaş ileride oluşturulacak `catalog/trends/billing/ads` modülleri. `games/rewards` Faz 2 için bekler. Yeni modüller henüz yazılmadı. Sahiplik, ortak şema ve servis sınırları: [iki kişilik plan](../../docs/two-developer-plan.md).
+
 | Klasör | Sorumluluk |
 | --- | --- |
 | auth | Kimlik doğrulama, token doğrulama, auth guard/decorator/strategy |
