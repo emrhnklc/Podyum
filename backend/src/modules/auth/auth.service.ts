@@ -49,7 +49,7 @@ export class AuthService {
     await tx.authActionToken.updateMany({ where: { userId, kind, consumedAt: null }, data: { consumedAt: now } });
     await tx.authActionToken.create({ data: { userId, kind, tokenHash: hashToken(token), credentialVersion: version, expiresAt } });
     // Yerel taşıyıcı. Dosya yazılamazsa transaction geri alınır; başarısız teslim kabul edilmez.
-    await this.mail.deliver(email, kind, token, expiresAt);
+    await this.mail.deliver(email, kind, token, expiresAt, userId);
   }
 
   async register(dto: RegisterDto) {
@@ -92,8 +92,8 @@ export class AuthService {
     if (!credential || !valid) throw new ApiError(401, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
     return this.prisma.$transaction(async (tx) => {
       await this.lockUser(tx, credential.userId);
-      const current = await tx.authCredential.findUniqueOrThrow({ where: { userId: credential.userId }, include: { user: true } });
-      if (current.version !== credential.version) throw new ApiError(401, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
+      const current = await tx.authCredential.findUnique({ where: { userId: credential.userId }, include: { user: true } });
+      if (!current || current.version !== credential.version) throw new ApiError(401, "INVALID_CREDENTIALS", "E-posta veya şifre hatalı.");
       this.checkActive(current.user.status);
       if (!current.emailVerifiedAt) throw new ApiError(403, "EMAIL_NOT_VERIFIED", "Önce e-posta adresini doğrula.");
       return this.createSession(tx, current.userId, "email");
@@ -116,7 +116,8 @@ export class AuthService {
     if (!original) throw invalidSession();
     const result = await this.prisma.$transaction(async (tx) => {
       await this.lockUser(tx, original.userId);
-      const session = await tx.authSession.findUniqueOrThrow({ where: { id: original.id }, include: { user: true } });
+      const session = await tx.authSession.findUnique({ where: { id: original.id }, include: { user: true } });
+      if (!session) throw invalidSession();
       this.checkActive(session.user.status);
       this.checkProvider(session.provider);
       if (session.revokedAt || session.expiresAt.getTime() <= Date.now()) throw invalidSession();
@@ -158,8 +159,8 @@ export class AuthService {
     if (!credential) return accepted;
     await this.prisma.$transaction(async (tx) => {
       await this.lockUser(tx, credential.userId);
-      const current = await tx.authCredential.findUniqueOrThrow({ where: { userId: credential.userId }, include: { user: true } });
-      if (current.user.status !== "ACTIVE" || (kind === "VERIFY_EMAIL" ? current.emailVerifiedAt !== null : current.emailVerifiedAt === null)) return;
+      const current = await tx.authCredential.findUnique({ where: { userId: credential.userId }, include: { user: true } });
+      if (!current || current.user.status !== "ACTIVE" || (kind === "VERIFY_EMAIL" ? current.emailVerifiedAt !== null : current.emailVerifiedAt === null)) return;
       await this.issueAction(tx, current.userId, current.email, current.version, kind);
     });
     return accepted;
@@ -172,9 +173,9 @@ export class AuthService {
     const passwordHash = password === undefined ? undefined : await hashPassword(password);
     return this.prisma.$transaction(async (tx) => {
       await this.lockUser(tx, original.userId);
-      const action = await tx.authActionToken.findUniqueOrThrow({ where: { tokenHash } });
-      const credential = await tx.authCredential.findUniqueOrThrow({ where: { userId: action.userId }, include: { user: true } });
-      if (action.consumedAt || action.expiresAt.getTime() <= Date.now() || action.credentialVersion !== credential.version) throw invalidAction();
+      const action = await tx.authActionToken.findUnique({ where: { tokenHash } });
+      const credential = action ? await tx.authCredential.findUnique({ where: { userId: action.userId }, include: { user: true } }) : null;
+      if (!action || !credential || action.consumedAt || action.expiresAt.getTime() <= Date.now() || action.credentialVersion !== credential.version) throw invalidAction();
       this.checkActive(credential.user.status);
       const now = new Date();
       await tx.authActionToken.updateMany({ where: { userId: action.userId, ...(kind === "VERIFY_EMAIL" ? { kind } : {}), consumedAt: null }, data: { consumedAt: now } });

@@ -22,7 +22,7 @@ Dosya sahipliği, servis sözleşmeleri ve önceki katalog görevi: [iki kişili
 ## Mevcut durum
 
 - [x] NestJS başlangıcı, health endpoint'leri ve özellik klasörleri.
-- [x] Prisma şeması, yerel veritabanı, on dört migration ve demo kayıtları.
+- [x] Prisma şeması, yerel veritabanı, on sekiz migration ve demo kayıtları.
 - [x] Veritabanı hedef kontrolü, 14 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
 - [x] Yerel e-posta/şifre ve oturum akışları; Google/Apple mock.
 - [x] Auth/ortak API, profil/ayar ve sosyal HTTP testleri; mevcut 14 DB testi ve bootstrap kontrolü.
@@ -34,9 +34,9 @@ Dosya sahipliği, servis sözleşmeleri ve önceki katalog görevi: [iki kişili
 - [x] Olay kuyruğu işçisi, uygulama içi bildirimler (arkadaşlık, yorum, oylama sonucu, oyun), okundu/sayaç, cihaz kaydı ve push teslimi (yerel sağlayıcı + Expo); 13 HTTP testi. Gerçek cihaz teslimi mobil bağlanınca doğrulanacak.
 - [ ] Faz 1 ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
-- [x] Günlük 30+30 etkinlik ve süreli QR lobileri: şema, API, aşama zamanlayıcısı ve oyun fotoğrafı erişimi; 24 HTTP testi. Socket.IO bildirimleri, günlük saatin ürün kararı ve mobil ekran bekliyor.
+- [x] Günlük 30+30 etkinlik ve süreli QR lobileri: şema, API, aşama zamanlayıcısı ve oyun fotoğrafı erişimi; 24 HTTP testi; yetkili Socket.IO aboneliği ve güvenli yenileme sinyali 12 canlı bağlantı testiyle hazır. Günlük saatin ürün kararı, dağıtık mesaj dağıtımı ve mobil ekran bekliyor.
 
-**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/tercih/sonuç API’leri, kapanış tarayıcısı ve izinli oy snapshot/geri alma çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. 10. adım organik ana akış da hazır: herkes/arkadaşlar, kategori, açık/oy verilmemiş adaylar ve cursor. 19. adım günlük oyun/QR lobileri ve 20. adımın zamanlayıcı/state kısmı da hazır: [oyun rehberi](games-development.md). 11. adım kaydetme/yorum/hazır neden/şikâyet kaydı da hazır: [etkileşim rehberi](interactions-development.md). 12. adım bildirimler de hazır: [bildirim rehberi](notifications-development.md). Sonraki bizim işimiz 20. adımın kalan canlı bildirim/abonelik kısmı, ardından 16 yönetim/hesap yaşam döngüsü; arkadaş şu an mobil tema üzerinde çalışır. [Akış sözleşmesi](feed-development.md). [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
+**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/tercih/sonuç API’leri, kapanış tarayıcısı ve izinli oy snapshot/geri alma çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. 10. adım organik ana akış da hazır: herkes/arkadaşlar, kategori, açık/oy verilmemiş adaylar ve cursor. 19. adım günlük oyun/QR lobileri ve 20. adımın tek süreçte zamanlayıcı/state/canlı abonelik kısmı da hazır: [oyun rehberi](games-development.md). 11. adım kaydetme/yorum/hazır neden/şikâyet kaydı da hazır: [etkileşim rehberi](interactions-development.md). 12. adım bildirimler de hazır: [bildirim rehberi](notifications-development.md). Sonraki bizim işimiz 16 yönetim/hesap yaşam döngüsü; [canlı bağlantı rehberi](game-realtime-development.md), [son ilerleme incelemesi](progress-review-2026-10-10.md). Arkadaş şu an mobil tema üzerinde çalışır. [Akış sözleşmesi](feed-development.md). [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
 
 Hazır şema başlangıçtır; lig, haftalık etkinlik, abonelik gibi alanlar ilgili adımda yeni migration'larla eklenecek. Generated dosyalar elle düzenlenmeyecek.
 
@@ -293,15 +293,17 @@ Paket/fiyat/sağlayıcı kararı gelene kadar hak sözleşmesi ve testler ilerle
 
 **Sorumlu:** Biz genel yönetim/şikâyet/hesap yaşam döngüsü; arkadaş ürün, trend, kampanya ve abonelik yönetimi.
 
-- [ ] Yetkili yönetici rolü ve normal kullanıcıdan ayrılmış yönetim API'leri.
-- [ ] Şikâyet kuyruğu; paylaşım/yorum/kullanıcı inceleme, kaldırma ve yaptırım. Şikâyet kaydı (`Report`, durum OPEN/RESOLVED/DISMISSED) 11. adımda hazır; burada okuma/karar API'si eklenir.
-- [ ] Hesap askıya alma, içerik yaptırımı ve işlem denetim kayıtları.
+- [x] Yetkili yönetici rolü ve ayrılmış yönetim API'leri. USER varsayılan, ilk atama güvenilen yerel CLI; kayıt/profil rol yükseltemez.
+- [x] Şikâyet kuyruğu; paylaşım/yorum/kullanıcı inceleme, karar ve hedefe uygun yaptırım. Özel hedef/görsel yalnız yöneticiye açılır; karar, yaptırım ve makbuz atomiktir.
+- [x] Hesap askıya alma/geri açma, oturum/cihaz kesme, paylaşım gizleme/geri açma, yorum kaldırma ve gerekçeli denetim kayıtları.
 - [ ] Kategori/stil etiketi, ürün, reklam kampanyası ve abonelik/hak yönetimi; alanın sahibi kendi API'sini yazar, ortak yönetici yetkisini kullanır.
-- [ ] Hesap silme: erişimi kapatma, oturum/cihaz/kişisel veri/medya temizliği ve geçmiş sonucun seçilen politikaya göre korunması.
+- [x] Hesap silme: erişimi kapatma, kimlik/oturum/cihaz/özel veri temizliği, yeniden denenebilir içerik/yerel medya işi. Kullanıcı kararıyla geçmiş tercih/yıldız toplamları kişisel profil olmadan korunur. [Rehber](accounts-development.md), 13 senaryo.
 - [ ] Veri saklama ve kullanılmayan dosya/oturum/bildirim/iş kaydı temizleme görevleri.
 - [ ] Gerekirse kullanıcı veri dışa aktarımı ve izin geri alma; demografik snapshot'ları da kapsama.
+- [x] Günlük etkinlik/lobi yönetici iptali; sürüm, süre, davet kapatma ve canlı durum kontrolü.
+- [ ] Tek oyundan oyuncu çıkarma ve değerlendirme/sonuç etkisi; hesap askıya alma ile aynı işlem değildir.
 
-Günlük etkinlik/lobi iptali ve oyuncu yaptırımı oyun tesliminin yönetim kapsamındadır. Ödül düzeltmesi/lig/rozet/sponsor yönetimi ilgili genişlemede gelir.
+İlk yönetim teslimi: [rehber](moderation-development.md), [örnekler](../examples/moderation.http), `npm run test:moderation` (17 senaryo). Hesap silme/yerel kalıcı temizliği de hazırdır. Genel saklama/süreli temizleme, yedekler ve ticari modül yönetimi açıktır. Ödül düzeltmesi/lig/rozet/sponsor yönetimi ilgili genişlemede gelir.
 
 **Bittiğinde:** uygulama içerik ve kullanıcı sorunları yönetilebilen bir ürün olur. Yönetim panelinin frontend'i daha sonra yazılabilir; API ve yetkileri burada tamamlanır.
 
@@ -362,10 +364,12 @@ Günlük etkinlik/lobi, sunucu geri sayımı, QR katılımı ve yeniden bağlanm
 
 - [x] DB'den günlük etkinlik/faz tarayıcısı; başlangıç ve 30+30 sınırları, kesintiden toparlanma.
 - [x] Host kopunca süreyi devam ettirme; geç işçi genel takvimi uzatmaz, geçmişe oy almaz.
-- [ ] Yetkili oda/etkinlik aboneliği ve kişiye özel state/medya yanıtları. REST state ve medya erişimi hazır; canlı abonelik yok.
-- [ ] Fotoğraf/oy/sonuç değişiklikleri; ham katılımcı/oy verisini açmayan Socket.IO bildirimleri.
+- [x] Yetkili oda/etkinlik aboneliği ve kişiye özel state/medya yanıtları. Socket.IO aboneliği kişisel REST snapshot döndürür; üyelik/engel/oturum her teslimde denetlenir.
+- [x] Fotoğraf/oy/sonuç değişiklikleri; ham katılımcı/oy verisini açmayan Socket.IO bildirimleri. Outbox üzerinden yalnız eventId/sessionId/version/serverNow gönderilir.
 - [x] serverNow, submissionEndsAt/votingEndsAt ve sürüm; reconnect/foreground/periyodik REST ile düzeltme. Backend alanları hazır; mobil tarafı bağlanmadı.
-- [ ] Yinelenen/sırasız olaylar, iki işçi, host erken geçişi, geç teslim/oy, moderasyon/engel ve QR sızıntısı testleri. Geç işçi, erken geçiş yarışı, geç teslim/oy, engel ve QR sızıntısı yerelde test edildi; iki işçi ve gerçek çok bağlantılı PostgreSQL yarışları bekliyor.
+- [x] Yinelenen/sırasız canlı olay, snapshot/reconnect, çıkış/süre, üyelik/engel, kaynak rollback/retry ve veri sızıntısı kontrolleri; 12 gerçek Socket.IO testi. Mevcut geç işçi, erken geçiş, geç teslim/oy ve QR testleri korunur.
+- [x] Yönetici oyun iptali ve hesap yaptırımının canlı erişim etkisi; 16. adım ilk teslimiyle bağlandı.
+- [ ] İki API/işçi için dağıtık fan-out ve gerçek çok bağlantılı PostgreSQL yarışları; 17 ile tamamlanacak. [Canlı bağlantının tek süreç sınırı](game-realtime-development.md).
 
 **Bittiğinde:** oyun istemci saati, host bağlantısı veya tek socket mesajının ulaşmasına bağlı kalmaz; fotoğraf ve kimlik gizliliği bütün uçlarda korunur.
 
@@ -443,10 +447,10 @@ Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması at
 
 ## Uygulama sırası
 
-**Bizim aktif sıra:** 9 tercih/sonuç, 10 ana akış, 11 yorum/kaydetme/neden/şikâyet kaydı, 12 bildirim, 19 günlük podyum/QR lobileri ve 20'nin zamanlayıcı/state kısmı tamam → **20'nin kalanı: Socket.IO bildirimleri ve yetkili abonelik → 16 yönetim/hesap yaşam döngüsü** → oyun dahil 17 doğrulama → 18 frontend teslimi.
+**Bizim aktif sıra:** 9 tercih/sonuç, 10 ana akış, 11 yorum/kaydetme/neden/şikâyet kaydı, 12 bildirim, 19 günlük podyum/QR lobileri ve 20'nin tek süreçte zamanlayıcı/state/canlı abonelik kısmı tamam → **16 yönetim ve hesap silme tamam → genel saklama/süreli temizlik** → oyun dahil 17 doğrulama → 18 frontend teslimi.
 
 **Arkadaşın güncel işi:** Mobil tema ve ekran tasarımı; `mobile/` dosyalarının sahibi arkadaş, `backend/` bizim sorumluluğumuzdadır. Katalog → trendler → Plus/affiliate → reklam backend işleri önceki planda arkadaş kolundaydı; aktif işe dönüşlerinde yeniden paylaştırılacak. API sözleşmesi gerektiren ekran ihtiyacı backend belgelerinde koordine edilir.
 
 **Sonraki genişleme adayları:** 21 hızlı eşleşme → 22 puan/lig → 23 haftalık/sponsorlu yarışma. Bunlar günlük etkinlik ve QR lobisini Faz 2'ye ertelemez. Mevcut oyun tabloları yeni akışa doğrudan uygun sayılmaz; aktif oyun adımında migration ile gözden geçirilir.
 
-Bir sonraki ürün işi bizim tarafta **20. adımın canlı bildirimleri, ardından 16 yönetim/hesap yaşam döngüsü**, arkadaş tarafında **mobil tema**. Bildirim ve yorum/kaydetme/neden/şikâyet backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Günlük oyun/QR lobisi backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Organik ana akış backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.
+Bir sonraki ürün işi bizim tarafta **16 genel saklama/süreli temizlik** (yönetim ve hesap silme yerel teslimi hazır), arkadaş tarafında **mobil tema**. Bildirim ve yorum/kaydetme/neden/şikâyet backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Günlük oyun/QR lobisi backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Organik ana akış backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.

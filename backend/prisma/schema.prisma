@@ -13,6 +13,11 @@ enum UserStatus {
   DELETED
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 enum AuthActionKind {
   VERIFY_EMAIL
   RESET_PASSWORD
@@ -124,6 +129,7 @@ model User {
   displayName        String                @db.VarChar(80)
   bio                String?               @db.VarChar(300)
   status             UserStatus            @default(ACTIVE)
+  role               UserRole              @default(USER)
   profileCompletedAt DateTime?             @db.Timestamptz(3)
   socialRevision     Int                   @default(0)
   avatarMediaId      String?               @unique @db.Uuid
@@ -146,6 +152,8 @@ model User {
   removedComments    Comment[]             @relation("CommentRemover")
   reportsMade        Report[]              @relation("ReportReporter")
   reportsReceived    Report[]              @relation("ReportTargetUser")
+  reportsReviewed    Report[]              @relation("ReportReviewer")
+  moderationActions  ModerationAudit[]
   notifications      Notification[]        @relation("NotificationRecipient")
   notificationsActed Notification[]        @relation("NotificationActor")
   devices            DeviceToken[]
@@ -159,6 +167,7 @@ model User {
   credential         AuthCredential?
   sessions           AuthSession[]
   authActions        AuthActionToken[]
+  deletion           AccountDeletion?
 }
 
 model AuthCredential {
@@ -480,27 +489,76 @@ enum ReportStatus {
 
 // Hedef türüne göre tam bir hedef sütunu doludur (migration'da CHECK).
 model Report {
-  id           String           @id @default(uuid()) @db.Uuid
-  reporterId   String           @db.Uuid
+  id           String            @id @default(uuid()) @db.Uuid
+  reporterId   String            @db.Uuid
   targetType   ReportTargetType
-  pollId       String?          @db.Uuid
-  commentId    String?          @db.Uuid
-  targetUserId String?          @db.Uuid
+  pollId       String?           @db.Uuid
+  commentId    String?           @db.Uuid
+  targetUserId String?           @db.Uuid
   reason       ReportReason
-  note         String?          @db.VarChar(500)
-  status       ReportStatus     @default(OPEN)
-  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
-  reporter     User             @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Restrict)
-  poll         Poll?            @relation(fields: [pollId], references: [id], onDelete: Restrict)
-  comment      Comment?         @relation(fields: [commentId], references: [id], onDelete: Restrict)
-  targetUser   User?            @relation("ReportTargetUser", fields: [targetUserId], references: [id], onDelete: Restrict)
+  note         String?           @db.VarChar(500)
+  status       ReportStatus      @default(OPEN)
+  version      Int               @default(0)
+  reviewedAt   DateTime?         @db.Timestamptz(3)
+  reviewedById String?           @db.Uuid
+  decisionNote String?           @db.VarChar(500)
+  createdAt    DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime          @updatedAt @db.Timestamptz(3)
+  reporter     User              @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  poll         Poll?             @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  comment      Comment?          @relation(fields: [commentId], references: [id], onDelete: Restrict)
+  targetUser   User?             @relation("ReportTargetUser", fields: [targetUserId], references: [id], onDelete: Restrict)
+  reviewedBy   User?             @relation("ReportReviewer", fields: [reviewedById], references: [id], onDelete: Restrict)
+  audit        ModerationAudit[]
 
   @@unique([reporterId, pollId])
   @@unique([reporterId, commentId])
   @@unique([reporterId, targetUserId])
   @@index([status, createdAt])
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([reporterId, createdAt(sort: Desc)])
+}
+
+enum ModerationAction {
+  ROLE_GRANTED
+  REPORT_RESOLVED
+  REPORT_DISMISSED
+  POLL_HIDDEN
+  POLL_RESTORED
+  COMMENT_REMOVED
+  USER_SUSPENDED
+  USER_RESTORED
+  GAME_CANCELLED
+}
+
+enum AdminResourceType {
+  USER
+  POLL
+  COMMENT
+  REPORT
+  GAME
+}
+
+// Uygulama yalnız ekler/okur; düzenleme veya silme API'si yoktur.
+// Önce/sonra yalnız durum/sürüm bilgisidir, özel profil veya içerik kopyası değildir.
+model ModerationAudit {
+  id           String            @id @default(uuid()) @db.Uuid
+  actorId      String?           @db.Uuid
+  action       ModerationAction
+  resourceType AdminResourceType
+  resourceId   String            @db.Uuid
+  reportId     String?           @db.Uuid
+  reason       String            @db.VarChar(500)
+  before       Json
+  after        Json
+  createdAt    DateTime          @default(now()) @db.Timestamptz(3)
+  actor        User?             @relation(fields: [actorId], references: [id], onDelete: Restrict)
+  report       Report?           @relation(fields: [reportId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([resourceType, resourceId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([actorId])
+  @@index([reportId])
 }
 
 model Notification {
@@ -859,4 +917,19 @@ model GameOutcome {
 
   @@id([sessionId, userId])
   @@unique([submissionId, sessionId, userId])
+}
+
+// Silme kabulünden sonra erişim kapalıdır; dosya temizliği yeniden denenebilir.
+// Yerel teslim dosyalarını eşlemek için geçici hash/kimlikler tamamlanınca boşaltılır.
+model AccountDeletion {
+  id              String    @id @default(uuid()) @db.Uuid
+  userId          String    @unique @db.Uuid
+  requestedAt     DateTime  @default(now()) @db.Timestamptz(3)
+  completedAt     DateTime? @db.Timestamptz(3)
+  mailTokenHashes String[]  @default([])
+  pushTokenHashes String[]  @default([])
+  notificationIds String[]  @default([]) @db.Uuid
+  user            User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([completedAt, requestedAt])
 }

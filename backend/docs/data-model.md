@@ -39,20 +39,23 @@ Arkadaşlık ve engelleme User'a iki taraftan bağlanan ayrı ilişkilerdir. Oyl
 | Sosyal | Friendship, Block | Karşılıklı kabul edilmiş ilişki; yönlü engel |
 | Fotoğraf | MediaAsset | Sahip, staging/display anahtarı, sürüm, durum, önizleme |
 | Oylama | Poll, PollOption, ProductTag, PollVote | Ana paylaşım, 2–4 seçenek, ürün bağlantıları, tercih |
-| Etkileşim | PollSave, Comment | Kişisel kaydetme ve düz yorumlar |
+| Etkileşim | PollSave, Comment, PollVoteReason | Kaydetme, düz yorum ve oy sonrası neden |
+| Hesap yaşam döngüsü | AccountDeletion | Tekil kapatma/temizlik işi; tamamlanınca geçici dosya eşleme bilgisi boşalır |
+| Yönetim | Report, ModerationAudit | Şikâyet kararı/yaptırım denetimi; User.role ortak yetki |
 | Bildirim | Notification, DeviceToken | Tekilleşmiş uygulama içi olay ve cihaz kaydı |
-| Oyun | Theme, GameRoom, GameParticipant, ActiveGameMembership | Tema, kalıcı oda, üyelik, tek aktif oyun hakkı |
-| Oyun içeriği | GameEntry, GameRound, GameRating, GameResult | Fotoğraf teslimi, sunum sırası, yıldız, sonuç |
+| Aktif oyun | GameSession, GameMembership, GameSubmission, GameScore, GameOutcome | Günlük 30+30 / QR lobisi, üyelik, fotoğraf, 1–5 yıldız ve ham sonuç |
+| Eski oyun | Theme, GameRoom, GameParticipant, ActiveGameMembership | Eski taslak; aktif servis bu oda/tur modelini kullanmaz |
+| Eski oyun içeriği | GameEntry, GameRound, GameRating, GameResult | Eski taslağın teslim/tur/sonucu; demo geçmişi korunur |
 | Ödül | PointsLedger | Kaynağı belli puan hareketleri; ödül dağıtımı kapalı |
 | Güvenilirlik | OutboxEvent, IdempotencyRecord | Transaction sonrası işler ve komut tekrarları |
 
-Toplam 32 model vardır. Health, auth, users, social, yerel media/avatar ve polls taslak/yayın/detay/kendi liste API'leri çalışır. PollVote/sonuç ve kalıcı kapanış da çalışır; akış/etkileşim ve diğer model API’leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
+Toplam 41 model vardır. Health, auth, users, social, yerel media/avatar, polls/tercih/sonuç/kapanış, akış/etkileşim, bildirim, günlük/QR oyun ve yönetim ilk teslimi çalışır. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
 
-Altıncı migration UserSettings ve UserPrivate.analyticsRevision alanını ekler. Analiz izni/demografi değişikliği ve outbox olayı aynı transaction'a yazılır; ham demografik değerler olay gövdesinde yer almaz. İşçi/trend tüketimi henüz yoktur. Özel alanlar, ayar varsayılanları ve sayaç görünürlüğü: [users rehberi](users-development.md).
+Altıncı migration UserSettings ve UserPrivate.analyticsRevision alanını ekler. Analiz izni/demografi değişikliği ve outbox olayı aynı transaction'a yazılır; ham demografik değerler olay gövdesinde yer almaz. Analiz/trend tüketimi henüz yoktur; bildirim/canlı bağlantı outbox işçisi çalışır. Özel alanlar, ayar varsayılanları ve sayaç görünürlüğü: [users rehberi](users-development.md).
 
 Yedinci migration User.socialRevision ekler. İlişki/engel değişikliği, iki kullanıcının sosyal sürümü ve hedefli iç outbox olayları tek transaction'dadır. Bildirime dönüşüm olay kuyruğu işçisindedir ([bildirim rehberi](notifications-development.md)); engel olayının payload'u istemciye açılmaz. [Sosyal kurallar ve erişim servisi](social-development.md).
 
-Sekizinci migration MediaPurpose (POLL/AVATAR), uploadTokenHash/son süre/beyan alanları, thumbnailKey, processingRevision/processingRequestHash/rejectionCode/filesPurgedAt ve User.avatarMediaId ilişkisini ekler. ByteSize beyanı 1–10 MiB, işlem sürümü negatif olamaz. FK avatar sahipliği/amacı/onayını tek başına doğrulamaz; bunlar kilit altında MediaService tarafından kontrol edilir. Kaynak/çıktı anahtarları kamusal yanıta girmez. [Medya yaşam döngüsü](media-development.md).
+Sekizinci migration MediaPurpose (ilk aşamada POLL/AVATAR; 11. migration ile GAME), uploadTokenHash/son süre/beyan alanları, thumbnailKey, processingRevision/processingRequestHash/rejectionCode/filesPurgedAt ve User.avatarMediaId ilişkisini ekler. ByteSize beyanı 1–10 MiB, işlem sürümü negatif olamaz. FK avatar sahipliği/amacı/onayını tek başına doğrulamaz; bunlar kilit altında MediaService tarafından kontrol edilir. Kaynak/çıktı anahtarları kamusal yanıta girmez. [Medya yaşam döngüsü](media-development.md).
 
 Dokuzuncu migration ProductTag.priceRecordedAt ekler. Fiyatın doğrulandığı/güncellendiği tarih değil, kullanıcı beyanının sunucuda kaydedildiği zamandır; eski kayıtlarda null kalır. ProductTag hâlâ seçenek sahibinin kullanıcı beyanıdır, ortak katalog değildir; productId henüz yoktur. Var olan IdempotencyRecord modeli 24 saatlik oylama makbuzları için kullanılmaya başladı. Onuncu migration PollVote.analyticsConsentAtVote/analyticsRevisionAtVote ve ikisinin birlikte bulunmasını denetleyen CHECK ekler. Oy izinsizse demografi/izin bağlamı null; izin geri alınırsa snapshot aynı transaction’da temizlenir. Eski oya izin uydurulmaz. [Tercih/sonuç/izin sözleşmesi](poll-votes-development.md). [Oylama ve tekrar sözleşmesi](polls-development.md).
 
@@ -119,7 +122,7 @@ Sonuçlar oylama kaydı ve oy sayılarından tutarlı transaction snapshot'ı il
 
 ## 6. Eski oyun şeması ve yeni tasarıma geçiş
 
-Aşağıdaki oda/tur tabloları önceki şema taslağını açıklar; yeni 30+30 günlük etkinlik/QR lobisi servisi uygulanmış değildir. Yeni süreler, günlük takvim, QR davetleri, GAME amacı ve üyelik kısıtları [güncel tasarıma](game-design.md) göre ayrı migration ile değişecek. Ortak 20 saniyelik tur varsayımı yeni ürün kuralı değildir.
+Aşağıdaki oda/tur tabloları eski şema taslağıdır. Aktif günlük/QR oyun servisi 11–12. migration ile GameSession/GameMembership/GameSubmission/GameScore/GameOutcome ve GAME medyası üzerinden çalışır; aşağıdaki eski ActiveGameMembership/tur kuralını kullanmaz. Ortak 20 saniyelik tur varsayımı geçerli değildir. [Aktif tasarım](game-design.md), [çalışan sözleşme](games-development.md).
 
 Tüm oyun komutları önce oda satırını kilitler; sonra gerektiğinde tur/üyelik satırlarına gider. Kilit sırası standarttır: oda → tur → kullanıcı üyeliği. Başka odaya katılma için tek aktif üyelik PK'sı çakışırsa mevcut oda döndürülür. İlk sürüm odalar arası oyuncu taşıma transaction'ı açmaz.
 
@@ -150,6 +153,18 @@ Oylamadaki demografik snapshot'lar sadece izin varsa yazılır; kullanıcının 
 
 ## 9. Henüz şemaya alınmayan alanlar
 
-Şikâyet ve yönetim denetim kayıtları, abonelik/entitlement/kota hareketleri, sezon/rozet, haftalık tema yarışması, yorum yanıtları ve hızlı yorum tepkileri ilgili aşamada migration ile eklenecek. Genel JSON alanına tüm gelecekteki özellikler doldurulmadı.
+Abonelik/entitlement/kota hareketleri, sezon/rozet, haftalık tema yarışması, yorum yanıtları ve hızlı yorum tepkileri ilgili aşamada migration ile eklenecek. Genel JSON alanına tüm gelecekteki özellikler doldurulmadı.
 
 `rulesSnapshot` oyun başladıktan sonra değişmeyen sürümlü politika kopyası içindir; oylar, arkadaşlar veya seçenekler JSON'da saklanmaz. Notification'ın tipli kaynak referansı servis tarafından doğrulanır; polimorfik kaynak için DB FK varmış gibi kabul edilmez.
+
+## 10. Yönetim ilk teslimi
+
+15. migration User.role (USER/ADMIN, varsayılan USER), Report.version/reviewedAt/reviewedById/decisionNote ve ModerationAudit ekler. 16. migration eksik karar notunun SQL NULL davranışıyla CHECK'i geçmesini önler; eski migration değiştirilmedi. OPEN şikâyette inceleme alanları boş, yeni kapalı kayıtta hepsi doludur; geçmiş kapalı ve tüm metadatası boş kayıtlar yanlış yönetici atanmadan korunabilir. Negatif sürüm, gerekçesiz/nesne olmayan audit ve CLI rol ataması dışındaki eksik actorId reddedilir.
+
+Güncel şema 41 model, 18 migration ve yerelde 53 CHECK içerir (hesap silme teslimi dahil). Audit aktör/şikâyet FK'ları Restrict; uygulama yalnız ekler/okur. Hesap silme bu referansları tombstone ile koruyan ayrı AccountsModule iş akışıdır; aşağıdaki 11. bölümde açıklanır. Yetki, atomik yaptırım/denetim/olay ve güvenilen yerel rol ataması: [yönetim rehberi](moderation-development.md).
+
+## 11. Hesap silme
+
+17. migration AccountDeletion ekler: userId tekil FK, requestedAt/completedAt ve yalnız yerel teslim dosyalarını eşleyen geçici hash/UUID dizileri. CHECK bitişin başlangıçtan önce olmasını ve tamamlanmış işte geçici dizilerin dolu kalmasını önler. 18. migration, dizilerin SQL NULL değeriyle bu kuralı aşmasını engeller. User.role=ADMIN kendi hesabını bu uçtan silemez.
+
+Hesap ve kimlikler ilk transaction'da kapanır/temizlenir; AccountDeletion ve kaynak olay atomiktir. Medya/içerik işi ayrı kaynak kilitleriyle ilerler, hata erişimi geri açmaz. User/PollVote/GameScore/GameOutcome ve içerik FK tombstone'ları geçmiş toplamları korur; ham demografik snapshot, isim, bio, fotoğraf ve kimlik bilgileri kaldırılır. Saklama/redaksiyon ve yedekler ayrı politikadır. [API, worker, tekrar ve sınırlar](accounts-development.md).

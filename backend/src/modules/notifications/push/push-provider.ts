@@ -2,8 +2,9 @@ import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { readEnvironment } from "../../../common/config/environment.js";
+import type { PrismaService } from "../../../database/prisma.service.js";
 
-export interface PushMessage { to: string; title: string; body: string; ttlSeconds: number; data: Record<string, string> }
+export interface PushMessage { to: string; title: string; body: string; ttlSeconds: number; data: Record<string, string>; userId?: string }
 // sent: sağlayıcı kabul etti. invalid-token: cihaz kaydı silinmeli. rejected: bu mesaj gönderilemedi, tekrar denenmez.
 export type PushResult = "sent" | "invalid-token" | "rejected";
 
@@ -13,15 +14,25 @@ export const PUSH_PROVIDER = Symbol("PUSH_PROVIDER");
 
 // Geliştirme: hiçbir yere gönderilmez, mesaj yerel dosyaya yazılır.
 export class LocalPushProvider implements PushProvider {
+  constructor(private readonly db: PrismaService) {}
   async send(messages: PushMessage[]) {
     const directory = resolve(readEnvironment().localPushDir);
     await mkdir(directory, { recursive: true, mode: 0o700 });
+    const results: PushResult[] = [];
     for (const message of messages) {
-      await writeFile(resolve(directory, `${Date.now()}-${randomUUID()}.json`), JSON.stringify({
+      const write = () => writeFile(resolve(directory, `${Date.now()}-${randomUUID()}.json`), JSON.stringify({
         transport: "local-only", ...message, createdAt: new Date().toISOString(),
       }, null, 2), { mode: 0o600, flag: "wx" });
+      // Yerel dosya silme kabulüyle sıraya girer: temizliğin ardından geç
+      // gönderim kopyası yazılmaz. Harici Expo gönderimi geri çağrılamaz.
+      if (!message.userId) { await write(); results.push("sent"); continue; }
+      results.push(await this.db.$transaction(async (tx) => {
+        await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${message.userId}::uuid FOR SHARE`;
+        if (!await tx.user.count({ where: { id: message.userId, status: "ACTIVE" } })) return "rejected" as const;
+        await write(); return "sent" as const;
+      }));
     }
-    return messages.map(() => "sent" as const);
+    return results;
   }
 }
 
@@ -51,4 +62,4 @@ export class ExpoPushProvider implements PushProvider {
   }
 }
 
-export const createPushProvider = (): PushProvider => readEnvironment().pushProvider === "expo" ? new ExpoPushProvider() : new LocalPushProvider();
+export const createPushProvider = (db: PrismaService): PushProvider => readEnvironment().pushProvider === "expo" ? new ExpoPushProvider() : new LocalPushProvider(db);

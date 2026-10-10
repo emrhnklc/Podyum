@@ -24,6 +24,7 @@ export class PollsService {
 
   private async owned(tx: Tx, userId: string, id: string) {
     await tx.$queryRaw`SELECT "id" FROM "Poll" WHERE "id" = ${id}::uuid FOR UPDATE`;
+    await this.activeActor(tx, userId);
     const poll = await tx.poll.findFirst({ where: { id, authorId: userId } });
     if (!poll) throw missing();
     return poll;
@@ -86,6 +87,10 @@ export class PollsService {
         commentsEnabled: dto.commentsEnabled ?? settings?.defaultCommentsEnabled ?? true, durationSeconds: dto.durationSeconds ?? 1800,
       } });
       if (dto.options) await this.replaceOptions(tx, userId, poll.id, dto.options);
+      // Medya → kullanıcı sırası korunur. Silmeyle yarışan oluşturma ya önce
+      // commit olur ve temizlik onu görür ya da aktif hesap kontrolünde durur.
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR UPDATE`;
+      await this.activeActor(tx, userId);
       await this.event(tx, poll, "poll.draft.created");
       return this.detail(tx, userId, poll.id);
     });

@@ -1,0 +1,87 @@
+@baseUrl = http://127.0.0.1:3000/v1
+@adminAccessToken = REPLACE_WITH_ADMIN_ACCESS_TOKEN
+@reportId = REPLACE_WITH_REPORT_UUID
+@pollId = REPLACE_WITH_POLL_UUID
+@commentId = REPLACE_WITH_COMMENT_UUID
+@userId = REPLACE_WITH_USER_UUID
+@gameId = REPLACE_WITH_GAME_UUID
+@mediaId = REPLACE_WITH_MEDIA_UUID
+
+### Önce mevcut aktif hesaba yerel terminalden rol ver:
+# npm run admin:grant -- <user-uuid> "Yerel yönetici ataması"
+# Kayıt/profil endpoint'i role alanı kabul etmez. Token'ı git'e yazma.
+GET {{baseUrl}}/admin/me
+Authorization: Bearer {{adminAccessToken}}
+
+### Açık şikâyet kuyruğu (nextCursor aynı filtrelerle sonraki isteğe eklenir)
+GET {{baseUrl}}/admin/reports?status=OPEN&targetType=POLL&limit=20
+Authorization: Bearer {{adminAccessToken}}
+
+### Şikâyet ve hedefi; karar için buradaki version kullanılır
+GET {{baseUrl}}/admin/reports/{{reportId}}
+Authorization: Bearer {{adminAccessToken}}
+
+### Yalnız bu şikâyete bağlı, onaylı ve işlenmiş görsel
+GET {{baseUrl}}/admin/reports/{{reportId}}/media/{{mediaId}}/content?variant=display
+Authorization: Bearer {{adminAccessToken}}
+
+### POLL şikâyetini çöz ve paylaşımı aynı işlemde gizle
+# expectedVersion Report sürümüdür. Yeni komutta yeni anahtar kullan.
+PUT {{baseUrl}}/admin/reports/{{reportId}}/decision
+Authorization: Bearer {{adminAccessToken}}
+Idempotency-Key: moderation-review-example-001
+Content-Type: application/json
+
+{
+  "expectedVersion": 0,
+  "decision": "HIDE_POLL",
+  "reason": "İçerik incelemesinde uygunsuz paylaşım tespit edildi."
+}
+
+### Doğrudan paylaşımı geri aç: expectedVersion güncel Poll sürümü
+PUT {{baseUrl}}/admin/polls/{{pollId}}/visibility
+Authorization: Bearer {{adminAccessToken}}
+Idempotency-Key: moderation-restore-example-001
+Content-Type: application/json
+
+{
+  "expectedVersion": 1,
+  "contentStatus": "VISIBLE",
+  "reason": "İtiraz değerlendirmesi kabul edildi."
+}
+
+### Yorumu kaldır
+POST {{baseUrl}}/admin/comments/{{commentId}}/remove
+Authorization: Bearer {{adminAccessToken}}
+Idempotency-Key: moderation-comment-example-001
+Content-Type: application/json
+
+{ "reason": "Yorumda kişiye yönelik taciz tespit edildi." }
+
+### Hesabı askıya al; mevcut oturum ve cihazlar kapanır
+PUT {{baseUrl}}/admin/users/{{userId}}/status
+Authorization: Bearer {{adminAccessToken}}
+Idempotency-Key: moderation-suspend-example-001
+Content-Type: application/json
+
+{ "status": "SUSPENDED", "reason": "Tekrarlanan kötüye kullanım incelendi." }
+
+### Hesabı geri aç; eski token/cihaz geri açılmaz
+PUT {{baseUrl}}/admin/users/{{userId}}/status
+Authorization: Bearer {{adminAccessToken}}
+Idempotency-Key: moderation-user-restore-example-001
+Content-Type: application/json
+
+{ "status": "ACTIVE", "reason": "Hesap itirazı kabul edildi." }
+
+### Aktif oyunu iptal et; önce oyunun güncel version alanını oku
+POST {{baseUrl}}/admin/games/{{gameId}}/cancel
+Authorization: Bearer {{adminAccessToken}}
+Idempotency-Key: moderation-game-example-001
+Content-Type: application/json
+
+{ "expectedVersion": 0, "reason": "Oyun inceleme sonucunda kapatıldı." }
+
+### Hedefe ait denetim kayıtları
+GET {{baseUrl}}/admin/audit?resourceType=POLL&resourceId={{pollId}}&limit=20
+Authorization: Bearer {{adminAccessToken}}

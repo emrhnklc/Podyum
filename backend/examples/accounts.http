@@ -1,0 +1,21 @@
+@baseUrl = http://127.0.0.1:3000/v1
+@accessToken = REPLACE_WITH_RECENT_LOGIN_ACCESS_TOKEN
+@adminAccessToken = REPLACE_WITH_ADMIN_ACCESS_TOKEN
+@userId = REPLACE_WITH_DELETED_USER_UUID
+
+### Yalnız kendi hesabı: son 15 dakika içinde yeni giriş gerekir.
+# Kalıcıdır; örneği silmek istediğin test hesabıyla çalıştır.
+# 202 sonrası token/cache/socket temizlenir. Refresh yeni giriş sayılmaz.
+DELETE {{baseUrl}}/me/account
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "confirmDeletion": true }
+
+### Silme dosya temizliğini ayrı tamamlar; yalnız yönetici işi takip eder
+GET {{baseUrl}}/admin/users/{{userId}}/deletion
+Authorization: Bearer {{adminAccessToken}}
+
+### Disk hatası düzeltilince güvenilen yerel terminalden yeniden deneme:
+# npm run accounts:cleanup -- <user-uuid>
+# Aktif hesabı silmeye başlayamaz; kayıtlı DELETED hesap işini tamamlar.
