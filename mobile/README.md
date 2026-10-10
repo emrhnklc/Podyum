@@ -47,11 +47,12 @@ Her özellik ihtiyaç duydukça `screens`, `components`, `hooks`, `data`, `api`,
 
 ## Çalışan önizleme
 
-- Keşfet: kategori/arkadaş filtresi, normal tercih, anlık demo sonuç, sonraki kombin ve kaydetme.
-- Tercih değiştirilemez; kendi paylaşımına oy verilmez. Normal tercih yıldız/puan üretmez. Eski +10/çoğunluğu tahmin davranışı kaldırıldı.
-- Kombin detayları, kullanıcı profilleri, kendi profilindeki paylaşımlar/kaydedilenler ve örnek arkadaş listesi.
+- Keşfet: içerik odaklı tek oylama; fotoğraflar ekranı doldurur. Herkes/Arkadaşlar sekmesi, ikonla açılan kategori filtresi, normal tercih, anlık demo sonuç, sonraki kombin ve kaydetme.
+- Oylama açıkken diğer seçeneğe dokunarak tercih değiştirilebilir (demo). Backend bugün ilk oyu sabit tutar; bu açık ürün kararı [ekran ve API haritasında](docs/ekran-ve-api-haritasi.md) yazılı. Kendi paylaşımına oy verilmez. Normal tercih yıldız/puan üretmez. Eski +10/çoğunluğu tahmin davranışı kaldırıldı.
+- Sonuç detayları: toplam oy, seçenek başına oy ve oy verenlerin cinsiyet/yaş dağılımı; hepsi mock veridir.
+- Kombin detayları, kullanıcı profilleri, kendi profilindeki paylaşımlar/kaydedilenler ve örnek arkadaş listesi. Alt ekranlarda sol üstte sade geri oku vardır.
 - Trendler: hafta/ay, kategori, tercih yapan grup ve fiyat filtreleri. Küçük örneklem demo eşiği korunur; gerçek backend gizlilik eşiği olarak kabul edilmez.
-- Paylaş formu: soru, kategori, süre, görünürlük ve yorum/blur ayarlarının tasarım önizlemesi. Fotoğraf seçimi/blur işleme/yayın henüz bağlı değildir; önizleme gerçek paylaşım oluşturmaz.
+- Paylaş formu: A ve B için galeriden fotoğraf seçme (`expo-image-picker`), değiştirme ve kaldırma; soru, kategori, süre, görünürlük ve yorum/blur ayarları. Seçilen fotoğraflar yalnız cihazda kalır. Sunucuya yükleme, blur işleme ve yayın henüz bağlı değildir; önizleme gerçek paylaşım oluşturmaz.
 - Bildirim boş durumu; auth ve oyun alanları hazırlık ekranıdır. Günlük 30+30 ve QR lobileri planda; oyun çalışıyor gibi gösterilmez.
 
 Tercih ve kaydetmeler `DemoPollsProvider` ile yalnız bellekte tutulur; sekme/detay geçişlerinde korunur, uygulama yeniden açılınca sıfırlanır. Demo profildeki yıldız ve sayaçlar örnek değerdir. Gerçek kullanıcı oturumu veya ücretli hak yoktur.

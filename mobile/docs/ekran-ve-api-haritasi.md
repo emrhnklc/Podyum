@@ -31,7 +31,7 @@ Alt menü Keşfet, Trendler, Paylaş, Bildirim, Profil içerir. Günlük podyum 
 | Kombin detayı | `GET /v1/polls/:id` | Backend hazır |
 | Tercih | `PUT /v1/polls/:id/vote` `{ optionId }` | Backend hazır; demo label gerçek UUID değildir |
 | Sonuç | `GET /v1/polls/:id/results` | Backend hazır |
-| Fotoğraf | Medya upload/process/approve API'leri | Backend hazır; picker ve frontend hattı bağlanmadı |
+| Fotoğraf | Medya upload/process/approve API'leri | Backend hazır; Paylaş'ta galeriden seçim çalışır (yalnız cihazda). Yükleme hattı oturum, blur bölgesi seçimi ve önizleme onayı ekranlarını bekliyor |
 | Taslak/yayın | Polls oluştur/düzenle/publish API'leri | Backend hazır; form henüz API kullanmaz |
 | Kaydet/yorum/bildirim | Sosyal etkileşim uçları | İlgili backend adımları bekleniyor |
 | Trendler | Trend API | Arkadaşın backend kolu; henüz yok |
@@ -42,6 +42,12 @@ Gerçek oy bağlanınca sunucu `myOptionId`, `canVote`, `canViewResults` ve topl
 ## Demo davranışı ve ürün kararları
 
 Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı paylaşımda tekrar gezinmek yeniden oy üretmez; kendi paylaşımı ve bitmiş oylamada oy kapalıdır. Gösterilen oranlar örnek oy sayılarına tek demo tercih eklenerek hesaplanır. Tercih/kaydetme yalnız bellekte, yenilemeyle sıfırlanır.
+
+**Açık ürün kararı — tercih değiştirme:** Ürün sahibi, yanlışlıkla dokunmaya karşı oylama açıkken tercihin değiştirilebilmesini istiyor. Demo artık böyle davranır: diğer seçeneğe dokunmak önceki tercihin yerine geçer, toplam oy değişmez. Backend bugün ilk oyu sabit tutar (`PUT /v1/polls/:id/vote` farklı seçenekte `409 VOTE_ALREADY_CAST`). Gerçek oy bağlanmadan önce kuralın değişmesi ya da arayüzün eski davranışa dönmesi gerekir; trend tarafındaki tercih olayının tekilleştirilmesi de bundan etkilenir.
+
+**Sonuç detayları:** Oy verildikten sonra detay ekranı toplam oyu, seçenek başına oyu ve oy verenlerin cinsiyet/yaş dağılımını gösterir. Dağılımlar gönderi kimliğinden türetilen mock değerlerdir (`features/polls/data/demo-demographics.ts`). Backend'in ilk sonuç sözleşmesinde demografik kırılım yoktur; bağlanırken izin ve küçük grup eşiği sunucuda uygulanmalıdır.
+
+**Keşfet düzeni:** Fotoğraflar ekranı doldurur; filtreler üst satırdaki sekmelere ve tek bir ikona indirildi, eylemler alt satırda ikonlardır. "Senin oylaman" şeridi Keşfet'ten kaldırıldı; kendi oylamalarına Profil'den ulaşılır.
 
 Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş filtreleri ve gerçek katalog kimliği ayrıca bağlanacak.
 
