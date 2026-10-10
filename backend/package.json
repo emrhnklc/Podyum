@@ -58,7 +58,8 @@
     "pretest:accounts": "npm run build",
     "test:accounts": "tsx --test --test-concurrency=1 tests/accounts.test.ts",
     "preaccounts:cleanup": "npm run build",
-    "accounts:cleanup": "tsx scripts/cleanup-accounts.ts"
+    "accounts:cleanup": "tsx scripts/cleanup-accounts.ts",
+    "preview:mobile": "EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3000/v1 tsx scripts/preview-mobile-home.ts"
   },
   "dependencies": {
     "@nestjs/common": "12.1.2",

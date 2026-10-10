@@ -36,8 +36,8 @@ const GOLD = "#F2B627";
 const FRAME_RATIO = 0.86;
 const SCRIPT_SPACE = 46;
 
-// Karşılama ve giriş ekranı; kaydırmadan tek ekrana sığar. Apple/Google/e-posta
-// girişi ve kayıt henüz bağlı değil; "Başla" hesap açmadan Keşfet'e geçirir.
+// Karşılama ekranı kaydırmadan tek ekrana sığar. E-posta girişi bağlı;
+// Apple/Google sonraki adımda. Kayıt ekranı ve "Başla" önizlemeyi açar.
 export function AuthScreen() {
   const message = usePreviewMessage();
   const [area, setArea] = useState({ width: 0, height: 0 });
@@ -227,7 +227,7 @@ export function AuthScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Zaten hesabın var mı? Giriş yap"
-            onPress={() => soon("E-posta ile giriş")}
+            onPress={() => router.push("/auth/login")}
             hitSlop={6}
             style={styles.accountLink}
           >
