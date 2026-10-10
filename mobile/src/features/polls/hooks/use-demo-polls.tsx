@@ -16,7 +16,7 @@ export function DemoPollsProvider({ children }: { children: ReactNode }) {
   const [saved, setSaved] = useState<string[]>([]);
   // Tercih değiştirilebilir: diğer seçeneğe dokunmak önceki tercihin yerine geçer.
   // Backend bugün ilk oyu sabit tutuyor (farklı seçenek 409 VOTE_ALREADY_CAST);
-  // bağlantıdan önce bu kuralın değişmesi gerekir.
+  // Gerçek ApiPollCard sunucunun tek tercih kuralını uygular; bu hook yalnız demodur.
   function vote(id: string, label: Label) {
     setVotes((previous) =>
       previous[id] === label ? previous : { ...previous, [id]: label },

@@ -1,5 +1,8 @@
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { ApiFeedScreen } from "./ApiFeedScreen";
+import { Button } from "@/components/ui/Button";
 import { useState, type ComponentProps, type ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,6 +35,13 @@ const categories: { value: "ALL" | PollCategory; label: string; icon: IconName }
 ];
 
 export function FeedScreen() {
+  const { ready, me, session, error } = useAuth();
+  if (!ready) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={blush.pink} /></View>;
+  if (me && session) return <ApiFeedScreen key={session.sessionId} />;
+  return <DemoFeedScreen sessionError={error} />;
+}
+
+function DemoFeedScreen({ sessionError }: { sessionError: string | null }) {
   const [audience, setAudience] = useState<"ALL" | "FRIENDS">("ALL");
   const [category, setCategory] = useState<"ALL" | PollCategory>("ALL");
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -65,6 +75,11 @@ export function FeedScreen() {
           </Pressable>
         </View>
 
+        <View style={{ gap: 10 }}>
+          <Text style={{ color: colors.muted }}>Tasarım önizlemesi · Gerçek kombinler için giriş yap.</Text>
+          {sessionError && <Text accessibilityRole="alert" style={{ color: colors.accent }}>{sessionError}</Text>}
+          <Button title="Giriş yap" variant="outline" onPress={() => router.push("/auth/login")} />
+        </View>
         <Pressable
           accessibilityRole="search"
           accessibilityLabel="Ara, kişi keşfet"

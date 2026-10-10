@@ -36,3 +36,9 @@ Son kontrol: gerçek API bootstrap/health smoke testi geçti. Yerel DB'de 3 demo
 4. **17–18: bütün akışlar ve frontend teslimi**; gerçek PostgreSQL yarışları, dağıtık canlı mesaj dağıtımı, API tipleri/ekran eşleştirmeleri ve cihaz kontrolleri.
 
 Günlük oyunun saati hâlâ ürün kararı bekliyor. Gerçek OAuth/e-posta, otomatik yüz tespiti/bulut medya, mağaza satın alma doğrulaması ve gerçek cihaz push doğrulaması tamamlanmış sayılmıyor. Ödül/lig/hızlı eşleşme/haftalık yarışmalar mevcut oyun akışından ayrı genişlemelerdir.
+
+## İlk mobil ana ekran entegrasyonu
+
+E-posta girişi/yenileme/çıkış, gerçek Keşfet/filtre/cursor, yetkili görsel, tek tercih/sonuç/detay, kaydet/kaldır, ürün linkleri ve yorumlar bağlandı. Native güvenli token deposu, eski oturum yanıtlarını reddetme ve açık demo ayrımı var. [Rehber](../../mobile/docs/home-api-integration.md). Backend iş kuralları/şema değişmedi; yerel önizleme kurulum komutu eklendi. Kayıt/doğrulama arayüzü ve diğer sekmeler bekliyor.
+
+Mobil TypeScript/lint ve Expo paket eşleşmesi, 9 oturum testi, gerçek mobil istemciyle HTTP entegrasyon smoke ve Android/iOS/web export geçti. Cihaz üzerindeki kabul testi henüz yapılmadı. Yerel API ve Expo LAN üzerinden açık; önizleme giriş bilgileri Git dışında tutulur.

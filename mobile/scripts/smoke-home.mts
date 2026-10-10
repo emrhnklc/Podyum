@@ -1,0 +1,43 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { apiBaseUrl, apiFetch, ApiError } from "../src/lib/api/client";
+import { SessionManager } from "../src/features/auth/session-manager";
+import type { ApiPoll, CommentPage, FeedPage, PollResults } from "../src/features/polls/api/types";
+
+const origin = new URL(apiBaseUrl ?? "http://127.0.0.1:3000/v1");
+assert.ok(["localhost", "127.0.0.1", "[::1]"].includes(origin.hostname), "Smoke yalnız yerel API'ye çalışır.");
+const fixture = JSON.parse(await readFile(new URL("../../backend/.local/mobile-preview.json", import.meta.url), "utf8"));
+const client = new SessionManager(apiFetch, { read: async () => null, write: async () => {} });
+try {
+  await client.restore(); await client.login(fixture.viewer.email, fixture.viewer.password);
+  const feed = await client.request<FeedPage>("/feed?scope=friends&limit=50");
+  const post = feed.items.find((row) => fixture.pollIds.includes(row.id)); assert.ok(post, "Önce backend preview:mobile komutuyla yeni oylama oluştur.");
+  assert.equal(post.canVote, true); assert.equal(post.myOptionId, null);
+  const category = await client.request<FeedPage>(`/feed?scope=friends&category=${post.category}`);
+  assert.ok(category.items.every((row) => row.category === post.category));
+  const image = await client.response(post.options[0].media.displayPath! as `/${string}`);
+  assert.ok((await image.arrayBuffer()).byteLength > 0);
+  await assert.rejects(apiFetch(post.options[0].media.displayPath! as `/${string}`), (error: ApiError) => error.status === 401);
+  let comments = await client.request<CommentPage>(`/polls/${post.id}/comments`); assert.equal(comments.canComment, false);
+  await client.request(`/polls/${post.id}/save`, { method: "PUT" });
+  const saved = await client.request<FeedPage>("/me/saved-polls"); assert.ok(saved.items.some((row) => row.id === post.id));
+  await client.request(`/polls/${post.id}/save`, { method: "DELETE" });
+  await assert.rejects(client.request(`/polls/${post.id}/results`), (error: ApiError) => error.status === 403);
+  const optionId = post.options[0].id;
+  for (let i = 0; i < 2; i++) await client.request(`/polls/${post.id}/vote`, { method: "PUT", body: JSON.stringify({ optionId }) });
+  const results = await client.request<PollResults>(`/polls/${post.id}/results`);
+  assert.equal(results.myOptionId, optionId); assert.equal(results.totalVotes, 1);
+  await assert.rejects(client.request(`/polls/${post.id}/vote`, { method: "PUT", body: JSON.stringify({ optionId: post.options[1].id }) }), (error: ApiError) => error.code === "VOTE_ALREADY_CAST");
+  const detail = await client.request<ApiPoll>(`/polls/${post.id}`); assert.equal(detail.canVote, false); assert.equal(detail.myOptionId, optionId);
+  const next = await client.request<FeedPage>("/feed?scope=friends&limit=50"); assert.ok(!next.items.some((row) => row.id === post.id));
+  comments = await client.request<CommentPage>(`/polls/${post.id}/comments`); assert.equal(comments.canComment, true);
+  const key = randomUUID();
+  const options = { method: "POST", headers: { "Idempotency-Key": key }, body: JSON.stringify({ body: "Mobil entegrasyon kontrolü" }) };
+  const comment = await client.request<{ id: string }>(`/polls/${post.id}/comments`, options);
+  const replay = await client.request<{ id: string }>(`/polls/${post.id}/comments`, options); assert.equal(comment.id, replay.id);
+  await client.request(`/comments/${comment.id}`, { method: "DELETE" });
+  await client.logout(); assert.equal(client.state.me, null);
+  await assert.rejects(client.request("/feed"), (error: ApiError) => error.status === 401);
+  console.log("Mobil gerçek API smoke geçti: giriş, arkadaş/kategori akışı, özel medya, kaydet/kaldır, tek tercih, sonuç, detay, yorum/replay/silme ve çıkış.");
+} finally { if (client.state.session) await client.logout().catch(() => {}); }

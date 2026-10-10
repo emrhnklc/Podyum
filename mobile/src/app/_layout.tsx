@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { View, Text, ActivityIndicator } from "react-native";
 import { DemoPollsProvider } from "@/features/polls/hooks/use-demo-polls";
 import { ProfileEditsProvider } from "@/features/profile/hooks/use-profile-edits";
+import { AuthProvider } from "@/features/auth/hooks/use-auth";
 import { colors } from "@/theme";
 
 export default function RootLayout() {
@@ -40,6 +41,7 @@ export default function RootLayout() {
     );
   return (
     <SafeAreaProvider>
+      <AuthProvider>
       <DemoPollsProvider>
         <ProfileEditsProvider>
           <StatusBar style="dark" />
@@ -51,6 +53,7 @@ export default function RootLayout() {
           />
         </ProfileEditsProvider>
       </DemoPollsProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

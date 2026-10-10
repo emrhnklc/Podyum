@@ -4,6 +4,8 @@ import { router, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { errorMessage } from "@/lib/api/client";
 import { resetWelcomed } from "@/features/auth/welcome";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 import appConfig from "../../../../app.json";
@@ -57,16 +59,17 @@ const sections: { title: string; rows: Row[] }[] = [
 
 export function SettingsScreen() {
   const message = usePreviewMessage();
+  const { client } = useAuth();
   const back = () =>
     router.canGoBack() ? router.back() : router.replace("/profil");
   const open = (row: Row) =>
     row.href
       ? router.push(row.href)
       : message(`${row.label} sıradaki adımlarda açılacak.`);
-  // Gerçek oturum yok; çıkış karşılama ekranına döndürür.
-  const signOut = () => {
-    resetWelcomed();
-    router.replace("/auth");
+  const signOut = async () => {
+    try { await client.logout(); }
+    catch (error) { message(errorMessage(error)); }
+    finally { resetWelcomed(); router.replace("/auth"); }
   };
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -126,7 +129,7 @@ export function SettingsScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Çıkış Yap"
-          onPress={signOut}
+          onPress={() => void signOut()}
           style={({ pressed }) => [
             styles.signOut,
             { opacity: pressed ? 0.75 : 1 },

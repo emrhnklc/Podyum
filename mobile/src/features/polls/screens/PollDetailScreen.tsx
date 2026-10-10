@@ -1,3 +1,5 @@
+import { ApiPollDetailScreen } from "./ApiPollDetailScreen";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import { StyleSheet, View } from "react-native";
 import { Screen } from "@/components/ui/Screen";
 import { BackButton } from "@/components/ui/BackButton";
@@ -15,6 +17,11 @@ import { PollCard } from "../components/PollCard";
 import { OptionProducts } from "../components/OptionProducts";
 
 export function PollDetailScreen({ id }: { id: string }) {
+  const { session } = useAuth();
+  if (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(id)) return <ApiPollDetailScreen key={`${session?.sessionId}:${id}`} id={id} />;
+  return <DemoPollDetailScreen id={id} />;
+}
+function DemoPollDetailScreen({ id }: { id: string }) {
   const { votes } = useDemoPolls();
   const post = posts.find((item) => item.id === id);
   if (!post)

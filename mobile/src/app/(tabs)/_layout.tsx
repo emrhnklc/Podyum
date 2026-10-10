@@ -1,7 +1,11 @@
-import { Redirect, Tabs } from "expo-router";
+import { Redirect, Tabs, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, type ColorValue } from "react-native";
 import { blush, colors, fonts } from "@/theme";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "@/components/ui/Text";
 import { hasWelcomed } from "@/features/auth/welcome";
 
 type IconName = keyof typeof Ionicons.glyphMap;
@@ -19,9 +23,15 @@ function tabIcon(active: IconName, idle: IconName) {
 }
 
 export default function TabsLayout() {
+  const { ready, me } = useAuth();
+  const segments = useSegments();
+  const insets = useSafeAreaInsets();
+  if (!ready) return <ActivityIndicator style={{ flex: 1 }} />;
   // Açılışta önce karşılama ekranı; "Başla" sonrası sekmeler açılır.
-  if (!hasWelcomed()) return <Redirect href="/auth" />;
+  if (!me && !hasWelcomed()) return <Redirect href="/auth" />;
   return (
+    <View style={{ flex: 1 }}>
+    {me && segments.length > 1 && <View style={{ backgroundColor: blush.chip, paddingTop: insets.top, paddingBottom: 8, alignItems: "center" }}><Text style={{ color: colors.muted, fontSize: 12 }}>Bu ekran tasarım önizlemesidir.</Text></View>}
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -94,5 +104,6 @@ export default function TabsLayout() {
       {/* Bildirimler rotası duruyor; sekme çubuğunda Defile yer aldı. */}
       <Tabs.Screen name="bildirimler" options={{ href: null }} />
     </Tabs>
+    </View>
   );
 }

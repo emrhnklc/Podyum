@@ -33,7 +33,7 @@ const STICKERS = {
 
 const GOLD = "#F2B627";
 
-// Karşılama ve giriş ekranı. Apple/Google/e-posta girişi henüz bağlı değil;
+// Karşılama ekranı. E-posta girişi bağlı; Apple/Google sonraki adımda.
 // "Başla" hesap açmadan Keşfet'e geçirir.
 export function AuthScreen() {
   const message = usePreviewMessage();
@@ -165,7 +165,7 @@ export function AuthScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Zaten hesabın var mı? Giriş yap"
-            onPress={() => soon("E-posta ile giriş")}
+            onPress={() => router.push("/auth/login")}
             style={styles.signIn}
           >
             <Text>Zaten hesabın var mı?</Text>
