@@ -2,7 +2,9 @@
 
 10 Ekim 2026. Güncel ana sıra: [backend planı](backend-roadmap.md). Günlük podyum ve QR lobisi artık aktif ilk teslimdir; yeni oyun geliştirmesi bizdedir. Eski tur/matchmaking görevi geçerli değildir; [güncel oyun tasarımı](game-design.md). Bu belge görev ve entegrasyon sözleşmesidir; adı geçen yeni servisler henüz uygulanmış değildir.
 
-## Bölüşüm
+**Güncel aktif paylaşım:** Arkadaş `mobile/` altında frontend temasını yapar; biz `backend/` içinde ilerleriz. Mobil dosyalarını ve bağımlılıklarını arkadaş değiştirir, backend şemasını/servislerini/API sözleşmelerini biz yönetiriz. Yeni endpoint ihtiyacı ekran üzerinden iletilir; temayı değiştirmek için backend işini beklemek gerekmez. Aşağıdaki katalog/trend/gelir kolu önceki backend paylaşım planıdır; bu işe dönülünce yeniden paylaştırılır.
+
+## Önceki backend bölüşümü
 
 **Biz:** Kullanıcının uygulamaya girip profil oluşturduğu, arkadaş eklediği, fotoğrafla kombin paylaştığı ve tercih aldığı akış.
 
@@ -34,7 +36,7 @@ Bu başlangıç dağılımıdır; modül sayısının eşit olması iş yükün�
 
 Depo düzeni `Podyum/backend/` ve `Podyum/mobile/` şeklindedir. Bu belgedeki backend yolları ve npm komutları `backend/` klasörüne göredir. Arayüz dosyaları `mobile/` altında ayrı paket/TypeScript ayarlarıyla tutulur. Kök `package.json` ortak çalıştırma komutlarıdır; entegrasyonunu biz yönetiriz.
 
-- Biz: `src/modules/auth`, `users`, `social`, `media`, `polls`; ileride `feed`, `games`, `notifications` ve genel yönetim için `moderation`.
+- Biz: `src/modules/auth`, `users`, `social`, `media`, `polls`, `feed`; ileride `games`, `notifications` ve genel yönetim için `moderation`.
 - Arkadaş: ileride `src/modules/catalog`, `trends`, `billing`, `ads`. Bu dört modül şu anda mevcut değil; ilgili iş başladığında açılacak.
 - Her geliştirici kendi özelliğinin DTO, test, fixture ve örnek HTTP dosyalarına sahip olur. Ortak `tests/api.test.ts` dosyasına herkes aynı anda ekleme yapmak yerine özellik testleri ayrı dosyalarda tutulur.
 - `prisma/schema.prisma`, migration sırası, `src/common`, `src/database`, `src/app.module.ts`, `package.json`, `package-lock.json` ve ana plan belgelerinin entegrasyonunu biz yönetiriz.
@@ -129,4 +131,4 @@ Her PR: değişen sözleşmeler, migration/bağımlılık ihtiyacı, HTTP örnek
 
 Ayrı modüllerin içini bağımsız geliştirebiliriz. Ortak ürün modeli, tercih/izin olayı, ücretli haklar ve reklam–akış bağlantısında küçük entegrasyon teslimleri gerekir. Bu noktalar sözleşmeyle ve tek sahiplikle yönetilir; tamamen bağlantısız iki backend yapılmaz.
 
-Temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/iptal/silme/detay/kendi liste API'leri şimdi hazır. **Tercih/kapanış/sonuç da hazır. Sonraki bizim işimiz ana akış, ardından 19–20 günlük oyun/QR lobisi; arkadaşın ilk işi hâlâ katalog/ürün linkleri.** Ürün etiketleri USER_ENTERED; ortak ürün eşleşmesi/productId henüz yoktur. Dokuzuncu migration nullable ProductTag.priceRecordedAt ekler: kullanıcı fiyat beyanının sunucu zamanı, eski veride null. Onuncu migration PollVote izin tarihi/revision alanlarını ekler; izin geri alma oy demografisini temizler, eski toplu katkıları trend tüketicisi geri almalıdır. [Tercih/trend kaynak sözleşmesi](poll-votes-development.md). Arkadaş ortak ürün/store/eşleşme şemasını önerirken bu alanı ve özgün linki korur; biz schema/migration entegrasyonunu yaparız. Güncel kod alınınca `npm ci`, `npm run db:deploy`, `npm run db:generate`; reset yok. Otomatik yüz tespiti/bulut depo, başkasının profil listesi ve kaydedilenler bekliyor. [Medya sözleşmesi](media-development.md), [oylama/ürün etiketi sözleşmesi](polls-development.md). Oyun aktif plandadır; sıradaki 10 sonrası biz 19–20 oyun işlerine geçeriz. Arkadaş katalog/trend/gelir kolunda devam eder. Güncel Claude görevi: [arkadaş için metin](friend-claude-task.md).
+Temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/iptal/silme/detay/kendi liste API'leri şimdi hazır. **Tercih/kapanış/sonuç ve organik ana akış da hazır. Sonraki bizim işimiz 19–20 günlük oyun/QR lobisi; arkadaşın aktif işi mobil temadır.** [Akış teslimi](feed-development.md). Ürün etiketleri USER_ENTERED; ortak ürün eşleşmesi/productId henüz yoktur. Dokuzuncu migration nullable ProductTag.priceRecordedAt ekler: kullanıcı fiyat beyanının sunucu zamanı, eski veride null. Onuncu migration PollVote izin tarihi/revision alanlarını ekler; izin geri alma oy demografisini temizler, eski toplu katkıları trend tüketicisi geri almalıdır. [Tercih/trend kaynak sözleşmesi](poll-votes-development.md). Arkadaş ortak ürün/store/eşleşme şemasını önerirken bu alanı ve özgün linki korur; biz schema/migration entegrasyonunu yaparız. Güncel kod alınınca `npm ci`, `npm run db:deploy`, `npm run db:generate`; reset yok. Otomatik yüz tespiti/bulut depo, başkasının profil listesi ve kaydedilenler bekliyor. [Medya sözleşmesi](media-development.md), [oylama/ürün etiketi sözleşmesi](polls-development.md). Oyun aktif plandadır; 10 hazır, biz 19–20 oyun işlerine geçeriz. Arkadaş mobile temasında devam eder; katalog/trend/gelir kolu hâlâ bekleyen backend kapsamıdır. Önceki katalog görevi: [arkadaş için metin](friend-claude-task.md).

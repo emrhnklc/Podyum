@@ -2,17 +2,17 @@
 
 Kombin tercihi oylamaları ve fotoğraflarla oynanan canlı tema yarışması için mimari taslak ve çalışan yerel veritabanı temeli.
 
-**Hazır:** Ortak API doğrulama/hata/request ID/Swagger ve kalıcı işlem tekrarı altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; kullanıcı arama, arkadaşlık/engel ve ortak erişim servisi; yerel özel fotoğraf yükleme/işleme/önizleme, manuel bölge bulanıklaştırma ve avatar; oylama taslağı/düzenleme/yayın/iptal/silme, elle ürün etiketleri, detay ve kendi liste uçları; tek tercih oyu, yetkili anlık/kesin sonuç, kalıcı kapanış tarayıcısı ve izinli analiz snapshot/geri alma; health endpoint'leri; Prisma şeması (32 model), on migration, demo seed ve DB hedef koruması. **Planlanan:** Ana akış/yorum/kaydetme, katalog eşleştirme, ticari modüller, aktif kapsam günlük oyun/QR lobi API’leri, otomatik yüz tespiti/bulut medya deposu, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
+**Hazır:** Ortak API doğrulama/hata/request ID/Swagger ve kalıcı işlem tekrarı altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; kullanıcı arama, arkadaşlık/engel ve ortak erişim servisi; yerel özel fotoğraf yükleme/işleme/önizleme, manuel bölge bulanıklaştırma ve avatar; oylama taslağı/düzenleme/yayın/iptal/silme, elle ürün etiketleri, detay ve kendi liste uçları; tek tercih oyu, yetkili anlık/kesin sonuç, kalıcı kapanış tarayıcısı ve izinli analiz snapshot/geri alma; herkes/arkadaşlar organik akışı, kategori ve cursor; health endpoint'leri; Prisma şeması (32 model), on migration, demo seed ve DB hedef koruması. **Planlanan:** Yorum/kaydetme, katalog eşleştirme, ticari modüller, aktif kapsam günlük oyun/QR lobi API’leri, otomatik yüz tespiti/bulut medya deposu, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
 
 E-posta teslimi şimdilik yerel dosyadır. Gerçek Google/Apple girişi tamamlanmadı. Çalışan akış: [Auth geliştirme rehberi](docs/auth-development.md).
 
-Çalışan profil/ayar uçları: [Profil rehberi](docs/users-development.md), [HTTP örnekleri](examples/users.http). Sosyal API: [Sosyal rehber](docs/social-development.md), [HTTP örnekleri](examples/social.http). Fotoğraf/avatar: [Medya rehberi](docs/media-development.md), [HTTP örnekleri](examples/media.http). Oylama oluşturma: [Oylama rehberi](docs/polls-development.md), [HTTP örnekleri](examples/polls.http). Oy/sonuç: [Rehber](docs/poll-votes-development.md), [HTTP örnekleri](examples/poll-votes.http). Sonraki bizim işimiz ana akış, ardından günlük oyun/QR lobi; arkadaş katalogla paralel ilerleyebilir. Otomatik yüz tespiti henüz bağlı değildir.
+Çalışan profil/ayar uçları: [Profil rehberi](docs/users-development.md), [HTTP örnekleri](examples/users.http). Sosyal API: [Sosyal rehber](docs/social-development.md), [HTTP örnekleri](examples/social.http). Fotoğraf/avatar: [Medya rehberi](docs/media-development.md), [HTTP örnekleri](examples/media.http). Oylama oluşturma: [Oylama rehberi](docs/polls-development.md), [HTTP örnekleri](examples/polls.http). Oy/sonuç: [Rehber](docs/poll-votes-development.md), [HTTP örnekleri](examples/poll-votes.http). Ana akış: [Rehber](docs/feed-development.md), [HTTP örnekleri](examples/feed.http). Sonraki bizim işimiz günlük oyun/QR lobi; arkadaş şu an mobile temasını ilerletir. Otomatik yüz tespiti henüz bağlı değildir.
 
 ## Belgeleri okuma sırası
 
 Adım adım geliştirmede takip edeceğimiz ana iş listesi: [Backend çalışma planı](docs/backend-roadmap.md).
 
-İki kişinin görevleri ve entegrasyon sınırları: [İki kişilik çalışma planı](docs/two-developer-plan.md). Biz kullanıcı/sosyal/medya/oylama, arkadaş ürün kataloğu/trend/Plus/affiliate/reklam kolunu geliştirir. Başlangıç: biz profil, arkadaş katalog. [Arkadaşın Claude'una verilecek güncel görev](docs/friend-claude-task.md).
+İki kişinin görevleri ve entegrasyon sınırları: [İki kişilik çalışma planı](docs/two-developer-plan.md). Güncel aktif iş: biz backend, arkadaş mobile tema. Önceki ürün/trend/gelir backend paylaşımı aynı belgede kayıtlıdır; yeniden başlanınca sahiplik netleştirilir. [Önceki katalog görev kaydı](docs/friend-claude-task.md).
 
 **Son kullanıcı güncellemesi:** Günlük podyum ve QR lobileri aktif backend kapsamına geri alındı. Genel oyun 30 dk fotoğraf + 30 dk oylama ve yalnız etkinlik katılımcılarına oy; özel lobi ayarlanabilir süre/host erken geçişiyle çalışacak. [Oyun tasarımı](docs/game-design.md). Sosyal kombin, trend ve gelir işleri korunur. Yeni fikirler, açık kararlar ve yapılacaklar: [Mentör görüşmesi notu](docs/mentor-notes-2026-10-10.md). Bunlar planlanan özelliklerdir.
 
@@ -37,6 +37,7 @@ src/
     social/                arkadaşlık ve engelleme
     media/                 fotoğraf hattı
     polls/                 kombin oylaması ve etkileşim
+    feed/                  organik ana akış
     games/                 canlı podyum
     notifications/         bildirimler
     rewards/               profil puanı
@@ -90,7 +91,7 @@ npm run test:api
 npm run db:check
 ```
 
-NestJS uygulamasını başlatmak için `npm start` kullanın; önce Prisma istemcisini üretir ve TypeScript'i derler. Varsayılan adres `http://127.0.0.1:3000`; port doluysa `PORT=3100 npm start` ile ayrı port seçin. Health, `/v1/auth/*`, profil/ayar, sosyal, medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Açılışta ortam ve hedef DB doğrulanır; kapanışta Prisma bağlantısı bırakılır.
+NestJS uygulamasını başlatmak için `npm start` kullanın; önce Prisma istemcisini üretir ve TypeScript'i derler. Varsayılan adres `http://127.0.0.1:3000`; port doluysa `PORT=3100 npm start` ile ayrı port seçin. Health, `/v1/auth/*`, profil/ayar, sosyal, medya/avatar ve oylama oluşturma/detay/kendi liste/tercih/sonuç ve organik akış endpoint'leri çalışır. Açılışta ortam ve hedef DB doğrulanır; kapanışta Prisma bağlantısı bırakılır.
 
 Yerel fotoğraflar `.local/media` altında, HTTP'den doğrudan açılmayan özel dosyalardır; `LOCAL_MEDIA_DIR` ile ayrı dizin seçilebilir. `npm run test:media` fotoğraf hattını kontrol eder; `npm run media:cleanup` süresi dolan/boşta dosyaları temizler. Otomatik cron henüz yoktur.
 
@@ -137,10 +138,10 @@ DATABASE_URL="postgresql://kombin:local_kombin_only@127.0.0.1:54329/kombin?sslmo
 
 ## Doğrulananlar ve sınırlar
 
-Prisma validation/client üretimi, TypeScript kontrolü, migration uygulaması, tekrar çalışabilen seed, 14 DB testi ve 79 auth/profil/sosyal/medya/oylama HTTP testi yerelde kontrol edilir. DB testleri rollback kullanır; HTTP testleri yalnızca kendi benzersiz test hesaplarını ve geçici posta kutularını temizler. Demo verileri silinmez.
+Prisma validation/client üretimi, TypeScript kontrolü, migration uygulaması, tekrar çalışabilen seed, 14 DB testi ve 95 auth/profil/sosyal/medya/oylama/akış HTTP testi yerelde kontrol edilir. DB testleri rollback kullanır; HTTP testleri yalnızca kendi benzersiz test hesaplarını ve geçici posta kutularını temizler. Demo verileri silinmez.
 
 DB testleri tek oy, doğru seçenek FK'sı, arkadaşlık çifti, süre alanı, seçenek sınırı, kendine yıldız, yıldız aralığı, oda üyeliği, tur sahibi, tek aktif oyun ve ödül tekilliğini kapsar. Auth HTTP testleri kayıt/doğrulama/giriş, token dönüşümü/tekrar kullanımı, çıkış, reset, hesap durumu, mock kapatma, hata/limit ve Swagger davranışlarını kapsar. Profil testleri özel alan ayrımı, kurulum, atomik stil/isim güncellemesi, izin/olay kaydı, ayarlar, görünür sayaçlar ve iki yönlü engeli kapsar; yalnız bunlar için `npm run test:users`. Oylama/oyun yetkileri ve çok bağlantılı yarış testleri ilgili adımlarda yapılacak.
 
-Sosyal testler kullanıcı arama, çift/ters istek, alıcı/gönderen yetkisi, kabul/red/iptal tekrarı, arkadaşlıktan çıkarma, iki yönlü engel, özel yayın erişimi, cursor ve olay hatasında rollback'i kapsar; yalnız bunlar için `npm run test:social`. Medya testleri gerçek dosya işleme/blur/erişim/temizliği, `npm run test:polls` ise 18 taslak/yayın/tekrar/sürüm/erişim/kota/rollback testini çalıştırır. `test:api` auth, profil, sosyal, medya ve oylama oluşturmayı birlikte çalıştırır (79 HTTP testi; 15 tercih/kapanış/izin testi dahil). Medya, oylama detay, tercih ve sonuç uçları ortak sosyal erişim servisine bağlıdır. Kapanış API açılışında ve varsayılan 15 saniyede bir taranır; `POLL_CLOSE_WORKER_ENABLED=false` kapatır. Elle `npm run polls:close -- <poll-uuid>` ile yalnız hedef kaydın süresini denetleyebilirsin; son süreden önce kapatmaz.
+Sosyal testler kullanıcı arama, çift/ters istek, alıcı/gönderen yetkisi, kabul/red/iptal tekrarı, arkadaşlıktan çıkarma, iki yönlü engel, özel yayın erişimi, cursor ve olay hatasında rollback'i kapsar; yalnız bunlar için `npm run test:social`. Medya testleri gerçek dosya işleme/blur/erişim/temizliği, `npm run test:polls` ise 19 taslak/yayın/tekrar/sürüm/erişim/kota/rollback ve gerçek fotoğraf→akış→tercih→sonuç testini çalıştırır. `test:api` auth, profil, sosyal, medya ve oylama oluşturmayı birlikte çalıştırır (95 HTTP testi; 15 tercih/kapanış/izin ve 15 akış testi dahil). `npm run test:feed` 15 akış testini çalıştırır. Medya, oylama detay, tercih, sonuç ve akış uçları ortak sosyal erişim servisine bağlıdır. Kapanış API açılışında ve varsayılan 15 saniyede bir taranır; `POLL_CLOSE_WORKER_ENABLED=false` kapatır. Elle `npm run polls:close -- <poll-uuid>` ile yalnız hedef kaydın süresini denetleyebilirsin; son süreden önce kapatmaz.
 
 Bağımlılıklarda `deepmerge-ts` ve `mysql2` overrides, Prisma araç zincirindeki bildirilen açıkların düzeltilmiş sürümlerini kullanır; kurulum/config/migration/generate kontrolleriyle doğrulanır. Sürüm yükseltirken bu pin'leri ve `npm audit` sonucunu birlikte gözden geçirin.

@@ -97,6 +97,7 @@ afterEach(async () => {
       await db.$transaction(async (tx) => {
         await tx.outboxEvent.deleteMany({ where: { aggregateId: { in: [...ids, ...pollIds] } } });
         await tx.idempotencyRecord.deleteMany({ where: { userId: { in: ids } } });
+        await tx.pollVote.deleteMany({ where: { pollId: { in: [...pollIds] } } });
         await tx.productTag.deleteMany({ where: { option: { poll: { authorId: { in: ids } } } } });
         await tx.pollOption.deleteMany({ where: { poll: { authorId: { in: ids } } } });
         await tx.poll.deleteMany({ where: { authorId: { in: ids } } });
@@ -118,6 +119,26 @@ afterEach(async () => {
       if (envBefore[key] === undefined) delete process.env[key]; else process.env[key] = envBefore[key];
     }
   }
+});
+
+test("gerçek fotoğraf → özel yayın → arkadaş akışı → tercih → sonuç zinciri", async () => {
+  const pending = await withPhotos({ visibility: "FRIENDS", category: "TATTOO" });
+  const published = await publish(pending);
+  let feed = await call("GET", "/feed?scope=friends&category=TATTOO", accounts[1]);
+  assert.equal(feed.status, 200); assert.ok(!feed.body.items.some((item: any) => item.id === published.id));
+  assert.equal(await imageStatus(published.options[0].mediaId, accounts[1]), 404);
+  assert.equal((await call("POST", "/friend-requests", accounts[0], { targetUserId: accounts[1].id })).status, 200);
+  assert.equal((await call("POST", `/friend-requests/${accounts[0].id}/accept`, accounts[1])).status, 200);
+  feed = await call("GET", "/feed?scope=friends&category=TATTOO", accounts[1]);
+  const card = feed.body.items.find((item: any) => item.id === published.id);
+  assert.ok(card); assert.equal(card.canVote, true); assert.equal(card.totalVotes, 0);
+  assert.equal(await imageStatus(card.options[0].mediaId, accounts[1]), 200);
+  assert.equal((await call("PUT", `/polls/${card.id}/vote`, accounts[1], { optionId: card.options[0].id })).status, 200);
+  feed = await call("GET", "/feed?scope=friends&category=TATTOO", accounts[1]);
+  assert.ok(!feed.body.items.some((item: any) => item.id === published.id));
+  const result = await call("GET", `/polls/${published.id}/results`, accounts[1]);
+  assert.equal(result.status, 200); assert.equal(result.body.totalVotes, 1); assert.equal(result.body.myOptionId, card.options[0].id);
+  assert.equal((await call("GET", `/polls/${published.id}/results`, accounts[2])).status, 404);
 });
 
 test("oylama uçları oturum, işlem anahtarı, UUID ve katı body/query doğrulaması ister", async () => {
@@ -460,5 +481,5 @@ test("OpenAPI çalışan oylama yollarını, expectedVersion ve gerekli Idempote
   }
   assert.ok(schema.body.components.schemas.UpdatePollDto.required.includes("expectedVersion"));
   assert.ok(schema.body.paths["/v1/polls/{id}/vote"].put);
-  assert.equal(schema.body.paths["/v1/feed"], undefined);
+  assert.ok(schema.body.paths["/v1/feed"].get);
 });

@@ -8,17 +8,10 @@ import { MediaService } from "../media/media.service.js";
 import { SocialAccessService } from "../social/social-access.service.js";
 import type { CreatePollDto, MyPollsQueryDto, PollOptionInputDto, UpdateCommentSettingsDto, UpdatePollDto } from "./dto/polls.dto.js";
 import { pollServerNow as serverNow, effectivePollStatus as effectiveStatus, writePollEvent } from "./polls-internals.js";
+import { pollDetailInclude, presentPoll } from "./poll-read-model.js";
 
 type Tx = Prisma.TransactionClient;
 const missing = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Oylama bulunamadı.");
-const include = {
-  author: { select: { id: true, username: true, displayName: true, avatarMediaId: true } },
-  options: { orderBy: { position: "asc" as const }, include: {
-    media: { select: { id: true, status: true, width: true, height: true, displayKey: true, thumbnailKey: true, previewAcceptedAt: true } },
-    products: { orderBy: { id: "asc" as const } },
-  } },
-} satisfies Prisma.PollInclude;
-type PollRow = Prisma.PollGetPayload<{ include: typeof include }>;
 
 @Injectable()
 export class PollsService {
@@ -49,49 +42,14 @@ export class PollsService {
     await writePollEvent(tx, poll, type);
   }
 
-  private response(poll: PollRow, viewerId: string, now: Date) {
-    const status = effectiveStatus(poll, now);
-    const isOwner = poll.authorId === viewerId;
-    const { avatarMediaId, ...author } = poll.author;
-    return {
-      id: poll.id, author: { ...author, avatarPath: avatarMediaId ? `/v1/media/${avatarMediaId}/content` : null },
-      question: poll.question, category: poll.category, occasion: poll.occasion, visibility: poll.visibility,
-      audienceGender: poll.audienceGender, audienceAgeBand: poll.audienceAgeBand, styleMatchRequired: poll.styleMatchRequired,
-      commentsEnabled: poll.commentsEnabled, status: poll.status, effectiveStatus: status, contentStatus: poll.contentStatus,
-      durationSeconds: poll.durationSeconds, version: poll.version, publishedAt: poll.publishedAt, closesAt: poll.closesAt, closedAt: poll.closedAt,
-      createdAt: poll.createdAt, updatedAt: poll.updatedAt, serverNow: now,
-      remainingSeconds: status === "OPEN" && poll.closesAt ? Math.max(0, Math.ceil((poll.closesAt.getTime() - now.getTime()) / 1000)) : 0,
-      isOwner, canEditDraft: isOwner && poll.status === "DRAFT" && poll.contentStatus === "VISIBLE",
-      canCancel: isOwner && (status === "DRAFT" || status === "OPEN"),
-      options: poll.options.map((option) => ({
-        id: option.id, position: option.position, label: String.fromCharCode(64 + option.position), mediaId: option.mediaId,
-        media: { id: option.media.id, status: option.media.status, width: option.media.width, height: option.media.height,
-          previewAccepted: option.media.previewAcceptedAt !== null,
-          displayPath: option.media.status === "READY" && option.media.displayKey ? `/v1/media/${option.mediaId}/content` : null,
-          thumbnailPath: option.media.status === "READY" && option.media.thumbnailKey ? `/v1/media/${option.mediaId}/content?variant=thumbnail` : null },
-        products: option.products.map((product) => ({
-          id: product.id, title: product.title, brand: product.brand, priceMinor: product.priceMinor,
-          currency: product.currency, externalUrl: product.externalUrl, priceRecordedAt: product.priceRecordedAt,
-          source: "USER_ENTERED" as const,
-        })),
-      })),
-    };
-  }
-
   private async detail(tx: Tx, viewerId: string, id: string, now?: Date) {
-    const poll = await tx.poll.findUnique({ where: { id }, include });
+    const poll = await tx.poll.findUnique({ where: { id }, include: pollDetailInclude });
     if (!poll) throw missing();
     await this.access.requireUserAccess(tx, viewerId, poll.authorId);
     if (viewerId !== poll.authorId) await this.access.requirePublishedPollAccess(tx, viewerId, id);
     const currentTime = now ?? await serverNow(tx);
-    const response = this.response(poll, viewerId, currentTime);
     const mine = await tx.pollVote.findUnique({ where: { pollId_voterId: { pollId: id, voterId: viewerId } }, select: { optionId: true } });
-    const published = poll.contentStatus === "VISIBLE" && ["OPEN", "CLOSED"].includes(poll.status);
-    return { ...response, myOptionId: mine?.optionId ?? null,
-      canVote: published && response.effectiveStatus === "OPEN" && !response.isOwner && !mine
-        && poll.audienceGender === "ANY" && poll.audienceAgeBand === null && !poll.styleMatchRequired,
-      canViewResults: published && (response.isOwner || !!mine || response.effectiveStatus === "CLOSED"),
-    };
+    return presentPoll(poll, viewerId, currentTime, mine?.optionId ?? null);
   }
 
   private async replaceOptions(tx: Tx, userId: string, pollId: string, options: PollOptionInputDto[]) {

@@ -19,6 +19,13 @@ export const userNotFound = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Kulla
 
 @Injectable()
 export class SocialAccessService {
+  acceptedFriendWhere(viewerId: string): Prisma.UserWhereInput {
+    return { OR: [
+      { friendshipsA: { some: { userBId: viewerId, status: "ACCEPTED" } } },
+      { friendshipsB: { some: { userAId: viewerId, status: "ACCEPTED" } } },
+    ] };
+  }
+
   activeUnblockedUserWhere(viewerId: string): Prisma.UserWhereInput {
     return {
       status: "ACTIVE",
@@ -44,10 +51,7 @@ export class SocialAccessService {
       OR: [
         { authorId: viewerId },
         { visibility: "PUBLIC" },
-        { visibility: "FRIENDS", author: { OR: [
-          { friendshipsA: { some: { userBId: viewerId, status: "ACCEPTED" } } },
-          { friendshipsB: { some: { userAId: viewerId, status: "ACCEPTED" } } },
-        ] } },
+        { visibility: "FRIENDS", author: this.acceptedFriendWhere(viewerId) },
       ],
     };
   }
