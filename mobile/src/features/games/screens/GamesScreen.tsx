@@ -8,7 +8,7 @@ import { ME } from "@/constants/demo";
 import { getUser } from "@/features/profile/data/demo-users";
 import { compactCount } from "@/lib/format";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { colors, common, fonts } from "@/theme";
 import { leagueFor } from "../data/league";
 import {
   liveGame,
@@ -79,7 +79,7 @@ export function GamesScreen() {
                 style={{
                   fontSize: 12,
                   fontFamily: fonts.bold,
-                  color: blush.wine,
+                  color: colors.text,
                 }}
               >
                 CANLI
@@ -110,9 +110,9 @@ export function GamesScreen() {
         >
           <ThemeArt />
           <View style={[common.row, { gap: 8 }]}>
-            <Ionicons name="calendar-outline" size={20} color={blush.wine} />
+            <Ionicons name="calendar-outline" size={20} color={colors.text} />
             <Text
-              style={{ flex: 1, fontFamily: fonts.bold, color: blush.wine }}
+              style={{ flex: 1, fontFamily: fonts.bold, color: colors.text }}
             >
               Haftalık tema
             </Text>
@@ -124,12 +124,12 @@ export function GamesScreen() {
           </Text>
           <View style={[common.row, { flexWrap: "wrap", gap: 10 }]}>
             <View style={styles.timer}>
-              <Ionicons name="time-outline" size={16} color={blush.wine} />
+              <Ionicons name="time-outline" size={16} color={colors.text} />
               <Text
                 style={{
                   fontSize: 13,
                   fontFamily: fonts.bold,
-                  color: blush.wine,
+                  color: colors.text,
                 }}
               >
                 {weeklyTheme.timeLeft} kaldı
@@ -162,9 +162,9 @@ export function GamesScreen() {
         <View style={[styles.box, { gap: 12 }]}>
           <View style={common.spread}>
             <View style={[common.row, { gap: 8 }]}>
-              <Ionicons name="people" size={20} color={blush.wine} />
+              <Ionicons name="people" size={20} color={colors.text} />
               <Text>
-                <Text style={{ fontFamily: fonts.bold, color: blush.wine }}>
+                <Text style={{ fontFamily: fonts.bold, color: colors.text }}>
                   Arkadaşlar
                 </Text>
                 <Text style={{ color: colors.muted }}> · bu hafta</Text>
@@ -235,7 +235,7 @@ export function GamesScreen() {
 
         <View style={[styles.box, common.row, { gap: 14 }]}>
           <View style={styles.tourIcon}>
-            <Ionicons name="shirt" size={28} color={blush.wine} />
+            <Ionicons name="shirt" size={28} color={colors.text} />
           </View>
           <View style={{ flex: 1, gap: 8 }}>
             <View style={common.spread}>
@@ -256,12 +256,12 @@ export function GamesScreen() {
                   style={{
                     fontSize: 13,
                     fontFamily: fonts.bold,
-                    color: blush.wine,
+                    color: colors.text,
                   }}
                 >
                   Turu gör
                 </Text>
-                <Ionicons name="arrow-forward" size={15} color={blush.wine} />
+                <Ionicons name="arrow-forward" size={15} color={colors.text} />
               </Pressable>
             </View>
             <View style={styles.steps}>
@@ -339,9 +339,9 @@ function Avatar({
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: blush.pinkSoft,
+          backgroundColor: colors.accentSoft,
           borderWidth: 2,
-          borderColor: blush.card,
+          borderColor: colors.background,
           alignItems: "center",
           justifyContent: "center",
         },
@@ -352,7 +352,7 @@ function Avatar({
         style={{
           fontSize: size * 0.32,
           fontFamily: fonts.bold,
-          color: blush.wine,
+          color: colors.text,
         }}
       >
         {user?.initials ?? "?"}
@@ -374,10 +374,10 @@ function HeroArt() {
           <Ionicons name="star" size={11} color="#9A9A9A" />
         </View>
       </View>
-      <Sticker name="star" color={blush.pink} size={30} top={-4} left={-8} />
+      <Sticker name="star" color={colors.accent} size={30} top={-4} left={-8} />
       <Sticker
         name="sparkles"
-        color={blush.pink}
+        color={colors.accent}
         size={16}
         top={-10}
         right={6}
@@ -418,25 +418,25 @@ function Sticker({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: colors.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 14 },
   round: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: blush.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
     alignItems: "center",
     justifyContent: "center",
   },
   box: {
     padding: 16,
     borderRadius: 26,
-    backgroundColor: blush.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
     overflow: "hidden",
   },
   league: {
@@ -449,14 +449,13 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 8,
     borderRadius: 4,
-    backgroundColor: blush.chip,
+    backgroundColor: colors.chip,
     overflow: "hidden",
   },
-  fill: { height: "100%", borderRadius: 4, backgroundColor: blush.pink },
-  hero: { gap: 12, backgroundColor: "#FBE6EE" },
+  fill: { height: "100%", borderRadius: 4, backgroundColor: colors.accent },
+  hero: { gap: 12, backgroundColor: colors.accentSoft },
   heroTitle: {
-    fontFamily: serif,
-    fontStyle: "italic",
+    fontFamily: fonts.extraBold,
     fontWeight: "700",
     fontSize: 34,
     letterSpacing: -1,
@@ -466,9 +465,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: blush.card,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: blush.pinkSoft,
+    borderColor: colors.accentSoft,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 14,
@@ -477,7 +476,7 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 4,
-    backgroundColor: blush.pink,
+    backgroundColor: colors.accent,
   },
   heroText: {
     fontSize: 14,
@@ -502,7 +501,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: "#F3E3D3",
     borderWidth: 5,
-    borderColor: blush.card,
+    borderColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
     transform: [{ rotate: "6deg" }],
@@ -529,21 +528,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   ctaFilled: {
-    backgroundColor: blush.pink,
-    shadowColor: blush.pink,
+    backgroundColor: colors.accent,
+    shadowColor: colors.accent,
     shadowOpacity: 0.3,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
   ctaOutline: {
-    backgroundColor: blush.card,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
   },
   themeTitle: {
-    fontFamily: serif,
-    fontWeight: "700",
+    fontFamily: fonts.extraBold,
     fontSize: 28,
     letterSpacing: -0.8,
     color: colors.text,
@@ -558,14 +556,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: "hidden",
     borderWidth: 4,
-    borderColor: blush.card,
+    borderColor: colors.background,
     transform: [{ rotate: "-4deg" }],
   },
   timer: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: blush.chip,
+    backgroundColor: colors.chip,
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 16,
@@ -577,9 +575,9 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 8,
     borderRadius: 20,
-    backgroundColor: blush.card,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
   },
   medal: {
     position: "absolute",
@@ -589,7 +587,7 @@ const styles = StyleSheet.create({
     height: 18,
     borderRadius: 9,
     borderWidth: 1.5,
-    borderColor: blush.card,
+    borderColor: colors.background,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -597,7 +595,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: blush.pinkSoft,
+    backgroundColor: colors.accentSoft,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -609,8 +607,8 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: blush.pinkSoft,
-    backgroundColor: blush.card,
+    borderColor: colors.accentSoft,
+    backgroundColor: colors.background,
   },
   steps: {
     flexDirection: "row",
@@ -622,17 +620,17 @@ const styles = StyleSheet.create({
     left: 8,
     right: 8,
     height: 2,
-    backgroundColor: blush.line,
+    backgroundColor: colors.line,
   },
   step: {
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: blush.card,
+    backgroundColor: colors.background,
     borderWidth: 1.5,
-    borderColor: blush.line,
+    borderColor: colors.line,
     alignItems: "center",
     justifyContent: "center",
   },
-  stepDone: { backgroundColor: blush.pink, borderColor: blush.pink },
+  stepDone: { backgroundColor: colors.accent, borderColor: colors.accent },
 });

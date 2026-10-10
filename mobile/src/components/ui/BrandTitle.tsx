@@ -1,16 +1,15 @@
 import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "./Text";
-import { blush, colors, serif } from "@/theme";
+import { colors, fonts } from "@/theme";
 
-// Sekme ekranlarının sol üstündeki italik serif başlık ve pembe parıltı.
+// Sekme ekranlarının sol üstündeki kalın başlık ve kırmızı parıltı.
 export function BrandTitle({ title }: { title: string }) {
   return (
     <View style={{ flexDirection: "row" }} accessibilityRole="header">
       <Text
         style={{
-          fontFamily: serif,
-          fontStyle: "italic",
+          fontFamily: fonts.extraBold,
           fontWeight: "700",
           fontSize: 40,
           letterSpacing: -1,
@@ -19,7 +18,7 @@ export function BrandTitle({ title }: { title: string }) {
       >
         {title}
       </Text>
-      <Ionicons name="sparkles" size={16} color={blush.pink} />
+      <Ionicons name="sparkles" size={16} color={colors.accent} />
     </View>
   );
 }

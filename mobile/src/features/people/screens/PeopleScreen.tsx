@@ -17,7 +17,7 @@ import { ME } from "@/constants/demo";
 import { getUser } from "@/features/profile/data/demo-users";
 import { compactCount } from "@/lib/format";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { colors, common, fonts } from "@/theme";
 import {
   PEOPLE_FILTERS,
   featuredCreators,
@@ -202,10 +202,10 @@ function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => voi
         onPress={onSeeAll}
         style={[common.row, { gap: 4 }]}
       >
-        <Text style={{ fontSize: 14, color: blush.pink, fontFamily: fonts.medium }}>
+        <Text style={{ fontSize: 14, color: colors.accent, fontFamily: fonts.medium }}>
           Tümünü gör
         </Text>
-        <Ionicons name="chevron-forward" size={15} color={blush.pink} />
+        <Ionicons name="chevron-forward" size={15} color={colors.accent} />
       </Pressable>
     </View>
   );
@@ -218,7 +218,7 @@ function Photo({ person, style }: { person: DemoPerson; style: object }) {
       <PreviewImage uri={user?.avatar} tone={person.tone} icon="person-outline" />
       {!user?.avatar && (
         <View style={[StyleSheet.absoluteFill, styles.initials]}>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 22, color: blush.wine }}>
+          <Text style={{ fontFamily: fonts.bold, fontSize: 22, color: colors.text }}>
             {user?.initials ?? "?"}
           </Text>
         </View>
@@ -257,16 +257,16 @@ function AddButton({
       style={({ pressed }) => [
         styles.add,
         compact && { paddingHorizontal: 14, minHeight: 44 },
-        requested && { backgroundColor: blush.surface },
+        requested && { backgroundColor: colors.surface },
         { opacity: pressed ? 0.75 : 1 },
       ]}
     >
       <Ionicons
         name={mine ? "person-outline" : requested ? "checkmark" : "person-add-outline"}
         size={18}
-        color={blush.wine}
+        color={colors.text}
       />
-      <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: blush.wine }}>
+      <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.text }}>
         {mine ? "Profilin" : requested ? "İstek gitti" : "Arkadaş ekle"}
       </Text>
     </Pressable>
@@ -290,7 +290,7 @@ function FeaturedCard({
       accessibilityRole="button"
       accessibilityLabel={`${person.username} profilini aç`}
       onPress={() => openProfile(person.username)}
-      style={[styles.featured, tinted && { backgroundColor: "#F6E9F6", borderColor: "#EBD3EB" }]}
+      style={[styles.featured, tinted && { backgroundColor: colors.accentSoft, borderColor: colors.accentSoft }]}
     >
       <Photo person={person} style={styles.featuredPhoto} />
       <View style={{ flex: 1, gap: 8 }}>
@@ -304,7 +304,7 @@ function FeaturedCard({
             </Text>
           </View>
           <View style={styles.stars}>
-            <Ionicons name="star" size={13} color={blush.pink} />
+            <Ionicons name="star" size={13} color={colors.accent} />
             <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
               {compactCount(user?.counts.stars ?? 0)}
             </Text>
@@ -368,20 +368,18 @@ function SuggestedRow({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: colors.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 14 },
   title: {
-    fontFamily: serif,
-    fontStyle: "italic",
+    fontFamily: fonts.extraBold,
     fontWeight: "700",
     fontSize: 36,
     letterSpacing: -1,
     color: colors.text,
   },
   section: {
-    fontFamily: serif,
-    fontWeight: "700",
+    fontFamily: fonts.extraBold,
     fontSize: 22,
     letterSpacing: -0.4,
     color: colors.text,
@@ -390,9 +388,9 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: blush.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -403,15 +401,15 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: blush.pink,
+    backgroundColor: colors.accent,
   },
   search: {
     flex: 1,
     minHeight: 54,
     borderRadius: 27,
-    backgroundColor: blush.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
@@ -431,9 +429,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 10,
     borderRadius: 22,
-    backgroundColor: blush.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
   },
   featuredPhoto: { width: 116, borderRadius: 16 },
   initials: { alignItems: "center", justifyContent: "center" },
@@ -441,7 +439,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: blush.chip,
+    backgroundColor: colors.chip,
     paddingHorizontal: 9,
     paddingVertical: 5,
     borderRadius: 14,
@@ -451,13 +449,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    backgroundColor: blush.chip,
+    backgroundColor: colors.chip,
   },
   add: {
     minHeight: 46,
     paddingHorizontal: 12,
     borderRadius: 23,
-    backgroundColor: blush.pinkSoft,
+    backgroundColor: colors.accentSoft,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -469,9 +467,9 @@ const styles = StyleSheet.create({
     gap: 12,
     padding: 12,
     borderRadius: 22,
-    backgroundColor: blush.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
   },
   avatar: { width: 64, height: 64, borderRadius: 32 },
 });

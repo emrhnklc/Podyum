@@ -1,7 +1,22 @@
 import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { View, type ColorValue } from "react-native";
 import { colors, fonts } from "@/theme";
 import { hasWelcomed } from "@/features/auth/welcome";
+
+type IconName = keyof typeof Ionicons.glyphMap;
+
+function tabIcon(active: IconName, idle: IconName) {
+  return function TabIcon({
+    color,
+    focused,
+  }: {
+    color: ColorValue;
+    focused: boolean;
+  }) {
+    return <Ionicons name={focused ? active : idle} size={24} color={color} />;
+  };
+}
 
 export default function TabsLayout() {
   // Açılışta önce karşılama ekranı; "Başla" sonrası sekmeler açılır.
@@ -15,57 +30,70 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.background,
           borderTopColor: colors.line,
+          height: 76,
+          paddingTop: 8,
         },
-        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 10 },
+        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 11 },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{
-          title: "Keşfet",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="albums-outline" size={size} color={color} />
-          ),
-        }}
+        options={{ title: "Keşfet", tabBarIcon: tabIcon("home", "home-outline") }}
       />
       <Tabs.Screen
         name="trendler"
         options={{
           title: "Trendler",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trending-up" size={size} color={color} />
-          ),
+          tabBarIcon: tabIcon("trending-up", "trending-up"),
         }}
       />
       <Tabs.Screen
         name="paylas"
         options={{
           title: "Paylaş",
+          // Ortadaki + yalnız ikon; ekran okuyucu yine "Paylaş" der. Etiket yalnız
+          // bu sekmede gizlenir: tabBarShowLabel odaktaki ekrandan okunduğu için
+          // Paylaş açıkken bütün sekme adlarını kaldırıyordu.
+          tabBarLabel: () => null,
+          tabBarAccessibilityLabel: "Paylaş",
           tabBarIcon: () => (
-            <Ionicons name="add-circle" size={34} color={colors.accent} />
+            <View
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 26,
+                marginTop: -22,
+                backgroundColor: colors.accent,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: colors.accent,
+                shadowOpacity: 0.35,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: 4,
+              }}
+            >
+              <Ionicons name="add" size={30} color={colors.onAccent} />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="bildirimler"
+        name="defile"
         options={{
-          title: "Bildirim",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="notifications-outline" size={size} color={color} />
-          ),
+          title: "Defile",
+          tabBarIcon: tabIcon("sparkles", "sparkles-outline"),
         }}
       />
       <Tabs.Screen
         name="profil"
         options={{
           title: "Profil",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
+          tabBarIcon: tabIcon("person", "person-outline"),
         }}
       />
-      {/* Defile rotası duruyor; Keşfet'teki kupa düğmesinden açılır. */}
-      <Tabs.Screen name="defile" options={{ href: null }} />
+      {/* Bildirimler rotası duruyor; sekme çubuğunda Defile yer aldı. */}
+      <Tabs.Screen name="bildirimler" options={{ href: null }} />
     </Tabs>
   );
 }

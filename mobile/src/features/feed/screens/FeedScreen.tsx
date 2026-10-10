@@ -98,11 +98,11 @@ export function FeedScreen() {
           </Pressable>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Günlük podyumu aç"
-            onPress={() => router.push("/games")}
+            accessibilityLabel="Bildirimler"
+            onPress={() => router.push("/bildirimler")}
             style={styles.iconButton}
           >
-            <Ionicons name="trophy-outline" size={21} color={colors.text} />
+            <Ionicons name="notifications-outline" size={21} color={colors.text} />
           </Pressable>
         </View>
       </View>

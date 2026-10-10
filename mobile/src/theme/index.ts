@@ -1,31 +1,4 @@
-import { Platform, StyleSheet } from "react-native";
-
-// Keşfet ekranının pembe "Podyum" görünümü.
-export const blush = {
-  background: "#FCF3F5",
-  surface: "#FDF6F8",
-  card: "#FFFFFF",
-  line: "#F1DCE3",
-  chip: "#FBE4EC",
-  pink: "#EC5E92",
-  pinkSoft: "#F7C9D9",
-  wine: "#8E1E48",
-  lilac: "#B07AA1",
-};
-// Giriş ekranının kahve/krem görünümü.
-export const sand = {
-  background: "#FBF4EA",
-  card: "#FFFDF9",
-  line: "#EAD9C4",
-  brown: "#A86A35",
-  brownDark: "#7A4A22",
-  muted: "#6E6257",
-};
-export const serif = Platform.select({
-  ios: "Georgia",
-  android: "serif",
-  default: "Georgia, 'Times New Roman', serif",
-});
+import { StyleSheet } from "react-native";
 
 export const colors = {
   background: "#FFFFFF",
@@ -35,6 +8,8 @@ export const colors = {
   chip: "#E9E9E6",
   line: "#DAD9D4",
   accent: "#D00A26",
+  // Seçili çip, avatar ve görsel yer tutucularındaki pastel kırmızı.
+  accentSoft: "#FBE3E6",
   onAccent: "#FFFFFF",
   blue: "#0B66D0",
   avatar: "#D9D4CC",

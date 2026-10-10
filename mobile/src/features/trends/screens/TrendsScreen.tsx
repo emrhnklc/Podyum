@@ -3,6 +3,7 @@ import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
+import { BrandTitle } from "@/components/ui/BrandTitle";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PreviewImage } from "@/components/media/PreviewImage";
@@ -59,7 +60,7 @@ export function TrendsScreen() {
     .join(" · ");
   return (
     <Screen>
-      <Text style={common.title}>Trendler</Text>
+      <BrandTitle title="Trendler" />
       <Text style={common.subtitle}>
         Seçilen kombinlerde en çok yer alan parçalar
       </Text>
@@ -134,7 +135,7 @@ export function TrendsScreen() {
             style={({ pressed }) => [
               styles.row,
               {
-                backgroundColor: index === 0 ? "#FBE7EB" : colors.surface,
+                backgroundColor: index === 0 ? colors.accentSoft : colors.surface,
                 opacity: pressed ? 0.6 : 1,
               },
             ]}

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import {
   Image,
-  ImageBackground,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,10 +14,9 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
-import { colors, fonts, sand, serif } from "@/theme";
+import { colors, fonts } from "@/theme";
 import { markWelcomed } from "../welcome";
 
-const BACKGROUND = require("../../../../assets/images/auth/background.jpg");
 const WOMAN = require("../../../../assets/images/auth/woman.jpg");
 const MAN = require("../../../../assets/images/auth/man.jpg");
 const GOOGLE_G = require("../../../../assets/images/auth/google-g.png");
@@ -44,11 +42,7 @@ export function AuthScreen() {
   const soon = (what: string) =>
     message(`${what} sunucu bağlantısı eklendiğinde açılacak.`);
   return (
-    <ImageBackground
-      source={BACKGROUND}
-      resizeMode="cover"
-      style={styles.background}
-    >
+    <View style={styles.background}>
       <SafeAreaView edges={["top", "left", "right", "bottom"]} style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -78,7 +72,7 @@ export function AuthScreen() {
             <View style={[styles.frame, styles.frameLeft]}>
               <Image source={WOMAN} resizeMode="cover" style={styles.photo} />
               <View style={styles.likes}>
-                <Ionicons name="heart" size={14} color={sand.brown} />
+                <Ionicons name="heart" size={14} color={colors.accent} />
                 <Text style={{ fontSize: 13, fontFamily: fonts.bold }}>
                   2,4K
                 </Text>
@@ -158,7 +152,7 @@ export function AuthScreen() {
 
           <View style={styles.divider}>
             <View style={styles.rule} />
-            <Text style={{ fontSize: 13, color: sand.muted }}>veya</Text>
+            <Text style={{ fontSize: 13, color: colors.muted }}>veya</Text>
             <View style={styles.rule} />
           </View>
 
@@ -169,10 +163,10 @@ export function AuthScreen() {
             style={styles.signIn}
           >
             <Text>Zaten hesabın var mı?</Text>
-            <Text style={{ fontFamily: fonts.bold, color: sand.brown }}>
+            <Text style={{ fontFamily: fonts.bold, color: colors.accent }}>
               Giriş yap
             </Text>
-            <Ionicons name="arrow-forward" size={18} color={sand.brown} />
+            <Ionicons name="arrow-forward" size={18} color={colors.accent} />
           </Pressable>
 
           <Text style={styles.terms}>
@@ -196,7 +190,7 @@ export function AuthScreen() {
           </Text>
         </ScrollView>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -249,21 +243,19 @@ function Provider({
 }
 
 const styles = StyleSheet.create({
-  background: { flex: 1, backgroundColor: sand.background },
+  background: { flex: 1, backgroundColor: colors.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 20, paddingBottom: 24, gap: 18 },
   logoRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   logo: {
-    fontFamily: serif,
-    fontStyle: "italic",
+    fontFamily: fonts.extraBold,
     fontWeight: "700",
     fontSize: 60,
     letterSpacing: -2,
     color: colors.text,
   },
   title: {
-    fontFamily: serif,
-    fontWeight: "700",
+    fontFamily: fonts.extraBold,
     fontSize: 25,
     letterSpacing: -0.6,
     textAlign: "center",
@@ -274,7 +266,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 21,
     textAlign: "center",
-    color: sand.muted,
+    color: colors.muted,
   },
   // Yükseklik genişliğe oranlı; çerçeveler her ekran boyunda aynı yerde kalır.
   collage: { aspectRatio: 1.15, marginHorizontal: -4 },
@@ -284,8 +276,8 @@ const styles = StyleSheet.create({
     aspectRatio: 0.86,
     padding: 6,
     borderRadius: 8,
-    backgroundColor: sand.card,
-    shadowColor: sand.brownDark,
+    backgroundColor: colors.background,
+    shadowColor: colors.text,
     shadowOpacity: 0.18,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
@@ -301,7 +293,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 20,
     zIndex: 1,
-    backgroundColor: "rgba(214,182,140,0.75)",
+    backgroundColor: "rgba(17,17,17,0.14)",
     transform: [{ rotate: "-3deg" }],
   },
   likes: {
@@ -311,7 +303,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: sand.card,
+    backgroundColor: colors.background,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 14,
@@ -331,22 +323,21 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 10,
     top: "77%",
-    fontFamily: serif,
-    fontStyle: "italic",
+    fontFamily: fonts.extraBold,
     fontSize: 20,
     lineHeight: 22,
-    color: sand.brownDark,
+    color: colors.text,
     transform: [{ rotate: "-8deg" }],
   },
   primary: {
     minHeight: 58,
     borderRadius: 29,
-    backgroundColor: sand.brown,
+    backgroundColor: colors.accent,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    shadowColor: sand.brownDark,
+    shadowColor: colors.text,
     shadowOpacity: 0.3,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
@@ -361,9 +352,9 @@ const styles = StyleSheet.create({
   provider: {
     minHeight: 54,
     borderRadius: 27,
-    backgroundColor: sand.card,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: sand.line,
+    borderColor: colors.line,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -375,7 +366,7 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingHorizontal: 30,
   },
-  rule: { flex: 1, height: 1, backgroundColor: sand.line },
+  rule: { flex: 1, height: 1, backgroundColor: colors.line },
   signIn: {
     flexDirection: "row",
     alignItems: "center",
@@ -387,11 +378,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     textAlign: "center",
-    color: sand.muted,
+    color: colors.muted,
   },
   link: {
     fontSize: 12,
-    color: sand.muted,
+    color: colors.muted,
     textDecorationLine: "underline",
   },
 });

@@ -7,7 +7,7 @@ import { Text } from "@/components/ui/Text";
 import { resetWelcomed } from "@/features/auth/welcome";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 import appConfig from "../../../../app.json";
-import { blush, colors, fonts, serif } from "@/theme";
+import { colors, fonts } from "@/theme";
 
 type Row = {
   label: string;
@@ -33,7 +33,7 @@ const sections: { title: string; rows: Row[] }[] = [
   {
     title: "Uygulama Tercihleri",
     rows: [
-      { label: "Tema", icon: "brush-outline", value: "Podyum Pembe" },
+      { label: "Tema", icon: "brush-outline", value: "Podyum Kırmızı" },
       { label: "Dil", icon: "globe-outline", value: "Türkçe" },
       { label: "Keşfet Tercihleri", icon: "options-outline" },
       { label: "Konum Tercihleri", icon: "location-outline" },
@@ -132,8 +132,8 @@ export function SettingsScreen() {
             { opacity: pressed ? 0.75 : 1 },
           ]}
         >
-          <Ionicons name="log-out-outline" size={22} color={blush.pink} />
-          <Text style={{ fontFamily: fonts.bold, color: blush.pink }}>
+          <Ionicons name="log-out-outline" size={22} color={colors.accent} />
+          <Text style={{ fontFamily: fonts.bold, color: colors.accent }}>
             Çıkış Yap
           </Text>
         </Pressable>
@@ -143,7 +143,7 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: colors.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 32, gap: 18 },
   header: { minHeight: 48, justifyContent: "center" },
@@ -158,15 +158,14 @@ const styles = StyleSheet.create({
   },
   title: {
     textAlign: "center",
-    fontFamily: serif,
-    fontWeight: "700",
+    fontFamily: fonts.extraBold,
     fontSize: 24,
     color: colors.text,
   },
   // Başlık şeridi kartın arkasından görünür; görseldeki katmanlı kutu.
   section: {
     borderRadius: 20,
-    backgroundColor: blush.chip,
+    backgroundColor: colors.chip,
     overflow: "hidden",
   },
   sectionTitle: {
@@ -175,13 +174,13 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: blush.wine,
+    color: colors.text,
   },
   card: {
     borderRadius: 20,
-    backgroundColor: blush.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: colors.line,
   },
   row: {
     flexDirection: "row",
@@ -190,7 +189,7 @@ const styles = StyleSheet.create({
     minHeight: 58,
     paddingHorizontal: 18,
   },
-  divider: { height: 1, backgroundColor: blush.line, marginLeft: 57 },
+  divider: { height: 1, backgroundColor: colors.line, marginLeft: 57 },
   label: { flex: 1, fontSize: 16, color: colors.text },
   value: { fontSize: 14, color: colors.muted },
   signOut: {
@@ -200,6 +199,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 10,
-    backgroundColor: blush.chip,
+    backgroundColor: colors.chip,
   },
 });
