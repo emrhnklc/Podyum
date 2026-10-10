@@ -1,4 +1,22 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
+
+// Keşfet ekranının pembe "Podyum" görünümü.
+export const blush = {
+  background: "#FCF3F5",
+  surface: "#FDF6F8",
+  card: "#FFFFFF",
+  line: "#F1DCE3",
+  chip: "#FBE4EC",
+  pink: "#EC5E92",
+  pinkSoft: "#F7C9D9",
+  wine: "#8E1E48",
+  lilac: "#B07AA1",
+};
+export const serif = Platform.select({
+  ios: "Georgia",
+  android: "serif",
+  default: "Georgia, 'Times New Roman', serif",
+});
 
 export const colors = {
   background: "#FFFFFF",

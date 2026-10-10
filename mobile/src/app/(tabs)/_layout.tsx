@@ -1,66 +1,92 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, fonts } from "@/theme";
+import { View, type ColorValue } from "react-native";
+import { blush, colors, fonts } from "@/theme";
+
+type IconName = keyof typeof Ionicons.glyphMap;
+
+function tabIcon(active: IconName, idle: IconName) {
+  return function TabIcon({
+    color,
+    focused,
+  }: {
+    color: ColorValue;
+    focused: boolean;
+  }) {
+    return <Ionicons name={focused ? active : idle} size={24} color={color} />;
+  };
+}
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.accent,
+        tabBarActiveTintColor: blush.pink,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: colors.background,
-          borderTopColor: colors.line,
+          backgroundColor: blush.surface,
+          borderTopColor: blush.line,
+          height: 76,
+          paddingTop: 8,
         },
-        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 10 },
+        tabBarLabelStyle: { fontFamily: fonts.semibold, fontSize: 11 },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{
-          title: "Keşfet",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="albums-outline" size={size} color={color} />
-          ),
-        }}
+        options={{ title: "Keşfet", tabBarIcon: tabIcon("home", "home-outline") }}
       />
       <Tabs.Screen
         name="trendler"
         options={{
           title: "Trendler",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="trending-up" size={size} color={color} />
-          ),
+          tabBarIcon: tabIcon("trending-up", "trending-up"),
         }}
       />
       <Tabs.Screen
         name="paylas"
         options={{
           title: "Paylaş",
+          tabBarActiveTintColor: colors.muted,
           tabBarIcon: () => (
-            <Ionicons name="add-circle" size={34} color={colors.accent} />
+            <View
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: 26,
+                marginTop: -22,
+                backgroundColor: blush.pink,
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: blush.pink,
+                shadowOpacity: 0.35,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: 4,
+              }}
+            >
+              <Ionicons name="add" size={30} color={colors.onAccent} />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
-        name="bildirimler"
+        name="defile"
         options={{
-          title: "Bildirim",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="notifications-outline" size={size} color={color} />
-          ),
+          title: "Defile",
+          tabBarIcon: tabIcon("sparkles", "sparkles-outline"),
         }}
       />
       <Tabs.Screen
         name="profil"
         options={{
           title: "Profil",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
+          tabBarIcon: tabIcon("person", "person-outline"),
         }}
       />
+      {/* Bildirimler rotası duruyor; sekme çubuğunda Defile yer aldı. */}
+      <Tabs.Screen name="bildirimler" options={{ href: null }} />
     </Tabs>
   );
 }
