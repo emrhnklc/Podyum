@@ -6,10 +6,10 @@
 
 - Normal oy tercih içindir; çoğunluğu bulma puanı yoktur.
 - FRIENDS paylaşımını yalnızca kabul edilmiş arkadaşlar; PUBLIC paylaşımını herkes görür.
-- Podyum ortak tema, yaklaşık 10 dakikalık hazırlık, fotoğraf teslimi ve karşılıklı yıldız değerlendirmesidir. Canlı kamera yayını değildir.
+- Podyum fotoğrafla oynanır; kamera yayını yoktur. Son revizyon: genel günlük 30 dk fotoğraf + 30 dk oylama; yalnız etkinliğe katılanlar oy verir. Özel lobi QR ile paylaşılır, süreleri ayarlanır; host teslimi erken bitirip oylamaya geçebilir.
 - Önce backend'i sırayla geliştireceğiz; ikinci geliştirici katıldığında modülleri böleceğiz.
 - E-posta/şifre, Google ve Apple girişleri bulunacak. Google/Apple için geliştirme mock'u kabul edildi.
-- 10 Ekim mentör görüşmesi sonrası oyun/podyum Faz 2'ye ertelendi; önce sosyal kombin, ürün trendleri ve gelir özellikleri ilerleyecek. Önceki oyun görev dağılımı Faz 2 için bekletilecek.
+- 10 Ekim mentör görüşmesindeki oyun ertelemesi sonraki kullanıcı talebiyle kaldırıldı: günlük podyum/QR lobileri aktif ilk teslimdir. Eski 600/30/20 saniyelik tur akışı geçerli değildir; [oyun tasarımı](game-design.md). Ödül/lig/haftalık yarışma ayrıca seçilir.
 
 ## Mentör görüşmesiyle eklenen ürün işleri
 
@@ -48,7 +48,8 @@
 | Yayın | Soru + ardışık 2–4 READY/onaylı görsel; 1800/7200/86400 saniye yayın anında DB saatinden başlar; gelişmiş hedefleme kapalı |
 | Yayın sonrası | Soru/seçenek/ürün/süre/görünürlük sabit; yorum izni ayrı sürümlü endpoint'ten değişir; yorum API'si henüz yok |
 | İptal/silme | DRAFT veya süresi dolmamış OPEN iptal edilebilir; başkasına kapanır. Fiziksel silme yalnız DRAFT; medya ayrıca yönetilir |
-| Süre okuması | Süresi dolan OPEN effectiveStatus=CLOSED okunur; kalıcı kapanış/oy/sonuç 9. adımda |
+| Süre/oy/sonuç | Tek değişmez tercih; yazar veya oy sonrası/kapanışta sonuç. Süresi dolan OPEN efektif CLOSED okunur; periyodik tarayıcı kalıcı kapanış yazar |
+| Oy analizi | Yalnız açık izinle demografik snapshot/izin revision; geri alma aynı transaction’da temizler, oy sayısı korunur. Trend katkısı geri alma tüketicisi henüz yok |
 | Ürün beyanı | En fazla 10 ürün/seçenek; özgün http/https link korunur, taranmaz; tamsayı fiyat + sunucu beyan zamanı; katalog kimliği/ücretli affiliate hakkı bağlı değil |
 | İşlem tekrarı | Kullanıcı/komut/kaynak/anahtar kapsamında 24 saatlik başarılı yanıt snapshot'ı; payload değişirse 409; iş/makbuz/outbox aynı transaction |
 | Oylama kaynak sınırı | En fazla 50 mevcut taslak ve son 24 saatte 100 başarılı oluşturma; geliştirme limiti, Plus kotası değildir |
@@ -67,7 +68,7 @@ Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçla
 | Dış kullanıcı testinden önce | Minimum yaş, kayıt sırasında yaş uygunluğu, gizlilik ve izin metinleri |
 | 8–9: oylama | Tek değişmez oy, sonuç görünürlüğü, yayın sonrası sabit alanlar ve iptal önerilerini ürün kararı haline getirme |
 | 11: sosyal etkileşim | Hazır etiketler ayrı tepki mi; kişi başına kaç etiket; düzenleme davranışı |
-| 19: oyun (Faz 2) | 3–8 oyuncu, 600/30/20 saniye, eksik oy, beraberlik, engel sonrası oda davranışı önerileri |
+| 19–20: aktif oyun | Günlük saat/saat dilimi; QR katılım koşulu/lobi süre sınırları; teslim/oy uygunluğu, dengeli dağıtım, değerlendirme/beraberlik/engel kuralları |
 | 22: puan (Faz 2) | Ödül formülü, arkadaş odası uygunluğu, lig/sezon/rozet/seri koşulları |
 | 23: haftalık yarışma (Faz 2) | Katılım hakkı, oylama yöntemi, sponsor ödüllerinde beraberlik |
 | 7, 13: ürün/trend | Kimlik, ölçüm türü, dönem/saat dilimi, fiyat ve örneklem kuralları |

@@ -2,13 +2,13 @@
 
 Bu belgedeki **onaylı** ifadeler kullanıcı konuşmasından gelir. **Öneri** ifadeleri uygulama planını somutlaştıran, değiştirilebilir varsayımlardır. Şema bir davranışın uygulanmış olduğu anlamına gelmez.
 
-**Güncel kapsam:** 10 Ekim mentör görüşmesiyle oyun/podyum Faz 2'ye ertelendi. Bu belgedeki oyun kuralları sonraki fazın tasarımıdır. Faz 1'e eklenen trend/affiliate/reklam/Plus fikirleri ve henüz seçilmemiş kuralları [görüşme notunda](mentor-notes-2026-10-10.md) takip edilir.
+**Güncel kapsam:** Kullanıcının son kararıyla günlük podyum ve QR lobileri aktif backend kapsamına geri alındı. Güncel iki mod ve açık kararlar [oyun tasarımında](game-design.md); eski 10 dakika/20 saniyelik tur önerisi geçersizdir. Faz 1'e eklenen trend/affiliate/reklam/Plus fikirleri ve henüz seçilmemiş kuralları [görüşme notunda](mentor-notes-2026-10-10.md) takip edilir.
 
 ## 1. Onaylı temel
 
 - Normal oylama kişinin tercihidir. Çoğunluğu seçmeye puan verilmez.
 - Arkadaşlara özel kombin sadece arkadaşlara; herkese açık kombin herkese görünür.
-- Podyumda ortak tema, yaklaşık 10 dakika hazırlık, fotoğraf yükleme ve oyuncuların birbirini 1–5 yıldızla değerlendirmesi vardır. Oyuncu kendine oy veremez.
+- Genel podyum günün seçilecek saatinde 30 dakika fotoğraf + 30 dakika oylamadır. Yalnız o etkinliğe katılanlar oy verebilir. Özel lobiler QR ile paylaşılır; fotoğraf süresi ayarlanabilir veya host erken bitirerek oylamayı başlatabilir. Oylamanın ayrı süresi olacaktır; sınırları henüz seçilmedi. Ortak tema ve kendine oy yasağı korunur; 1–5 yıldız + temaya uygunluk yeni akış için değerlendirme adayıdır.
 - Profilde birikecek puanın kuralı henüz seçilmedi. Tema oyunlarından kazanılması düşünülüyor.
 - E-posta/şifre, Google ve Apple girişleri isteniyor. Google/Apple için yerel mock kabul edildi; gerçek sağlayıcı entegrasyonu henüz yok.
 
@@ -54,60 +54,22 @@ Demografik bilgi isteğe bağlı, kullanıcı beyanıdır. Bilgisi eksik kişi d
 
 Sonuç kırılımları için öneri: sadece izin verilen toplu istatistikler; başlangıç eşiği grup başına 10 oy. Bu eşik tek başına anonimlik garantisi değildir: küçük seçenek hücreleri, tamamlayıcı gruplar ve art arda sorgulayarak fark alma da değerlendirilmeden istatistik özelliği açılmaz.
 
-## 4. Canlı podyum — durum makinesi
+## 4. Günlük podyum ve özel QR lobileri
 
-```text
-WAITING → PREPARING → PROCESSING → VOTING → CALCULATING → COMPLETED
-    └──────── her aktif aşamadan gerekçeli CANCELLED ─────────┘
-```
+Bu oyun aktif ilk teslim kapsamındadır; eski ortak sıralı tur modeli kullanılmaz. Ayrıntılı kaynak: [güncel oyun tasarımı](game-design.md).
 
-| Aşama | Sunucunun yaptığı |
-| --- | --- |
-| WAITING | Katılım, oda kapasitesi ve hazır olma; tema henüz gizli |
-| PREPARING | Tema açıklanır; öneri 600 saniye; fotoğraf teslimi açık |
-| PROCESSING | Yeni teslim yok; süresinde alınmış fotoğrafların işlenmesine öneri 30 saniye ek süre |
-| VOTING | Geçerli teslimlerin rastgele sıralanmış, DB'ye kaydedilmiş turları; tur başına öneri 20 saniye |
-| CALCULATING | Kalıcı değerlendirmelerden sonuç hesabı; yeni oy yok |
-| COMPLETED | Sonuçlar ve isimler açılır; varsa ayrı ödül politikası uygulanır |
-| CANCELLED | Gerekçe gösterilir; ödül yok |
+| Mod | Fotoğraf | Oylama | Geçiş |
+| --- | --- | --- | --- |
+| Genel günlük etkinlik | Belirlenecek günlük saatte 30 dk | Sonraki 30 dk; yalnız etkinlik katılımcıları | Sunucu takvimi |
+| Özel davetli lobi | Hostun seçtiği süre | Ayrı seçilen süre | Süre bitimi veya hostun fotoğraf aşamasını erken bitirmesi |
 
-**Oda büyüklüğü önerisi:** en az 3, en fazla 8 oyuncu. İlk alpha için 4 oyuncuyla oynanabilirlik ölçülmeli; sayılar yapılandırılabilir. 8 fotoğraf × 20 saniye yaklaşık 160 saniye oylamadır; hazırlık ve işlemeyle toplam deneyim 13 dakika civarındadır.
+Önerilen durum: SCHEDULED/WAITING → SUBMISSION_OPEN → VOTING_OPEN → FINALIZING → COMPLETED; aktif aşamalardan gerekçeli CANCELLED. Takvim saat dilimiyle belirlenir; son süreler UTC ve DB saatiyle denetlenir. Host bağlantısının kopması oyunu durdurmaz. Genel takvim işçi gecikmesiyle uzamaz; özel lobide erken geçiş bir kez uygulanır.
 
-### Başlama ve katılım
+Davet token’ı hash olarak saklanır; QR frontend’in göstereceği davet bağlantısını taşır. Giriş/katılım/kapasite/engel denetlenir; QR tek başına üye veya oy sahibi yapmaz. Özel lobide önceden arkadaşlık/host onayı zorunluluğu açık karardır.
 
-- Arkadaş odasında başlangıç komutunu host verir; yeterli ve hazır katılımcı gerekir. Hızlı eşleşmede sunucu aynı koşullarla başlatır.
-- Arkadaş odasına katılmak için host ile mevcut arkadaşlık ve davet gerekir. Davet kodu tek başına yetki sağlamaz; DB'de düz metin yerine hash tutulur.
-- Oda başladıktan sonra yeni oyuncu alınmaz. Aynı kişi iki aktif odada bulunamaz.
-- Host oyun başlamadan ayrılırsa oda iptal edilir; oyun başladıktan sonra sunucu yönetir, host bağlantısına bağımlı kalmaz.
-- Arkadaşlık/engel değişikliğinin aktif özel odaya etkisi ürün kararıdır. Alpha varsayımı: katılımcılar arasında yeni engel oluşursa ödülsüz iptal; genel kullanıma çıkmadan kural kesinleştirilecek.
+İlk öneri: fotoğraf aşamasında kişi başına tek değiştirilebilir kendi READY/onaylı görsel; oylamaya geçince teslimler ve süreler sabit. İsimler oylama kartlarında gizlenir; teslimler sayfalı ve dengeli gösterilir. Genel etkinlik için eski 8 kişi veya ortak 20 saniyelik tur sınırı yoktur. Kişi/teslim başına bir değerlendirme ve kendine oy yasağı korunur.
 
-### Fotoğraf teslimi
-
-- Hazırlık bitmeden upload-complete işlemi sunucu tarafından kabul edilmiş ve sabit dosya sürümüyle eşleşmiş olmalı. Sadece yükleme linki almak teslim sayılmaz.
-- Hazırlık sürerken kendi teslimini değiştirebilir; son kabul edilen teslim geçerlidir. Sonradan başlayan dosya yüklemesi grace süresinden faydalanamaz.
-- İşleme aşaması bitince `READY` ve önizlemesi kabul edilmiş teslimler yarışmaya alınır; oyuncu listesi ve tur sırası dondurulur.
-- Geçerli teslim sayısı minimumun altındaysa oyun iptal edilir. İşleme hatasıyla elenen kullanıcıya gerekçe gösterilir.
-- Sonradan silinen/uygunsuz bulunan yarışma fotoğrafı için alpha davranışı oyunu ödülsüz iptal etmektir. Kesinleşmiş sonuçta yaptırım/ödül geri alma ayrı yönetim işlemidir.
-
-### Tur ve değerlendirme
-
-- Her geçerli teslim bir turdur. Yarışmacı kendi turunu görür ama değerlendirme düğmesi kapalıdır.
-- Diğer geçerli yarışmacılar tur başına bir kez 1–5 yıldız ve `themeFits` gönderir.
-- Tur sırasında isim, avatar, profil bağlantısı ve toplam puan dönmez. Kişi fotoğraftan tanınabilir; tam anonimlik iddia edilmez.
-- Aynı değerlendirmenin tekrar gönderilmesi başarılı yanıtı tekrar verir; farklı içerikle değiştirme reddedilir.
-- İlk sürümde herkes erken oy verse de tur planlanan süresinde kapanır; yeniden deneme/zamanlama karmaşası azaltılır.
-- Bağlantısı kopan oyuncu süre devam ederken geri dönebilir. Süre durdurulmaz; eski tura sonradan oy veremez.
-- Aktif oyun sırasında ayrılmak mevcut geçerli teslimi ve önceki oyları silmez; üyelik oyun bitene kadar aktif kalır. Bu, tekrar eşleşerek çoklu oda açmayı önler.
-
-### Sonuç hesabı — henüz kesin ürün kararı değil
-
-Alpha önerisi: `ortalama = ratingSum / ratingCount`; süre aşımı eksik oydur, sıfır yıldız değildir. `themeFits` ayrı oran olarak gösterilir, yıldızları otomatik düşürmez.
-
-Önerilen asgari katılım: her teslim için `ceil(0.70 × (qualifiedCount - 1))` değerlendirme. En az bir teslim bu eşiği geçemiyorsa oyun yine sona erer fakat genel kazanan/sıralama üretilmez; alınan oy sayısı ve değerlendirmeler gösterilir. Eşiğin geçilmesi tam adalet garantisi değildir; oyuncu terkleri ve anlaşmalı oylar ayrıca izlenecektir.
-
-Sıralama varsa ortalamalar tam sayı toplamları çapraz çarpılarak karşılaştırılır; gösterim yuvarlaması kazananı değiştirmez. Eşit ortalamaya eşit derece verilir (`1,1,3`). Tur sırası veya teslim saati gizli eşitlik bozucu değildir.
-
-**Alpha sonuçları `official=false` ve otomatik profil puanı kapalıdır.** Ödüllü rekabet açılmadan önce katılım eşiği, yarım bırakma davranışı, puan formülü ve arkadaş odalarının ödül hakkı kararlaştırılmalıdır.
+Yalnız etkinlikte olanların oy vermesi onaylıdır; oy için ayrıca geçerli fotoğraf gerekip gerekmediği, lobi kapasitesi/süre sınırları, değerlendirme yöntemi, minimum örneklem ve sonuç sıralaması netleştirilecek. Eksik oy sıfır sayılmaz; eşitlik ve hiç oy durumları ele alınır. Profil puanı/lig formülü seçilmeden resmî ödül üretilmez. Eski GameRoom/GameRound şeması yeni oyun davranışını karşılamak için ayrı migration ile gözden geçirilecek.
 
 ## 5. Profil puanı ve lig
 
@@ -125,7 +87,7 @@ Canlı podyumdan farklı, eşzamanlı olmayan yarışmadır. `Challenge`, `Chall
 
 1. Minimum yaş politikası ve gerçek giriş sağlayıcısı yapılandırmaları; giriş yöntemleri seçildi.
 2. Önerilen oylama kuralları: oy değiştirmeme, sonuç görünürlüğü ve yayın sonrası sabit alanlar.
-3. Podyum oyuncu sayısı, tur süresi, eksik oy ve eşitlik politikası.
+3. Günlük saat/saat dilimi; lobi kapasitesi/süre sınırları; QR katılım koşulu, geçerli fotoğraf/oy uygunluğu, eksik oy ve eşitlik politikası.
 4. Profil puanı, lig dönemi ve özel odaların ödül uygunluğu.
 5. Plus özellikleri, ücretsiz hak dönemi ve kitle eşleşmesi.
 6. Açık/kapalı profil gerekip gerekmediği; oylama görünürlüğü zaten ayrı alan.

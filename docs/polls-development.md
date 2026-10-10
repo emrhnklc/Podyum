@@ -2,7 +2,7 @@
 
 10 Ekim 2026. Yol haritasının 8. adımındaki yerel akış çalışır. Bütün yollar `/v1` altında ve Bearer oturumuyla korunur. [HTTP örnekleri](../examples/polls.http), Swagger `/v1/docs`, kaynak `src/modules/polls`.
 
-Oy verme, sonuç, kapanış işçisi, keşif akışı, yorum ve kaydetme endpoint'leri sonraki adımlardır. Oyun Faz 2'de bekler. Katalog servisi bu çalışma kopyasında henüz yok; ürünler kullanıcı beyanı olarak saklanır, ortak ürün eşleşmesi tamamlanmış sayılmaz.
+Tercih/sonuç ve kapanış tarayıcısı artık çalışır; [oy/sonuç rehberi](poll-votes-development.md). Keşif akışı, yorum/kaydetme henüz yok. Günlük oyun/QR lobisi aktif plandadır; [oyun tasarımı](game-design.md). Katalog servisi bu çalışma kopyasında henüz yok; ürünler kullanıcı beyanı olarak saklanır, ortak ürün eşleşmesi tamamlanmış sayılmaz.
 
 ## Endpoint'ler
 
@@ -31,7 +31,7 @@ Yazma uçlarının tamamında `Idempotency-Key` zorunludur. Oluşturma dışınd
 - Yalnız DRAFT fiziksel silinebilir. Seçenekler ve ProductTag'ler aynı transaction'da kaldırılır; dosya/MediaAsset silinmez. Artık bağlı olmayan dosya ayrıca medya API'si veya temizlik komutuyla kaldırılabilir.
 - Geliştirme kaynak sınırı: aynı anda en fazla 50 taslak; son 24 saatte en fazla 100 başarılı oluşturma. Silinen taslakların oluşturma makbuzu süre boyunca sayılır. Bu sınırlar Plus kotası veya ücretli hak değildir.
 
-Bu davranışlar yerelde ilerlemek için seçilmiştir. Oy değişimi/sonuç görünürlüğü 9. adımda, gelişmiş hedefleme ve ticari haklar 14. adımda ele alınır. audienceGender/audienceAgeBand/styleMatchRequired giriş alanı değildir; mevcut DB kaydında gelişmiş hedefleme varsa yayın da reddedilir. Ücretli haklar varsayımla açılmaz.
+Bu davranışlar yerelde ilerlemek için seçilmiştir. Tek değişmez tercih ve oy sonrası/kapanışta sonuç erişimi 9. adımda uygulandı; gelişmiş hedefleme ve ticari haklar 14. adımda ele alınır. audienceGender/audienceAgeBand/styleMatchRequired giriş alanı değildir; mevcut DB kaydında gelişmiş hedefleme varsa yayın da reddedilir. Ücretli haklar varsayımla açılmaz.
 
 ## Ürün etiketleri ve katalog sınırı
 
@@ -61,16 +61,16 @@ Oylama satırı FOR UPDATE kilitlenir; çoklu medya UUID sırasıyla kilitlenir.
 
 PUBLIC ilk sürümde giriş yapmış aktif/engelsiz kullanıcılara açıktır. FRIENDS sadece yazar ve kabul edilmiş arkadaşları içindir. Taslak ve iptal başkasına açılmaz. Gizlenen/kaldırılan içerik veya inaktif/engelli yazar başkasına 404 verir. Detay ve fotoğraf aynı SocialAccessService kurallarını uygular; arkadaşlıktan çıkarma/engel sonraki okumaları kapatır.
 
-Yanıtta status DB durumudur. Kapanış işçisi henüz yokken süresi dolan OPEN, effectiveStatus=CLOSED ve remainingSeconds=0 döner. Mobil saat veya status tek başına süre kararı vermez; serverNow/closesAt/effectiveStatus kullanılır. OPEN/CLOSED liste filtreleri de gerçek kapanış saatini dikkate alır. Bu okuma kalıcı kapanış veya sonuç olayı üretmez; onlar 9. adımdır.
+Yanıtta status DB durumudur. Kapanış taramaları arasında süresi dolan OPEN, effectiveStatus=CLOSED ve remainingSeconds=0 döner. Mobil saat veya status tek başına süre kararı vermez; serverNow/closesAt/effectiveStatus kullanılır. OPEN/CLOSED liste filtreleri de gerçek kapanış saatini dikkate alır. Bu okuma kendisi yazma yapmaz; 9. adımın tarayıcısı CLOSED/sürüm/poll.closed olayını kalıcılaştırır. Detay myOptionId/canVote/canViewResults içerir; [oy sözleşmesi](poll-votes-development.md).
 
 `GET /me/polls` status gönderilmezse bütün kendi durumlarını kapsar. Yanıt `{ items, serverNow, nextCursor }`; limit varsayılan 20/en fazla 50. Özet öğede kimlik/soru/kategori/görünürlük/durum/sürüm/zamanlar, optionCount ve ilk seçeneğin thumbnailPath alanları bulunur. Ayrıntılı ürünler detay endpoint'inden alınır. `(createdAt DESC, id DESC)` cursor kullanıcı ve status'a bağlıdır; yetki kanıtı değildir. Liste değişirken sayfalar arası sabit snapshot garantisi yoktur. Başkasının profil paylaşım listesi ve kaydedilenler henüz yoktur.
 
 ## Olaylar, hatalar ve doğrulama
 
-Outbox: aggregateType=poll, aggregateId=pollId, aggregateVersion=version. Tipler poll.draft.created, poll.draft.updated, poll.published, poll.cancelled, poll.draft.deleted, poll.comment-settings.changed. Payload `{ schemaVersion: 1, pollId, authorId, version, status, visibility }`; soru/ürün/medya/ham demografi yoktur. Taslak silme olayının sürümü son sürüm +1'dir; kaynak silinmiş olabilir. İşçi/bildirim henüz yok; publishedAt=null kalır. Tüketiciler olayları doğrudan mobil/push'a yayınlamaz, güncel erişimi tekrar denetler.
+Outbox: aggregateType=poll, aggregateId=pollId, aggregateVersion=version. Tipler poll.draft.created, poll.draft.updated, poll.published, poll.cancelled, poll.draft.deleted, poll.comment-settings.changed. Payload `{ schemaVersion: 1, pollId, authorId, version, status, visibility }`; soru/ürün/medya/ham demografi yoktur. Taslak silme olayının sürümü son sürüm +1'dir; kaynak silinmiş olabilir. Outbox göndericisi/bildirim henüz yok; publishedAt=null kalır. Tüketiciler olayları doğrudan mobil/push'a yayınlamaz, güncel erişimi tekrar denetler.
 
 Başlıca hatalar: 400 VALIDATION_ERROR/EMPTY_UPDATE/UNSUPPORTED_AUDIENCE/işlem anahtarı hataları; 404 RESOURCE_NOT_FOUND; 409 VERSION_CONFLICT/POLL_NOT_DRAFT/POLL_UNAVAILABLE/POLL_EXPIRED/MEDIA_NOT_APPROVED/MEDIA_PURPOSE_MISMATCH/IDEMPOTENCY_KEY_REUSED; 422 QUESTION_REQUIRED/INVALID_OPTION_COUNT/INVALID_OPTION_ORDER; 429 POLL_QUOTA_EXCEEDED. MEDIA_NOT_APPROVED hem tamamlanmamış işleme hem eksik önizleme onayı için yayın kapısını kapatır.
 
 `npm run test:polls` 18 HTTP testi çalıştırır. Gerçek upload/işleme/onay, taslak varsayılanları, eksik medya/yayın koşulları, manual ürünler, atomik seçenek değişimi, üç süre/dört seçenek, sürüm/tekrar/yeniden başlatma, sosyal görünürlük/fotoğraf erişimi, iptal/silme, cursor, kota, hata enjeksiyonuyla rollback ve OpenAPI kapsanır. `npm run test:api` önceki modüllerle birlikte çalıştırır. Yerel tek bağlantılı PGlite eşzamanlı HTTP kabulünü doğrular; gerçek çok bağlantılı PostgreSQL yarış testi yapılmış sayılmaz.
 
-Sıradaki bizim işimiz **9. adım: tercih oyu, kalıcı kapanış ve sonuçlar**. Katalog eşleştirmesi arkadaşın 7. adımıyla ayrıca tamamlanacak.
+9. adım tercih/kapanış/sonuç tamamlandı; sıradaki bizim işimiz **10. adım ana akış**, ardından aktif **19–20 günlük oyun/QR lobileri**. Katalog eşleştirmesi arkadaşın 7. adımıyla ayrıca tamamlanacak.

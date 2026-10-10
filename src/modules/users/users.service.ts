@@ -4,6 +4,7 @@ import { PrismaService } from "../../database/prisma.service.js";
 import type { Prisma, UserPrivate } from "../../generated/prisma/client.js";
 import type { UpdatePrivateProfileDto, UpdateProfileDto, UpdateSettingsDto } from "./dto/users.dto.js";
 import { SocialAccessService } from "../social/social-access.service.js";
+import { PollParticipationService } from "../polls/poll-participation.service.js";
 
 type Transaction = Prisma.TransactionClient;
 const missing = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Kullanıcı bulunamadı.");
@@ -42,7 +43,8 @@ function privateResponse(row: UserPrivate | null) {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService, private readonly access: SocialAccessService) {}
+  constructor(private readonly prisma: PrismaService, private readonly access: SocialAccessService,
+    private readonly pollParticipation: PollParticipationService) {}
 
   private async lockActiveUser(tx: Transaction, userId: string) {
     await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR UPDATE`;
@@ -139,6 +141,10 @@ export class UsersService {
         analyticsRevision: before.analyticsRevision + 1,
       };
       const saved = await tx.userPrivate.upsert({ where: { userId }, create: { userId, ...data }, update: data });
+      if (consentChanged && !consent) {
+        // İzni geri alma oy tercihini/sayısını silmez, demografik snapshot'ları temizler.
+        await this.pollParticipation.clearAnalyticsSnapshots(tx, userId);
+      }
       // Gelecekteki trend tüketicisi için kalıcı kaynak; ham demografi olayda taşınmaz.
       await tx.outboxEvent.create({ data: {
         aggregateType: "user-analytics", aggregateId: userId, aggregateVersion: saved.analyticsRevision,

@@ -283,4 +283,6 @@ test("cursor filtreyle doğrulanır; bozuk imleç ve yanlış ortam ayarı redde
   assert.throws(() => readEnvironment({ ...process.env, PORT: "1.5" }));
   assert.throws(() => readEnvironment({ ...process.env, NODE_ENV: "production", AUTH_MOCK_ENABLED: "true" }));
   assert.throws(() => readEnvironment({ ...process.env, CORS_ORIGINS: "*" }));
+  assert.throws(() => readEnvironment({ ...process.env, POLL_CLOSE_INTERVAL_MS: "0" }));
+  assert.throws(() => readEnvironment({ ...process.env, POLL_CLOSE_WORKER_ENABLED: "yes" }));
 });

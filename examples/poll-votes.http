@@ -1,0 +1,43 @@
+@origin = http://127.0.0.1:3000
+@authorToken = REPLACE_AUTHOR_ACCESS_TOKEN
+@voterToken = REPLACE_OTHER_USER_ACCESS_TOKEN
+@pollId = REPLACE_PUBLISHED_POLL_UUID
+@optionId = REPLACE_THIS_POLL_OPTION_UUID
+
+### polls.http ile yayınla; diğer hesap kendi fotoğrafı olmayan oylamayı okusun
+GET {{origin}}/v1/polls/{{pollId}}
+Authorization: Bearer {{voterToken}}
+
+### Tercih: Idempotency-Key/expectedVersion yok. optionId medya kimliği değildir.
+# Aynı optionId tekrarında ilk kabul; farklı seçeneğe değiştirme 409.
+PUT {{origin}}/v1/polls/{{pollId}}/vote
+Authorization: Bearer {{voterToken}}
+Content-Type: application/json
+
+{ "optionId": "{{optionId}}" }
+
+### Oy veren kişi sonuç görebilir; oy vermemiş kişi kapanışa kadar 403 alır.
+# FRIENDS ise kapanıştan sonra da güncel arkadaşlık/engel denetlenir.
+GET {{origin}}/v1/polls/{{pollId}}/results
+Authorization: Bearer {{voterToken}}
+
+### Yazar oy veremez fakat sonuç görebilir
+GET {{origin}}/v1/polls/{{pollId}}/results
+Authorization: Bearer {{authorToken}}
+
+### İsteğe bağlı analiz izni; oy endpoint'ine demografi/izin gönderilmez
+PATCH {{origin}}/v1/me/private
+Authorization: Bearer {{voterToken}}
+Content-Type: application/json
+
+{ "gender": "WOMAN", "ageBand": "AGE_18_24", "analyticsConsent": true }
+
+### İzni geri almak eski oy sayısını silmez; demografik snapshot'ları temizler
+PATCH {{origin}}/v1/me/private
+Authorization: Bearer {{voterToken}}
+Content-Type: application/json
+
+{ "analyticsConsent": false }
+
+### Yerel bakım (terminal): npm run polls:close -- <poll-uuid>
+# Son süre gelmeden kapatmaz; normal kullanıcıya kapatma endpoint'i yok.

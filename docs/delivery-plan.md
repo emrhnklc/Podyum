@@ -2,17 +2,17 @@
 
 Günlük uygulama sırası ve tüm ekran özelliklerini kapsayan ayrıntılı iş listesi [Backend çalışma planı](backend-roadmap.md) belgesindedir. Bu belge aşama ve doğrulama ölçütlerini destekler.
 
-Ana plan yeniden numaralandırıldı: 1–18 Faz 1, 19–23 Faz 2. Buradaki aşamalar ayrıntılı adımları gruplar. [İki kişilik planda](two-developer-plan.md) biz kullanıcı/kombin, arkadaş katalog/trend/gelir kolunu paralel geliştirir; profil ve katalog aynı anda başlayabilir.
+Adım kimlikleri korunur: 19–20 günlük podyum/QR lobi ve canlı durum artık aktif ilk teslimdir; 21–23 genişleme adaylarıdır. Buradaki aşamalar ayrıntılı adımları gruplar. [İki kişilik planda](two-developer-plan.md) biz kullanıcı/kombin, arkadaş katalog/trend/gelir kolunu paralel geliştirir; profil ve katalog aynı anda başlayabilir.
 
-Bu plan iş sırasını verir; ekip büyüklüğü ve çalışma süresi bilinmediğinden takvim veya bütçe tahmini değildir. Her aşamada mobilin kullanabileceği bir akış tamamlanır. **10 Ekim mentör görüşmesiyle podyum/oyun Faz 2'ye ertelendi.** Faz 1 sosyal kombin, ürün trendleri ve affiliate/reklam/Plus özelliklerini kapsar; frontend teslimi oyunları beklemez. [Görüşme notu](mentor-notes-2026-10-10.md).
+Bu plan iş sırasını verir; ekip büyüklüğü ve çalışma süresi bilinmediğinden takvim veya bütçe tahmini değildir. Her aşamada mobilin kullanabileceği bir akış tamamlanır. **Son kullanıcı kararıyla günlük podyum ve QR lobileri ilk teslim kapsamına geri alındı.** Sosyal kombin, oyun, trend ve gelir kolu birlikte doğrulanıp frontend’e teslim edilir. [Yeni oyun tasarımı](game-design.md). [Görüşme notu](mentor-notes-2026-10-10.md).
 
 ## Aşama 0 — mimari ve yerel veri temeli
 
 **Bu depoda hazır:** NestJS bootstrap ve health modülü; common/database/modules düzeni; Prisma/PostgreSQL şeması; ilk tablolar, bütünlük kısıtları ve proje sahiplik işareti migration'ları; demo seed; DB istemcisi; hedef DB koruması; ilişkisel bütünlük testleri; mimari, oyun kuralları ve API taslağı.
 
-API sunucusu sağlık endpoint'leri, ortak HTTP/idempotency altyapısı, Swagger, auth, users, social, media ve polls oluşturma uçlarıyla açılır. E-posta/şifre kaydı/girişi, doğrulama/reset, oturum dönüşümü ve çıkış çalışır; e-posta taşıyıcısı yerel dosya, Google/Apple mock'tur. Profil/stil, özel bilgiler/analiz izni/ayarlar, kullanıcı arama/arkadaşlık/engel, yerel fotoğraf/manuel blur/önizleme/avatar ve manuel ürün etiketleriyle taslak/yayın/iptal/silme/detay/kendi liste de çalışır. Tercih/sonuç/akış/yorum/kaydetme, katalog eşleştirme, oyun, gerçek OAuth/e-posta, otomatik yüz tespiti/bulut medya/ayrı işçi ve bildirim gönderimi henüz yoktur.
+API sunucusu sağlık endpoint'leri, ortak HTTP/idempotency altyapısı, Swagger, auth, users, social, media ve polls oluşturma uçlarıyla açılır. E-posta/şifre kaydı/girişi, doğrulama/reset, oturum dönüşümü ve çıkış çalışır; e-posta taşıyıcısı yerel dosya, Google/Apple mock'tur. Profil/stil, özel bilgiler/analiz izni/ayarlar, kullanıcı arama/arkadaşlık/engel, yerel fotoğraf/manuel blur/önizleme/avatar ve manuel ürün etiketleriyle taslak/yayın/iptal/silme/detay/kendi liste de çalışır. Tercih/sonuç/kalıcı kapanış/izinli snapshot da hazır. Akış/yorum/kaydetme, katalog eşleştirme, oyun, gerçek OAuth/e-posta, otomatik yüz tespiti/bulut medya/ayrı işçi ve bildirim gönderimi henüz yoktur.
 
-10 Ekim 2026 başlangıç doğrulaması: üç temel migration, Prisma validate/generate, TypeScript, 13 DB testi, tekrar seed ve DB hedef koruması doğrulandı. Auth adımında dört yeni model ve profil kurulum alanı iki ek migration'la eklendi. Profil adımında UserSettings ve analiz tercih sürümü altıncı, sosyal adımda User.socialRevision yedinci, medya/avatar alanları sekizinci, ProductTag fiyat beyan zamanı dokuzuncu migration'la eklendi. Güncel kontroller: `npm run typecheck`, `npm run test:api` (64 HTTP), `npm run test:polls` (18), `npm run test:db`, `npm run test:smoke`, `npm run db:check`. Docker/gerçek çok bağlantılı PostgreSQL testleri yapılmadı. [Oylama teslimi ve kalan entegrasyon](polls-development.md).
+10 Ekim 2026 başlangıç doğrulaması: üç temel migration, Prisma validate/generate, TypeScript, 13 DB testi, tekrar seed ve DB hedef koruması doğrulandı. Auth adımında dört yeni model ve profil kurulum alanı iki ek migration'la eklendi. Profil adımında UserSettings ve analiz tercih sürümü altıncı, sosyal adımda User.socialRevision yedinci, medya/avatar alanları sekizinci, ProductTag fiyat beyan zamanı dokuzuncu, PollVote izin tarihi/revision onuncu migration’la eklendi. Güncel kontroller: `npm run typecheck`, `npm run test:api` (79 HTTP), `npm run test:polls` (18), `npm run test:db` (14), `npm run test:votes` (15), `npm run test:smoke`, `npm run db:check`. Docker/gerçek çok bağlantılı PostgreSQL testleri yapılmadı. [Oylama teslimi ve kalan entegrasyon](polls-development.md).
 
 ## Aşama 1 — kullanıcı, arkadaşlık ve fotoğraf
 
@@ -55,26 +55,16 @@ API sunucusu sağlık endpoint'leri, ortak HTTP/idempotency altyapısı, Swagger
 
 **Kabul:** Aynı abonelik/ölçüm olayı ikinci kayıt üretmez; Plus aktifken reklam sunulmaz. Affiliate ticari kullanım hakkı sunucuda kontrol edilir. Trend filtrelerinin ücretli olup olmadığı ayrıca seçilir. Mağaza talebi/komisyon/satış varsayımla üretilmez. Yaklaşık 10 kartlık reklam sıklığı kesinleşmiş kural değildir.
 
-## Faz 2 / Aşama 5 — canlı oyun motoru
+## Aktif oyun teslimi — günlük etkinlik ve QR lobisi (19–20)
 
-1. Tema sözlüğü, arkadaş odası, hazır olma ve minimum oyuncu ile başlatma.
-2. Kalıcı durum makinesi ve sürümlü kurallar; hazırlık/işleme/tur süreleri.
-3. Teslimleri dondurma, tur sırasını kalıcılaştırma, kimliği gizleyen DTO.
-4. Değerlendirme, geç oy reddi, kendine oy yasağı, bağlantıdan bağımsız tur yönetimi.
-5. Eksik oy, eşitlik ve ödülsüz alpha sonuçları; aktif oda hakkını bırakma.
-6. İşçi, outbox ve yeniden başlatma/reconciliation.
+1. Genel etkinliği seçilecek günlük saat/saat diliminde tekil oluştur: 30 dk fotoğraf + 30 dk oylama. Yalnız o etkinliğe katılanlar oy verir.
+2. Hostun oluşturduğu özel lobide ayrı fotoğraf/oy süreleri; QR davet bağlantısı üret/yenile/iptal ve güvenilir katılım.
+3. Kendi hazır/onaylı fotoğraf teslimi; süre veya hostun erken bitirme komutuyla teslimi kapatıp oylamaya tek kez geçiş.
+4. Sayfalı/dengeli değerlendirme, son süre/kendine oy yasağı, kimlik gizleme ve sonuç/geçmiş.
+5. İşçi ve DB’den kesinti toparlanması; yetkili Socket bildirimleri/REST state, host bağlantısından bağımsız süre.
+6. Ödül/lig/matchmaking’i zorunlu kılmadan oyun dahil yönetim, gerçek PostgreSQL ve frontend kabulü.
 
-**Kabul:** En az üç gerçek cihaz aynı oyunu tamamlar. API veya işçi yeniden başlayınca yeni bir kazanan hesabı/çift sonuç oluşmaz. Eski iş yeni turu kapatamaz. Oyuncu iki aktif odada olamaz. Tur sırasında profil kimliği hiçbir normal yanıt veya socket payload'unda bulunmaz. Geç teslim grace süresinden faydalanamaz. Kendi turuna yıldız API'de ve DB'de reddedilir.
-
-## Faz 2 / Aşama 6 — canlı bağlantı ve hızlı eşleşme
-
-1. Yetkili Socket.IO aboneliği, sürümle değişiklik olayları, reconnect/foreground state yenileme.
-2. Kalıcı matchmaking ticket modeli ve atomik iptal/eşleştirme.
-3. Oda havuzu; başlangıçta coğrafya/yaş/stil gibi karmaşık parçalama olmadan yeterli oyuncu bulma.
-4. Ayrılan oyuncu, host ayrılması, upload hatası ve sistem kesintisi ekranları.
-5. Çok API örneğinde adapter; bağlantı ve event gecikmesi ölçümleri.
-
-**Kabul:** Olay kaybolsa da REST state ile oyun doğru ekrana döner. Sırasız/yinelenen olaylar eski tura geri döndürmez. Eşleşme iptaliyle oda ataması yarışınca tek kalıcı sonuç çıkar. Kuyruk/Redis yeniden kurulunca kaydedilmiş oyun oyları kaybolmaz.
+**Kabul:** 30+30 sınırında veya özel host/zamanlayıcı yarışında geç teslim/oy ve çift geçiş olmaz. QR yenilenince eski davet katılım sağlamaz; üçüncü kişi etkinlik üyeliği olmadan oy veremez. API yeniden başlasa da günlük etkinlik/oy/sonuç çoğalmaz. Eski 600/30/20 saniyelik tur ve 3–8 kişi önerisi uygulanmaz. [Açık kararlar ve şema ihtiyacı](game-design.md).
 
 ## Faz 2 / Aşama 7 — rekabet ve yarışma ödülleri
 
@@ -88,7 +78,7 @@ API sunucusu sağlık endpoint'leri, ortak HTTP/idempotency altyapısı, Swagger
 
 Yerel Prisma Postgres tek bağlantılıdır. Aşağıdaki testler ayrıca gerçek, çok bağlantılı PostgreSQL üzerinde yapılacak:
 
-Oda/tur/eşleşme/ödül testleri Faz 2'de uygulanır. Faz 1'de oy/kapanış/erişim/idempotency testlerine abonelik ve affiliate hak tüketimi, trend sayaçları, reklam ölçüm tekilliği eklenir.
+Günlük etkinlik, QR lobi, faz/host yarışı ve oyun değerlendirmesi ilk teslimde test edilir. Hızlı eşleşme/ödül testleri ilgili genişlemede gelir. Oy/kapanış/erişim/idempotency, abonelik/affiliate hak tüketimi, trend/reklam ölçüm tekilliği de korunur.
 
 | Senaryo | Beklenen |
 | --- | --- |
@@ -105,7 +95,7 @@ Oda/tur/eşleşme/ödül testleri Faz 2'de uygulanır. Faz 1'de oy/kapanış/eri
 
 ## Yük testi ve işletim
 
-Faz 1'de akış, oy, fotoğraf, ürün çözümleme, trend filtreleri ve reklam ölçümü yükleri ölçülür. Faz 2 ölçüm senaryosu önerisi: 50 oda × 8 oyuncu = 400 canlı bağlantı. Aynı saniyede tur kapanırsa 50 × 7 = 350 değerlendirme isteği oluşabilir. Bu bir desteklenen kapasite iddiası değil, test girdisidir; ayrıca fotoğraf yükleme ve reconnect patlamaları test edilir.
+Akış/oy/fotoğraf/katalog/trend/reklam ile günlük etkinlikte aynı anda fotoğraf yükleme, 30. dakikada oylamaya geçiş ve özel lobi bağlantıları ölçülür. Genel etkinlik eski 8 kişi sınırına bağlanmaz; desteklenen kapasite ölçümle seçilir. Reconnect ve süre sınırındaki istek patlamaları ayrıca test edilir.
 
 İzlenecekler: API gecikmesi/hata oranı, DB pool ve kilit beklemeleri, faz geçiş gecikmesi, outbox/kuyruk yaşı, iş tekrarları, upload başarısızlığı, reconnect sayısı, sonuç hesabı süresi. Loglarda token, dosya imzaları, özel fotoğraf ve kişisel demografik alanlar tutulmaz.
 
@@ -113,4 +103,4 @@ Faz 1'de akış, oy, fotoğraf, ürün çözümleme, trend filtreleri ve reklam 
 
 ## İlk kodlama hedefi
 
-**Kullanıcı + arkadaşlık + fotoğraf + normal oylama için baştan sona çalışan REST API.** Ürün kimliği ve tercih ölçümü bu temel geliştirilirken planlanır; ardından trendler, affiliate/Plus ve reklamlar gelir. Faz 1 yönetim/test/frontend tesliminden sonra Faz 2 oyun motoruna geçilir. Sosyal oylamanın erişim ve medya hatları sonraki podyuma da temel olur.
+**Kullanıcı + arkadaşlık + fotoğraf + normal oylama için baştan sona çalışan REST API.** Ürün kimliği ve tercih ölçümü bu temel geliştirilirken planlanır; ardından trendler, affiliate/Plus ve reklamlar gelir. Normal tercih/ana akışın ardından günlük etkinlik ve QR lobisi geliştirilir; ilk yönetim/test/frontend teslimine dahil edilir. Sosyal oylamanın erişim ve medya hatları sonraki podyuma da temel olur.

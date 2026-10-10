@@ -62,6 +62,15 @@ test("aynı kişi bir oylamaya iki kayıt yazamaz", async () => {
   }, "P2002");
 });
 
+test("oy analiz izni tarihi ve sürümü birlikte ve negatif olmayan biçimde saklanır", async () => {
+  for (const context of [{ analyticsConsentAtVote: new Date() }, { analyticsRevisionAtVote: 1 }, { analyticsConsentAtVote: new Date(), analyticsRevisionAtVote: -1 }]) {
+    await rejected(async (tx) => {
+      const f = await fixture(tx);
+      await tx.pollVote.create({ data: { pollId: f.poll.id, voterId: f.voter, optionId: f.option.id, ...context } });
+    }, "poll_vote_analytics_context");
+  }
+});
+
 test("oyun seçeneği aynı oylamaya ait olmalı", async () => {
   await rejected(async (tx) => {
     const f = await fixture(tx);

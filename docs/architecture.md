@@ -2,7 +2,9 @@
 
 Tarih: 10 Ekim 2026. Bu belge ürün konuşmasına dayanır. Kullanıcının onayladığı kurallar ile tasarım önerileri aşağıda ayrılmıştır. Kapasite, ekip büyüklüğü ve mobil framework henüz belli değildir.
 
-**Öncelik güncellemesi:** Oyun/podyum ve oyuna bağlı canlı bağlantı/eşleşme/rekabet Faz 2'dedir. Aşağıdaki oyun mimarisi sonraki faz için korunur; Faz 1'i veya frontend teslimini bekletmez. Sosyal kombin, ürün kimliği/trendler ve affiliate/reklam/Plus işleri önce gelir. Ayrıntı: [mentör notu](mentor-notes-2026-10-10.md), [güncel sıra](backend-roadmap.md#uygulama-sırası).
+**Son kapsam güncellemesi:** Günlük 30+30 podyum ve ayarlanabilir özel QR lobisi aktif ilk teslimdir. Genel oylama yalnız etkinlik katılımcılarına açıktır. Eski 600/30/20 saniyelik ortak tur/matchmaking önerisi yeni oyun tasarımı değildir; [güncel oyun kaynağı](game-design.md). Trend/affiliate/reklam/Plus kolu arkadaşta paralel kalır.
+
+
 
 Faz 1 sahipliği: kullanıcı/sosyal/medya/oylama/bildirim ve ortak altyapı bizde; planlanan katalog/trend/billing/reklam modülleri arkadaşta. Ortak şema ve arayüz entegrasyonları [iki kişilik planda](two-developer-plan.md) açıklanır; yeni modüller henüz uygulanmadı.
 
@@ -12,7 +14,7 @@ Faz 1 sahipliği: kullanıcı/sosyal/medya/oylama/bildirim ve ortak altyapı biz
 
 **Önerilen başlangıç:** TypeScript + NestJS ile modüler monolit; Prisma ORM + PostgreSQL; REST üzerinden komutlar; Socket.IO üzerinden durum değişikliği haberleri; arka plan işçisi. Redis/BullMQ, medya deposu ve kimlik sağlayıcısı ilgili aşamada eklenecektir. Bunlar bugün kurulmuş servisler değildir.
 
-Bu depoda bugün veritabanı temeli, ortak HTTP/kalıcı idempotency altyapısı, Swagger, health, auth, users, social, yerel media ve polls oluşturma modülü çalışır. E-posta/şifre ve yerel opaque oturumlar, profil/stil/özel bilgiler/izin/ayarlar, arkadaşlık/engel/arama, yerel fotoğraf/manuel blur/önizleme/avatar ve manuel ürün etiketleriyle taslak/yayın/iptal/silme/detay/kendi liste uygulanmıştır; e-posta yerel dosyaya teslim edilir, Google/Apple geliştirme mock'udur. Gerçek OAuth/e-posta, tercih oyu/sonuç/akış/etkileşim, katalog eşleştirme/abonelik/bildirim, Faz 2 oyun, otomatik yüz tespiti/bulut medya/ayrı işçi henüz yoktur. [Uygulanan kararlar](implementation-decisions.md), [auth davranışı](auth-development.md), [profil davranışı](users-development.md), [sosyal davranış](social-development.md), [medya davranışı](media-development.md), [oylama davranışı](polls-development.md).
+Bu depoda bugün veritabanı temeli, ortak HTTP/kalıcı idempotency altyapısı, Swagger, health, auth, users, social, yerel media ve polls oluşturma modülü çalışır. E-posta/şifre ve yerel opaque oturumlar, profil/stil/özel bilgiler/izin/ayarlar, arkadaşlık/engel/arama, yerel fotoğraf/manuel blur/önizleme/avatar ve manuel ürün etiketleriyle taslak/yayın/iptal/silme/detay/kendi liste uygulanmıştır; e-posta yerel dosyaya teslim edilir, Google/Apple geliştirme mock'udur. Tercih oyu/sonuç, periyodik kalıcı kapanış ve izinli oy snapshot/geri alma da hazırdır. Gerçek OAuth/e-posta, ana akış/etkileşim, katalog eşleştirme/abonelik/bildirim, tasarlanan günlük oyun/QR lobi, otomatik yüz tespiti/bulut medya/ayrı işçi henüz yoktur. [Uygulanan kararlar](implementation-decisions.md), [auth davranışı](auth-development.md), [profil davranışı](users-development.md), [sosyal davranış](social-development.md), [medya davranışı](media-development.md), [oylama davranışı](polls-development.md).
 
 ## 2. Sistemin şekli
 
@@ -68,7 +70,7 @@ Cache başlangıçta zorunlu değildir. Özellikle kişiye göre görünürlüğ
 
 ## 5. Canlı oyunda sunucu otoritesi
 
-Oda için `status`, `version`, `phaseEndsAt`, `currentRoundIndex`, kuralların kopyası ve tüm değerlendirmeler DB'dedir. Telefon yalnızca kalan süreyi gösterir. Telefonun saati, gönderdiği puan toplamı veya kazanan bilgisi kabul edilmez.
+Yeni oyun tasarımında etkinlik/lobi türü, status/version, submissionEndsAt/votingEndsAt, kuralların kopyası ve değerlendirmeler DB’de tutulacak. Eski currentRoundIndex tabanlı ortak tur akışı kullanılmayacak; mevcut şema ayrıca dönüştürülecek. Telefon yalnızca kalan süreyi gösterir. Telefonun saati, gönderdiği puan toplamı veya kazanan bilgisi kabul edilmez.
 
 Oda komutları ve zamanlayıcı aynı oda satırını kilitler. Başarılı geçiş `version` değerini artırır; olay aynı transaction'da outbox'a yazılır. Kuyrukta eski sürüme ait iş gelirse yeni aşamayı ilerletemez.
 
@@ -88,7 +90,7 @@ Her saniye DB'ye sayaç yazılmaz. Sunucu `serverNow` ve `phaseEndsAt` döndür�
 
 Kilit altında kabul kontrolü yapıldığı anda süre dolmamışsa komut kabul edilmiş sayılır; commit'in birkaç milisaniye sonra tamamlanması bu kararı değiştirmez. İşçinin zamanı geçirmesi yeni oy için ek süre oluşturmaz.
 
-İşçi başlangıçta ve düzenli aralıklarla süresi geçmiş aktif odaları/oylamaları tarar. Redis ve kuyruk sıfırlansa bile DB'den işlerini yeniden kurabilir. Uzun kesintide eski turları art arda oynatıp oy toplamaz: yapılandırılan kesinti eşiği aşılırsa oda `SYSTEM_INTERRUPTION` nedeniyle ödülsüz iptal edilir; kısa gecikmede sıradaki tur gerçek açılış anından başlayan tam süreyle açılır. Eşik başlangıç önerisi 60 saniyedir, ölçümle ayarlanacaktır.
+Oylama kapanış tarayıcısı artık API açılışında ve düzenli aralıklarla çalışır; oy komutu işçiyi beklemeden son süreyi denetler. Oyun tarayıcısı kendi adımında eklenecek: genel günlük 30+30 takvimi işçi gecikmesiyle uzamaz, geçmişe oy toplanmaz. Özel lobide host erken geçişi oylamanın DB başlangıç saatini bir kez belirler. Kesinti toparlanması kayıtlı faz/son sürelerden yapılır; iptal politikası yeni oyun tasarımında seçilir.
 
 PostgreSQL satır kilitleri transaction bitimine kadar çakışan yazmaları koordine eder. Başlangıçtaki oda başına seri işlem yaklaşımı bunun üzerine kuruludur. [PostgreSQL locks](https://www.postgresql.org/docs/current/explicit-locking.html)
 

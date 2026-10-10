@@ -46,7 +46,7 @@ Arkadaşlık ve engelleme User'a iki taraftan bağlanan ayrı ilişkilerdir. Oyl
 | Ödül | PointsLedger | Kaynağı belli puan hareketleri; ödül dağıtımı kapalı |
 | Güvenilirlik | OutboxEvent, IdempotencyRecord | Transaction sonrası işler ve komut tekrarları |
 
-Toplam 32 model vardır. Health, auth, users, social, yerel media/avatar ve polls taslak/yayın/detay/kendi liste API'leri çalışır. PollVote/sonuç/akış/etkileşim ve diğer model API'leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
+Toplam 32 model vardır. Health, auth, users, social, yerel media/avatar ve polls taslak/yayın/detay/kendi liste API'leri çalışır. PollVote/sonuç ve kalıcı kapanış da çalışır; akış/etkileşim ve diğer model API’leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
 
 Altıncı migration UserSettings ve UserPrivate.analyticsRevision alanını ekler. Analiz izni/demografi değişikliği ve outbox olayı aynı transaction'a yazılır; ham demografik değerler olay gövdesinde yer almaz. İşçi/trend tüketimi henüz yoktur. Özel alanlar, ayar varsayılanları ve sayaç görünürlüğü: [users rehberi](users-development.md).
 
@@ -54,7 +54,7 @@ Yedinci migration User.socialRevision ekler. İlişki/engel değişikliği, iki 
 
 Sekizinci migration MediaPurpose (POLL/AVATAR), uploadTokenHash/son süre/beyan alanları, thumbnailKey, processingRevision/processingRequestHash/rejectionCode/filesPurgedAt ve User.avatarMediaId ilişkisini ekler. ByteSize beyanı 1–10 MiB, işlem sürümü negatif olamaz. FK avatar sahipliği/amacı/onayını tek başına doğrulamaz; bunlar kilit altında MediaService tarafından kontrol edilir. Kaynak/çıktı anahtarları kamusal yanıta girmez. [Medya yaşam döngüsü](media-development.md).
 
-Dokuzuncu migration ProductTag.priceRecordedAt ekler. Fiyatın doğrulandığı/güncellendiği tarih değil, kullanıcı beyanının sunucuda kaydedildiği zamandır; eski kayıtlarda null kalır. ProductTag hâlâ seçenek sahibinin kullanıcı beyanıdır, ortak katalog değildir; productId henüz yoktur. Var olan IdempotencyRecord modeli 24 saatlik oylama makbuzları için kullanılmaya başladı. [Oylama ve tekrar sözleşmesi](polls-development.md).
+Dokuzuncu migration ProductTag.priceRecordedAt ekler. Fiyatın doğrulandığı/güncellendiği tarih değil, kullanıcı beyanının sunucuda kaydedildiği zamandır; eski kayıtlarda null kalır. ProductTag hâlâ seçenek sahibinin kullanıcı beyanıdır, ortak katalog değildir; productId henüz yoktur. Var olan IdempotencyRecord modeli 24 saatlik oylama makbuzları için kullanılmaya başladı. Onuncu migration PollVote.analyticsConsentAtVote/analyticsRevisionAtVote ve ikisinin birlikte bulunmasını denetleyen CHECK ekler. Oy izinsizse demografi/izin bağlamı null; izin geri alınırsa snapshot aynı transaction’da temizlenir. Eski oya izin uydurulmaz. [Tercih/sonuç/izin sözleşmesi](poll-votes-development.md). [Oylama ve tekrar sözleşmesi](polls-development.md).
 
 ## 3. Veritabanının bugün koruduğu kurallar
 
@@ -94,7 +94,7 @@ PostgreSQL CHECK başka satırın güncel durumunu güvenilir biçimde doğrulam
 - Ödülün yalnızca uygun ve kesinleşmiş oyundan, Rewards modülü tarafından yazılması.
 - Olayların ve idempotency yanıtının asıl işlemle aynı transaction'a yazılması.
 
-Taslak/yayın servisinde sahiplik/onay, 2–4 seçenek, sabit yayın içeriği, sürüm, makbuz ve outbox atomikliği uygulanır. Oy/kapanış/oyun kuralları henüz servis olarak yoktur. DB bütünlük testlerinde taslak bir oylamaya oy yazılabilmesi, ilerideki oy API'sinin buna izin vereceği anlamına gelmez.
+Taslak/yayın servisinde sahiplik/onay, 2–4 seçenek, sabit yayın içeriği, sürüm, makbuz ve outbox atomikliği uygulanır. Oy/kapanış/sonuç ve izin temizliği de uygulanır; oyun servisi yeni tasarıma göre kendi adımında yazılacak. DB bütünlük testlerinde taslak bir oylamaya oy yazılabilmesi, ilerideki oy API'sinin buna izin vereceği anlamına gelmez.
 
 ## 5. Oy yazma transaction'ı
 
@@ -117,7 +117,9 @@ Sonuçlar oylama kaydı ve oy sayılarından tutarlı transaction snapshot'ı il
 
 İlk aşamada oylama başına satır kilidi işlemleri serileştirir. Çok popüler oylamada darboğaz ölçülürse kilit tasarımı iyileştirilir; başlangıçta doğruluk tercih edildi.
 
-## 6. Oyun transaction'ları
+## 6. Eski oyun şeması ve yeni tasarıma geçiş
+
+Aşağıdaki oda/tur tabloları önceki şema taslağını açıklar; yeni 30+30 günlük etkinlik/QR lobisi servisi uygulanmış değildir. Yeni süreler, günlük takvim, QR davetleri, GAME amacı ve üyelik kısıtları [güncel tasarıma](game-design.md) göre ayrı migration ile değişecek. Ortak 20 saniyelik tur varsayımı yeni ürün kuralı değildir.
 
 Tüm oyun komutları önce oda satırını kilitler; sonra gerektiğinde tur/üyelik satırlarına gider. Kilit sırası standarttır: oda → tur → kullanıcı üyeliği. Başka odaya katılma için tek aktif üyelik PK'sı çakışırsa mevcut oda döndürülür. İlk sürüm odalar arası oyuncu taşıma transaction'ı açmaz.
 

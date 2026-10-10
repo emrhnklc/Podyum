@@ -377,15 +377,17 @@ model ProductTag {
 }
 
 model PollVote {
-  pollId        String     @db.Uuid
-  voterId       String     @db.Uuid
-  optionId      String     @db.Uuid
-  genderAtVote  Gender?
-  ageBandAtVote AgeBand?
-  createdAt     DateTime   @default(now()) @db.Timestamptz(3)
-  poll          Poll       @relation(fields: [pollId], references: [id], onDelete: Restrict)
-  voter         User       @relation(fields: [voterId], references: [id], onDelete: Restrict)
-  option        PollOption @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
+  pollId                  String     @db.Uuid
+  voterId                 String     @db.Uuid
+  optionId                String     @db.Uuid
+  genderAtVote            Gender?
+  ageBandAtVote           AgeBand?
+  analyticsConsentAtVote  DateTime?  @db.Timestamptz(3)
+  analyticsRevisionAtVote Int?
+  createdAt               DateTime   @default(now()) @db.Timestamptz(3)
+  poll                    Poll       @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  voter                   User       @relation(fields: [voterId], references: [id], onDelete: Restrict)
+  option                  PollOption @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
 
   @@id([pollId, voterId])
   @@index([pollId, optionId])

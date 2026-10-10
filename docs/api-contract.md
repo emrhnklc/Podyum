@@ -1,8 +1,8 @@
 # API ve canlı bağlantı sözleşmesi — taslak
 
-**Kapsam güncellemesi:** Oyun ve Socket.IO bölümleri Faz 2 taslağıdır. Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
+**Kapsam güncellemesi:** Günlük podyum/QR lobisi aktif plandadır; oyun ve Socket.IO uçları henüz uygulanmamıştır. [Yeni oyun tasarımı](game-design.md). Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
-Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Oy/sonuç/akış/yorum/kaydetme ve oyun endpoint'leri henüz taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
+Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Tercih/sonuç endpoint’leri de çalışır; [oy rehberi](poll-votes-development.md). Akış/yorum/kaydetme ve oyun endpoint’leri henüz taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
 
 ## 1. Ortak kurallar
 
@@ -13,7 +13,7 @@ Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluştur
 - Zamanlar UTC ISO-8601. Canlı yanıtlar `serverNow`, `version`, `phaseEndsAt` içerir.
 - Görülemeyen özel kaynaklar `404 RESOURCE_NOT_FOUND`; erişim hakkı olmayan kişiye varlığı açıklanmaz.
 - Sunucu kodları kararlıdır; kullanıcıya gösterilen metin mobilde yerelleştirilebilir.
-- Oylama oluşturma/düzenleme/yayınlama/iptal/silme/yorum ayarı komutlarında `Idempotency-Key` zorunlu; kalıcı servis ve 24 saatlik makbuz çalışır. Oyun Faz 2'de bağlanacak. Auth endpoint'leri bu anahtarı istemez; kayıt doğal e-posta tekilliğini kullanır, refresh tek kullanımlıdır. PUT oy/değerlendirme/kaydet işlemlerinin kendi doğal tekil anahtarı olacaktır.
+- Oylama oluşturma/düzenleme/yayınlama/iptal/silme/yorum ayarı komutlarında `Idempotency-Key` zorunlu; kalıcı servis ve 24 saatlik makbuz çalışır. Oyun kendi aktif adımında bağlanacak. Auth endpoint'leri bu anahtarı istemez; kayıt doğal e-posta tekilliğini kullanır, refresh tek kullanımlıdır. PUT oy/değerlendirme/kaydet işlemlerinin kendi doğal tekil anahtarı olacaktır.
 - Taslak güncelleme/yayınlama ve oda başlatma için `expectedVersion` alınır. Oy ve değerlendirme için istemcinin tüm aggregate sürümünü eşleştirmesi istenmez; ilgili poll/round ve mevcut sunucu aşaması yeterlidir.
 
 ```json
@@ -95,17 +95,17 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 | PATCH | `/polls/:id/comment-settings` | Çalışır: yayın sonrası yorum kabulünü sürümle yönet |
 | GET | `/me/polls` | Çalışır: kendi taslak/yayın/iptal özetleri; status/limit/cursor |
 | GET | `/feed?scope=everyone\|friends&category=...` | Görünür ve oy verilebilir adaylar; uygunluk ayrıca döner |
-| GET | `/polls/:id` | Çalışır: yetkili detay, seçenekler, manuel ürünler; oy/sonuç henüz yok |
-| PUT | `/polls/:id/vote` | Tek tercih; aynı oy tekrarında aynı kabul |
-| GET | `/polls/:id/results` | Yetkili toplu sonuç; anlık/kesin ayrımı |
+| GET | `/polls/:id` | Çalışır: yetkili detay, seçenekler, manuel ürünler; myOptionId/canVote/canViewResults dahil |
+| PUT | `/polls/:id/vote` | Çalışır: tek tercih; aynı oy tekrarında ilk kabul, farklı tercih 409 |
+| GET | `/polls/:id/results` | Çalışır: yazar/oy veren veya kapanış sonrası yetkili izleyici; toplu anlık/kesin sonuç |
 | PUT / DELETE | `/polls/:id/save` | Kişisel kaydet/kaldır |
 | GET | `/me/saved-polls` | Hâlâ görünür kayıtlar |
 | GET / POST | `/polls/:id/comments` | Yetkili yorum listesi / yorum ekleme |
 | DELETE | `/comments/:id` | Kendi yorumunu kaldırma |
 
-Çalışan yazma uçları Idempotency-Key ister; oluşturma dışındaki komutlarda expectedVersion gerekir (DELETE query, diğerleri body). options gönderilirse bütün liste ve ürünler değiştirilir, yeni kimlikler üretilir; yayın sonrası bu alanlar sabittir. Süre 1800/7200/86400 saniye; yayın anında başlar. Ürünler USER_ENTERED beyanıdır, ortak katalog eşleşmesi henüz yoktur. Detay status yanında serverNow/closesAt/effectiveStatus/remainingSeconds içerir; süresi dolan OPEN okuma sırasında CLOSED görünür, kalıcı kapanış işçisi 9. adımdır. [Çalışan sözleşme](polls-development.md), [HTTP örnekleri](../examples/polls.http).
+Taslak/yayın yönetim yazma uçları Idempotency-Key ister; PUT oy doğal kullanıcı/oylama anahtarıyla çalışır, bu başlığı istemez; oluşturma dışındaki komutlarda expectedVersion gerekir (DELETE query, diğerleri body). options gönderilirse bütün liste ve ürünler değiştirilir, yeni kimlikler üretilir; yayın sonrası bu alanlar sabittir. Süre 1800/7200/86400 saniye; yayın anında başlar. Ürünler USER_ENTERED beyanıdır, ortak katalog eşleşmesi henüz yoktur. Detay status yanında serverNow/closesAt/effectiveStatus/remainingSeconds içerir; süresi dolan OPEN okuma sırasında CLOSED görünür, kalıcı kapanış tarayıcısı API açılışında ve varsayılan 15 saniyede bir çalışır; oy son sürede doğrudan durur. [Çalışan sözleşme](polls-development.md), [HTTP örnekleri](../examples/polls.http).
 
-Aşağıdaki akış/tercih/sonuç/etkileşim davranışları henüz planlanan sözleşmedir. Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar olacak; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil/kaydedilenler üzerinden görülebilecek. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez.
+Tercih/sonuç davranışları uygulanmıştır; akış/yorum/kaydetme halen planlanan sözleşmedir. Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar olacak; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil/kaydedilenler üzerinden görülebilecek. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez.
 
 ```json
 {
@@ -139,53 +139,22 @@ Aşağıdaki akış/tercih/sonuç/etkileşim davranışları henüz planlanan s�
 }
 ```
 
-Bu örnekte kazanan anlık liderdir; `isFinal=false` gösterilmelidir. Oy sayısı sıfırsa kazanan dizisi boştur. Demografik kırılımlar bu ilk sözleşmeye dahil değildir.
+Sonuç yanıtında ayrıca version/serverNow/closesAt/storedStatus ve seçenek position/label alanları vardır. Bu örnekte kazanan anlık liderdir; `isFinal=false` gösterilmelidir. Oy sayısı sıfırsa kazanan dizisi boştur. Demografik kırılımlar bu ilk sözleşmeye dahil değildir.
 
-## 5. Canlı oyun komutları
+## 5. Günlük oyun ve QR lobi — yeni API taslağı
 
-| Metot | Yol | Davranış |
-| --- | --- | --- |
-| POST | `/game-rooms` | Arkadaş odası oluştur; host üyeliği + aktif hak atomik |
-| POST | `/matchmaking/tickets` | Hızlı eşleşme talebi; tek aktif talep/oda |
-| DELETE | `/matchmaking/tickets/:id` | Bekleyen talebi iptal |
-| POST | `/game-rooms/:id/join` | Arkadaşlık/davet/kapasite kontrolüyle katıl |
-| PUT | `/game-rooms/:id/readiness` | WAITING aşamasında hazır olma |
-| POST | `/game-rooms/:id/start` | Host veya sunucu başlatır; tema ve kurallar dondurulur |
-| PUT | `/game-rooms/:id/entry` | Süresinde tamamlanmış kendi fotoğraf teslimini bağla |
-| PUT | `/game-rooms/:id/rounds/:roundId/rating` | `{stars: 4, themeFits: true}`; tek değerlendirme |
-| GET | `/game-rooms/:id/state` | Çağıran kişiye özel güncel durum |
-| GET | `/game-rooms/:id/results` | Yalnızca sonuç aşamasında açılan kimlikler ve sıralama |
-| POST | `/game-rooms/:id/leave` | WAITING'de üyelikten çık; başladıysa ayrılma davranışını uygula |
-| GET | `/me/games` | Kendi katılım geçmişi |
+Bu bölüm planlanan uçları gösterir; oyun kodu/OpenAPI henüz yoktur. Eski per-round matchmaking sözleşmesi yerine [güncel oyun tasarımı](game-design.md) uygulanacak.
 
-Matchmaking'in kalıcı ticket tablosu henüz şemada yok; gerçek eşleştirme implementasyonunda eklenecek. Redis aday kuyruğu tek başına katılım kaydı değildir. Eşleştirme oda kilidi ve kullanıcı aktif üyelik tekilliğiyle sonlandırılır; iptal/eşleştirme yarışında tek sonuç oluşur.
+| Alan | Planlanan uç / davranış |
+| --- | --- |
+| Günlük etkinlik | Güncel etkinlik/takvim/durum, katılma, kendi fotoğraf teslimi |
+| Genel oylama | 30 dakikalık pencerede yalnız etkinlik üyesine sayfalı adaylar/değerlendirme |
+| Özel lobi | Oluştur/düzenle/başlat; ayrı fotoğraf ve oylama süreleri |
+| QR daveti | Token üret/yenile/iptal, daveti çöz ve girişten sonra katıl |
+| Erken geçiş | Yalnız host, fotoğraf aşamasını atomik bitir; oy süresini bir kez başlat |
+| Sonuç/geçmiş | Yetkili sonuç, değerlendirme sayıları, kendi katılımları |
 
-Örnek durum yanıtı:
-
-```json
-{
-  "roomId": "uuid-room",
-  "version": 12,
-  "status": "VOTING",
-  "serverNow": "2026-10-10T17:30:00.000Z",
-  "phaseEndsAt": "2026-10-10T17:30:20.000Z",
-  "theme": { "title": "90'lar" },
-  "qualifiedCount": 8,
-  "round": {
-    "id": "uuid-round",
-    "position": 3,
-    "total": 8,
-    "mediaPath": "/v1/media/uuid-media/content",
-    "isMine": false,
-    "canRate": true,
-    "myRating": null,
-    "receivedRatingCount": 6,
-    "expectedRatingCount": 7
-  }
-}
-```
-
-Sunucu bu aşamada `targetUserId`, username, avatar, entry owner veya başkalarının yıldızlarını dönmez. Kendi turunda `isMine=true`, `canRate=false`. Sonuç yanıtında her katılımcının ham sayısı, toplamı, ortalaması, quorum durumu ve varsa eşit derecesi bulunur. `official=false` alpha sonuçlarının profil puanı üretmediğini belirtir.
+Durum yanıtı mod/status/version/serverNow ve submissionEndsAt/votingEndsAt taşır. İstemcinin saati veya QR'ı var demesi yetki oluşturmaz. Teslim kartları sonuç öncesinde yazar kimliği/avatar/toplam puanı açmaz; kendi fotoğrafına oy kapalıdır. Yıldız/temaya uygunluk yöntemi yeni akış için adaydır; kesin değerlendirme/örneklem kuralları ayrıca seçilecek. Genel etkinlik için 3–8 kişilik ortak 20 saniyelik tur kuralı yoktur.
 
 ## 6. Socket.IO
 

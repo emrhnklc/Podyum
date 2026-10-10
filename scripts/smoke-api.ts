@@ -3,7 +3,7 @@ import { spawn } from "node:child_process";
 
 // Gerçek bootstrap'ı boş bir portta açar; kullanıcının çalışan API süreçlerine dokunmaz.
 const child = spawn(process.execPath, ["dist/main.js"], {
-  env: { ...process.env, PORT: "0" },
+  env: { ...process.env, PORT: "0", POLL_CLOSE_WORKER_ENABLED: "false" },
   stdio: ["ignore", "pipe", "pipe"],
 });
 let output = "";

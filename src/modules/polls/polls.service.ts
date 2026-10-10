@@ -7,6 +7,7 @@ import type { Poll, Prisma } from "../../generated/prisma/client.js";
 import { MediaService } from "../media/media.service.js";
 import { SocialAccessService } from "../social/social-access.service.js";
 import type { CreatePollDto, MyPollsQueryDto, PollOptionInputDto, UpdateCommentSettingsDto, UpdatePollDto } from "./dto/polls.dto.js";
+import { pollServerNow as serverNow, effectivePollStatus as effectiveStatus, writePollEvent } from "./polls-internals.js";
 
 type Tx = Prisma.TransactionClient;
 const missing = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Oylama bulunamadı.");
@@ -18,15 +19,6 @@ const include = {
   } },
 } satisfies Prisma.PollInclude;
 type PollRow = Prisma.PollGetPayload<{ include: typeof include }>;
-
-async function serverNow(tx: Tx) {
-  const [row] = await tx.$queryRaw<{ now: Date }[]>`SELECT clock_timestamp() AS "now"`;
-  return row.now;
-}
-
-function effectiveStatus(poll: Pick<Poll, "status" | "closesAt">, now: Date) {
-  return poll.status === "OPEN" && poll.closesAt && poll.closesAt <= now ? "CLOSED" : poll.status;
-}
 
 @Injectable()
 export class PollsService {
@@ -54,10 +46,7 @@ export class PollsService {
   }
 
   private async event(tx: Tx, poll: Pick<Poll, "id" | "authorId" | "version" | "status" | "visibility">, type: string) {
-    await tx.outboxEvent.create({ data: {
-      aggregateType: "poll", aggregateId: poll.id, aggregateVersion: poll.version, type,
-      payload: { schemaVersion: 1, pollId: poll.id, authorId: poll.authorId, version: poll.version, status: poll.status, visibility: poll.visibility },
-    } });
+    await writePollEvent(tx, poll, type);
   }
 
   private response(poll: PollRow, viewerId: string, now: Date) {
@@ -94,7 +83,15 @@ export class PollsService {
     if (!poll) throw missing();
     await this.access.requireUserAccess(tx, viewerId, poll.authorId);
     if (viewerId !== poll.authorId) await this.access.requirePublishedPollAccess(tx, viewerId, id);
-    return this.response(poll, viewerId, now ?? await serverNow(tx));
+    const currentTime = now ?? await serverNow(tx);
+    const response = this.response(poll, viewerId, currentTime);
+    const mine = await tx.pollVote.findUnique({ where: { pollId_voterId: { pollId: id, voterId: viewerId } }, select: { optionId: true } });
+    const published = poll.contentStatus === "VISIBLE" && ["OPEN", "CLOSED"].includes(poll.status);
+    return { ...response, myOptionId: mine?.optionId ?? null,
+      canVote: published && response.effectiveStatus === "OPEN" && !response.isOwner && !mine
+        && poll.audienceGender === "ANY" && poll.audienceAgeBand === null && !poll.styleMatchRequired,
+      canViewResults: published && (response.isOwner || !!mine || response.effectiveStatus === "CLOSED"),
+    };
   }
 
   private async replaceOptions(tx: Tx, userId: string, pollId: string, options: PollOptionInputDto[]) {
