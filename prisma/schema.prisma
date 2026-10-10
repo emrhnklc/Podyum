@@ -123,6 +123,7 @@ model User {
   updatedAt          DateTime              @updatedAt @db.Timestamptz(3)
   identities         AuthIdentity[]
   privateData        UserPrivate?
+  settings           UserSettings?
   styles             UserStyle[]
   friendshipsA       Friendship[]          @relation("FriendA")
   friendshipsB       Friendship[]          @relation("FriendB")
@@ -213,7 +214,20 @@ model UserPrivate {
   ageBand            AgeBand?
   cityCode           String?   @db.VarChar(30)
   analyticsConsentAt DateTime? @db.Timestamptz(3)
+  analyticsRevision  Int       @default(0)
   user               User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model UserSettings {
+  userId                     String     @id @db.Uuid
+  pushEnabled                Boolean    @default(true)
+  friendRequestNotifications Boolean    @default(true)
+  pollResultNotifications    Boolean    @default(true)
+  commentNotifications       Boolean    @default(true)
+  defaultPollVisibility      Visibility @default(PUBLIC)
+  defaultCommentsEnabled     Boolean    @default(true)
+  defaultBlurFace            Boolean    @default(true)
+  user                       User       @relation(fields: [userId], references: [id], onDelete: Restrict)
 }
 
 model StyleTag {

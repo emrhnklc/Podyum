@@ -23,7 +23,7 @@
 | Oylamada kitle uygunluğu ve izinli sonuç kırılımları | Biz; billing hak/kota servisini kullanırız | 14 |
 | Kampanya, reklam seçimi ve reklam ölçümü | Arkadaş | 15 |
 | Genel yönetici rolü, şikâyet, hesap silme/izin geri alma | Biz | 16 |
-| Ürün/kampanya/abonelik yönetim API'leri | Arkadaş; ortak yönetici rolünü kullanır | 16 |
+| Ürün/kampanya/abonelik yönetim API'leri | Arkadaş; bizim sağlayacağımız ortak yönetici yetkisini kullanır; ilk katalog tesliminde yok | 16 |
 | Entegrasyon testi ve frontend teslimi | Birlikte | 17–18 |
 | Oyun, eşleşme, lig ve yarışmalar | Faz 2'de yeniden atanacak | 19–23 |
 
@@ -50,6 +50,8 @@ Paralel kodlama öncesinde şu sınırlar kayda girer:
 3. Ürün kimliği/normalizasyon ile affiliate linkinin yönlendirmesi ayrıdır. Katalog, kullanıcının affiliate parametrelerini silip onun yönlendirme linkini değiştirmez.
 4. Tercih kaydı ile trend tüketimi arasında sürümlü bir veri sözleşmesi hazırlanır. Demografik verinin hangi izinle ve nasıl taşınacağı ayrıca netleştirilir.
 5. Plus rozeti bir istemci kararı değildir; hakları billing hesaplar. Reklamlar bu hakkı kullanır, akış reklam seçme kurallarını yeniden yazmaz.
+
+Profil/ayar adımı şimdi çalışır. İzin/demografi değişikliği için uygulanan ilk kaynak olayı `user.analytics-preferences.changed`, aggregate `user-analytics` ve kullanıcı başına monoton `analyticsRevision`'dır. Tam payload ve henüz olmayan işçi/tüketim sınırı: [profil rehberi](users-development.md). Arkadaş trend entegrasyonunda bu sözleşmeyi kullanır; tercih olayı ayrıca hazırlanacak.
 
 İlk şema teslimi: arkadaş ortak ürün/mağaza kimliği, belirsiz eşleşme ve fiyat bağlamı için önerisini yazar; biz ProductTag bağlantısıyla birlikte migration'ı sıraya alırız. Şema hazır olana kadar arkadaş URL normalizasyonunu, eşleştirme davranışını ve test fixture'larını geliştirebilir. Ancak gerçek DB entegrasyonunu yapılmış sayamaz.
 
@@ -92,10 +94,13 @@ Kullanıcıya ham voterId, küçük grupların kişisel tercihleri veya özel i�
 - [ ] Kendi `catalog` modülünü controller/service/DTO düzeninde kur.
 - [ ] Ürün listesi/detayı ve URL veya elle verilen bilgilerle ürün çözümleme sözleşmesini oluştur. Önerilen yollar: `GET /products`, `GET /products/:id`, `POST /products/resolve`; henüz mevcut endpoint değildir.
 - [ ] Desteklenmeyen mağaza veya belirsiz isimde açık sonuç dön; manuel bilgi girişini ele al. Her linki otomatik tarayabileceğini varsayma.
-- [ ] Ortak katalog kaydını sıradan kullanıcının serbestçe değiştirememesi için oluşturma/düzeltme ve yönetici yetkisi davranışını belirle; önerilen ürün verisinin kaynağını koru.
+- [ ] Kullanıcının mevcut ürünü çözümlemesini veya belirsiz/eşleşmedi sonucuna manuel bilgi eklemesini sağla. Kullanıcı girdisi ortak doğrulanmış ürünü değiştiremez, birleştiremez veya doğrulanmış hale getiremez; kaynağı korunur.
+- [ ] Manuel düzeltmenin kişinin kendi taslak ürün etiketine/eşleşmesine ait olduğunu belirt. ProductTag ve kullanıcı beyanı fiyatı bizim oylama modülündedir; ortak kataloğa veya başka paylaşıma yazılmaz.
+- [ ] İlk teslimde ayrı öneri tablosu zorunlu değildir; eşleşmedi yanıtı manuel bilgiyi taşıyabilir. Kalıcı öneri gerekiyorsa doğrulanmış katalogdan ayrı kaynak/durum olarak erken model taslağında öner.
+- [ ] Ortak ürün düzeltme/birleştirme ve admin API'sini sonraya bırak. Yönetici yetkisini biz 16. adımda sağlar, arkadaş bu yetkiyle katalog yönetimini bağlar. İlk teslimde ihtiyaç notu yeterlidir; bağımsız rol sistemi veya açık admin yolu eklenmez.
 - [ ] Mevcut auth, ApiError, doğrulama, sayfalama ve Swagger altyapısını kullan.
 - [ ] Eşleşen/eşleşmeyen/belirsiz link; ürün kimliğini bozmayan normalizasyon; affiliate linkin korunması ve fiyat/para birimi davranışlarını test et.
-- [ ] Yetkisiz istek, bozuk DTO, tekrar çözümleme ve katalog düzeltme yetkisini test et.
+- [ ] Yetkisiz istek, bozuk DTO, tekrar çözümleme ve kullanıcı girdisinin mevcut ortak ürünü değiştirmemesini test et. Admin düzeltme yetkisi testi yönetim adımında yapılır.
 - [ ] API örnekleri, gerekli şema taslağı ve çalışan/eksik entegrasyonları teslim et.
 
 Katalog tamamlanınca sıradaki iş sentetik veriyle trendlerdir. Reklam, abonelik ve affiliate ücretlendirmesi kendi adımlarında gelir. Ücret, komisyon yüzdesi, ücretsiz kullanım limiti veya affiliate sağlayıcısı uydurulmaz.
@@ -119,4 +124,4 @@ Her PR: değişen sözleşmeler, migration/bağımlılık ihtiyacı, HTTP örnek
 
 Ayrı modüllerin içini bağımsız geliştirebiliriz. Ortak ürün modeli, tercih/izin olayı, ücretli haklar ve reklam–akış bağlantısında küçük entegrasyon teslimleri gerekir. Bu noktalar sözleşmeyle ve tek sahiplikle yönetilir; tamamen bağlantısız iki backend yapılmaz.
 
-Şu anda başlanacak işler nettir: **biz profil/ayarlar, arkadaş katalog/ürün linkleri**. Oyun geliştirmesi yok. Güncel Claude görevi: [arkadaş için metin](friend-claude-task.md).
+Temel profil/ayar API'si şimdi hazır; avatar ve sekme listeleri medya/oylama adımında bağlanacak. **Sonraki bizim işimiz sosyal modül; arkadaşın ilk işi hâlâ katalog/ürün linkleri.** Oyun geliştirmesi yok. Güncel Claude görevi: [arkadaş için metin](friend-claude-task.md).

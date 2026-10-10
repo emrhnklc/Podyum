@@ -20,15 +20,16 @@ Dosya sahipliği, servis sözleşmeleri, ilk görev ve Claude'a verilecek günce
 ## Mevcut durum
 
 - [x] NestJS başlangıcı, health endpoint'leri ve özellik klasörleri.
-- [x] Prisma şeması, yerel veritabanı, beş migration ve demo kayıtları.
+- [x] Prisma şeması, yerel veritabanı, altı migration ve demo kayıtları.
 - [x] Veritabanı hedef kontrolü, 13 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
 - [x] Yerel e-posta/şifre ve oturum akışları; Google/Apple mock.
-- [x] 13 API testi; mevcut 13 DB testi ve bootstrap kontrolü.
-- [ ] Faz 1 profil, sosyal kombin, ürün/trend ve gelir akışları.
+- [x] Auth/ortak API ve profil/ayar HTTP testleri; mevcut 13 DB testi ve bootstrap kontrolü.
+- [x] Temel profil, stil seçimi, özel bilgiler/analiz izni ve ayarlar; avatar ve sekme listeleri sonraki modüllere bağlı.
+- [ ] Faz 1 sosyal kombin, ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
 - [ ] Faz 2 oyun/rekabet akışları; ertelendi.
 
-**İlk uygulama ilerlemesi:** Ortak API altyapısı ve yerel auth tamamlandı. E-posta/şifre akışı HTTP ile doğrulandı; Google/Apple mock. Gerçek OAuth ve e-posta gönderimi tamamlanmış sayılmıyor. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md).
+**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth ve temel profil/ayar API'leri tamamlandı. E-posta/şifre akışı HTTP ile doğrulandı; Google/Apple mock. Gerçek OAuth ve e-posta gönderimi tamamlanmış sayılmıyor. Sonraki bizim işimiz 5. adım sosyal modül. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md).
 
 Hazır şema başlangıçtır; şikâyet, lig, haftalık etkinlik, abonelik gibi alanlar ilgili adımda yeni migration'larla eklenecek. Generated dosyalar elle düzenlenmeyecek.
 
@@ -93,13 +94,15 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 
 **Sorumlu:** Biz.
 
-- [ ] Kullanıcı adı uygunluğu, görünen ad, bio ve stil etiketleri.
+- [x] Kullanıcı adı uygunluğu, görünen ad, bio ve stil etiketleri.
 - [ ] Avatar yükleme bağlantısı; medya adımıyla birlikte tamamlanır.
-- [ ] İsteğe bağlı yaş grubu, cinsiyet/şehir bilgileri ve izin tercihleri; kamusal yanıttan ayrım.
-- [ ] Kendi profili, başkasının profili ve profil düzenleme.
-- [ ] Paylaşım/arkadaş/puan sayaçlarının sözleşmesi; henüz oluşmamış veride sıfır/boş davranışı.
+- [x] İsteğe bağlı yaş grubu, cinsiyet/şehir bilgileri ve izin tercihleri; kamusal yanıttan ayrım. Değişiklikler için transaction içinde kalıcı olay kaydı; trend tüketicisi 13. adımda.
+- [x] Kendi profili, başkasının profili ve profil düzenleme.
+- [x] Paylaşım/arkadaş/puan sayaçlarının sözleşmesi; henüz oluşmamış veride sıfır/boş davranışı.
 - [ ] Paylaşımlar ve kişisel kaydedilenler sekmelerinin sayfalı API'leri; ilgili özellik tamamlandıkça bağla. Yarışma geçmişi Faz 2'de eklenir.
-- [ ] Bildirim/gizlilik ayarları için kullanıcı tercihleri.
+- [x] Bildirim/gizlilik ayarları için kullanıcı tercihlerini saklama/okuma. Push, blur ve paylaşım varsayılanlarının tüketimi ilgili modüllerde bağlanır.
+
+Çalışan uçlar ve bağlantısı bekleyen alanlar: [profil/ayar rehberi](users-development.md). Ayrı kapalı hesap politikası eklenmedi.
 
 **Bittiğinde:** profil ekranının temel bilgileri ve ayarları API'den gelir; özel alanlar başka kullanıcıya sızmaz. Lig ve rozetler 22. adımda bu profile bağlanır.
 
@@ -135,12 +138,14 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 **Sorumlu:** Arkadaş; ortak şema entegrasyonunu biz koordine ederiz.
 
 - [ ] Ortak ürün kataloğunu seçenek başına ProductTag'den ayır; aynı ürünün farklı paylaşımlarda birleştirilmesi.
-- [ ] Mağaza/ürün kimliği veya normalize URL ile çözümleme; isimden belirsiz eşleşme ve manuel düzeltme.
+- [ ] Mağaza/ürün kimliği veya normalize URL ile çözümleme; isimden belirsiz eşleşme ve kişinin kendi taslak etiket/eşleşmesinde manuel seçim veya bilgi düzeltme. Ortak ürünün üzerine yazma yetkisi vermez.
 - [ ] Varyant, fiyat zamanı, para birimi ve eşleşmeyen link davranışı.
 - [ ] Özgün dış/affiliate linkini ortak ürün kimliğinden ayrı koruma; normal ve ticari link beyanı/doğrulama sözleşmesi.
 - [ ] Linkten otomatik ürün bilgisi alma için desteklenen kaynaklar ve başarısızlıkta kullanıcı girişi; her mağazaya otomatik entegrasyon varsaymama.
 
 Bu adım biz 4–6'yı geliştirirken arkadaş tarafından paralel tamamlanabilir. İlk ortak ürün/etiket şema sözleşmesi erken birleştirilir.
+
+İlk katalog teslimi çözümleme ve eşleşmedi/belirsiz durumda kullanıcı beyanını taşımadır. Bu beyan otomatik olarak doğrulanmış ortak ürün olmaz; ayrı kalıcı öneri tablosu ilk teslim için zorunlu değildir. Ortak ürün düzeltme/birleştirme API'si ortak yönetici yetkisiyle 16. adımda eklenir. Yönetici yetkisini biz, katalog yönetim API'sini arkadaş sağlar; ilk teslim bu altyapıyı beklemez.
 
 **Bittiğinde:** farklı paylaşımlardaki aynı ürün tanınabilir; affiliate linkler ürün kimliğini çoğaltmaz. Trendleri hesaplayacak ilişki tercih API'si geliştirilirken dikkate alınır. Ücretli kullanım hakkı 14. adımda bağlanır.
 

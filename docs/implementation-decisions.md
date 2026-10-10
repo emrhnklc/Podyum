@@ -30,9 +30,16 @@
 | Şifre değişikliği | Reset bütün cihaz oturumlarını ve önceki doğrulama/reset bağlantılarını kapatır |
 | Mock kimlik | Gerçek sağlayıcıdan farklı `mock:google` / `mock:apple` issuer; e-posta ile hesap birleştirme yapılmaz |
 | İlk profil | E-posta kaydı ad ve kullanıcı adıyla tamamlanır; mock hesap profil kurulumu bekler |
+| Profil düzenleme | Kullanıcı adı/ad/bio ve en fazla 10 sözlük stili; mock ilk kurulumu aynı istekte username+displayName ile tamamlanır |
+| Özel profil | Yaş grubu/cinsiyet/şehir isteğe bağlı, yalnız sahibine açık; analiz izni varsayılan false ve açık seçimle değişir |
+| Analiz değişikliği | İzin/demografi değişikliği monoton revision ve aynı transaction'da ham demografi içermeyen outbox olayı üretir; trend tüketimi sonraki adımda |
+| Ayar varsayılanları | Bildirim tercihleri, yorumlar ve yüz blur tercihi açık; yeni paylaşım görünürlüğü PUBLIC. Medya/oylama/push tüketicileri henüz yok |
+| Profil erişimi | Oturum gerekir; aktif, iki yönde engel olmayan hedefin kamusal alanları açılır. Paylaşım sayısı izleyicinin erişimine göre hesaplanır |
 | Yerel erişim | Varsayılan `127.0.0.1`; dış kullanıcı kaydı ve üretim açılışı henüz kapalı |
 
 E-posta taşıyıcısı `.local/mailbox` altında dosyadır. Bu, gerçek e-posta gönderimi değildir. Dosyada tek kullanımlık token bulunur; HTTP'den servis edilmez, git'e alınmaz. Dosya yazımı başarısızsa kayıt/action transaction'ı geri alınır. İşlem commit edilmeden süreç çökerse dosyada geçersiz bağlantı kalabilir; gerçek taşıyıcıya geçerken kalıcı teslim kuyruğu/yeniden deneme eklenecek.
+
+Profil/ayar API'sinin uygulanan davranışları ve sonraki modüllere kalan bağlantılar: [users rehberi](users-development.md). Kapalı hesap politikası hâlâ açık karardır; ayrı kapalı hesap alanı eklenmedi.
 
 ## İlgili adım geldiğinde kesinleştirilecekler
 
