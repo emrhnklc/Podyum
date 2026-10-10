@@ -23,7 +23,7 @@ export const users: DemoUser[] = [
     verified: true,
     displayName: "Luis",
     initials: "LU",
-    avatar: "/demo/luis/5.jpg",
+    avatar: "/demo/luis/avatar.jpg",
     styles: ["Sokak stili", "Vintage"],
     counts: {
       polls: 3,
@@ -38,7 +38,7 @@ export const users: DemoUser[] = [
     location: "Paris, Fransa",
     displayName: "Louno",
     initials: "LO",
-    avatar: "/demo/louno/3.jpg",
+    avatar: "/demo/louno/avatar.jpg",
     styles: ["Sokak stili", "Oversize"],
     counts: {
       polls: 2,
@@ -53,7 +53,7 @@ export const users: DemoUser[] = [
     location: "Berlin, Almanya",
     displayName: "Hannas",
     initials: "HA",
-    avatar: "/demo/hannas/2.jpg",
+    avatar: "/demo/hannas/avatar.jpg",
     styles: ["Şık", "Minimal"],
     counts: {
       polls: 1,
@@ -61,6 +61,20 @@ export const users: DemoUser[] = [
       stars: 430,
       followers: 384,
       following: 77,
+    },
+  },
+  {
+    username: "cem",
+    displayName: "Cem",
+    initials: "CE",
+    avatar: "/demo/cem/avatar.jpg",
+    styles: ["Workwear", "Denim", "Vintage"],
+    counts: {
+      polls: 4,
+      friends: 132,
+      stars: 720,
+      followers: 640,
+      following: 121,
     },
   },
   {

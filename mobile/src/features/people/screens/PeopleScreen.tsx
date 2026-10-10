@@ -215,8 +215,10 @@ function Photo({ person, style }: { person: DemoPerson; style: object }) {
   const user = getUser(person.username);
   return (
     <View style={[{ overflow: "hidden", backgroundColor: person.tone }, style]}>
-      <PreviewImage uri={user?.avatar} tone={person.tone} icon="person-outline" />
-      {!user?.avatar && (
+      {/* Fotoğraf yoksa yalnız baş harfler; yer tutucu simgeyle üst üste binmez. */}
+      {user?.avatar ? (
+        <PreviewImage uri={user.avatar} tone={person.tone} icon="person-outline" />
+      ) : (
         <View style={[StyleSheet.absoluteFill, styles.initials]}>
           <Text style={{ fontFamily: fonts.bold, fontSize: 22, color: colors.accent }}>
             {user?.initials ?? "?"}

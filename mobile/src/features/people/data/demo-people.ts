@@ -25,15 +25,43 @@ export type DemoPerson = {
 };
 
 // Önizleme listesi; gerçek öneri/arkadaşlık API bağlantısı adımında gelecek.
+// Öne çıkanlar, public/demo/ altında profil fotoğrafı ve paylaşımı olan demo hesaplardır.
 export const featuredCreators: DemoPerson[] = [
   {
-    username: "elifyz",
-    tags: ["Minimal", "Klasik", "Kahve tonları"],
-    tone: "#EBD9CF",
-    mutualFriends: 0,
+    username: "luis",
+    tags: ["Sokak stili", "Vintage"],
+    tone: "#E4E1DA",
+    mutualFriends: 14,
     closeTaste: true,
     isNew: false,
   },
+  {
+    username: "louno",
+    tags: ["Sokak stili", "Oversize"],
+    tone: "#E9D9D6",
+    mutualFriends: 9,
+    closeTaste: true,
+    isNew: false,
+  },
+  {
+    username: "hannas",
+    tags: ["Şık", "Minimal"],
+    tone: "#DEDDD8",
+    mutualFriends: 6,
+    closeTaste: true,
+    isNew: false,
+  },
+  {
+    username: "cem",
+    tags: ["Workwear", "Denim", "Vintage"],
+    tone: "#D9DEE6",
+    mutualFriends: 3,
+    closeTaste: true,
+    isNew: true,
+  },
+];
+
+export const suggestedPeople: DemoPerson[] = [
   {
     username: "melisdgn",
     tags: ["Vintage", "Sokak stili", "Renkli"],
@@ -42,9 +70,6 @@ export const featuredCreators: DemoPerson[] = [
     closeTaste: true,
     isNew: true,
   },
-];
-
-export const suggestedPeople: DemoPerson[] = [
   {
     username: "denizktl",
     tags: ["Soft girl", "Minimal", "Kafe stili"],
