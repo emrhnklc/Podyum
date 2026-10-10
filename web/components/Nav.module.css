@@ -1,0 +1,56 @@
+.nav {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-around;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.item,
+.active {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 64px;
+  height: 72px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.active {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.share {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 46px;
+  border-radius: 16px;
+  background: var(--red);
+  color: var(--on-red);
+}
+
+.badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--blue);
+  color: var(--bg);
+  font-size: 10px;
+  font-weight: 800;
+}
