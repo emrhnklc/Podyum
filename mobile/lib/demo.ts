@@ -1,6 +1,6 @@
 // Demo verisi. Backend bağlanana kadar ekranlar buradan beslenir.
 // Alan adları ve enum değerleri backend sözleşmesine (docs/api-contract.md,
-// prisma/schema.prisma) yakın tutuldu ki API'ye geçiş kolay olsun.
+// backend/prisma/schema.prisma) yakın tutuldu ki API'ye geçiş kolay olsun.
 //
 // Medya public/demo/ altında durur ve repoya girmez (bkz. .gitignore):
 //   image: "/demo/kullanici/1.jpg"   video: "/demo/kullanici/1.mp4"

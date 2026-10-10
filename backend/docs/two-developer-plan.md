@@ -32,6 +32,8 @@ Bu başlangıç dağılımıdır; modül sayısının eşit olması iş yükün�
 
 ## Dosya sahipliği
 
+Depo düzeni `Podyum/backend/` ve `Podyum/mobile/` şeklindedir. Bu belgedeki backend yolları ve npm komutları `backend/` klasörüne göredir. Arayüz dosyaları `mobile/` altında ayrı paket/TypeScript ayarlarıyla tutulur. Kök `package.json` ortak çalıştırma komutlarıdır; entegrasyonunu biz yönetiriz.
+
 - Biz: `src/modules/auth`, `users`, `social`, `media`, `polls`; ileride `feed`, `games`, `notifications` ve genel yönetim için `moderation`.
 - Arkadaş: ileride `src/modules/catalog`, `trends`, `billing`, `ads`. Bu dört modül şu anda mevcut değil; ilgili iş başladığında açılacak.
 - Her geliştirici kendi özelliğinin DTO, test, fixture ve örnek HTTP dosyalarına sahip olur. Ortak `tests/api.test.ts` dosyasına herkes aynı anda ekleme yapmak yerine özellik testleri ayrı dosyalarda tutulur.

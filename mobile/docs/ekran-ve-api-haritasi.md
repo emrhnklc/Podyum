@@ -4,8 +4,8 @@
 
 ## 1. Durum
 
-- Frontend `web/` klasöründe, Next.js 16 (App Router) + TypeScript. Tasarım dili: beyaz zemin, kırmızı `#D00A26`, pastel medya alanları, Hanken Grotesk.
-- **Henüz hiçbir backend çağrısı yapılmıyor.** Bütün ekranlar `web/lib/demo.ts` içindeki demo verisinden besleniyor. Demo verisinin alan adları ve enum değerleri (`OUTFIT`, `SHOES`, `WOMEN`, `priceMinor` …) Prisma şemasına yakın tutuldu.
+- Frontend `mobile/` klasöründe, Next.js 16 (App Router) + TypeScript. Tasarım dili: beyaz zemin, kırmızı `#D00A26`, pastel medya alanları, Hanken Grotesk.
+- **Henüz hiçbir backend çağrısı yapılmıyor.** Bütün ekranlar `mobile/lib/demo.ts` içindeki demo verisinden besleniyor. Demo verisinin alan adları ve enum değerleri (`OUTFIT`, `SHOES`, `WOMEN`, `priceMinor` …) `backend/prisma/schema.prisma` şemasına yakın tutuldu.
 - Giriş/kayıt ekranı yok; demo, `elifyz` kullanıcısı giriş yapmış gibi davranır.
 - Çalıştırma: `cd web && npm install && npm run dev`. Next varsayılan olarak 3000 portunu kullanır; backend de 3000'de açılıyor. İkisi aynı makinede çalışacaksa backend `PORT=3100 npm start` ile açılmalı.
 
@@ -177,10 +177,10 @@ Bunlar ürün kararı; frontend tarafı karar gelene kadar demo davranışını 
 | Kitle filtreleri | Tasarımda cinsiyet / yaş / "benim tarzım" filtreleri, bazıları Plus kilitli | İlk API'de `audienceGender=ANY`; hazır olmadan çalışıyor gibi gösterilmemeli |
 | Seçenek sayısı | Tasarımda C ve D seçenekleri Plus | Herkes için 2–4 seçenek; Plus sınırı kararlaştırılmadı |
 | Hazır "neden" etiketleri | Tasarımda yorumlarda "Renk uyumu · 42" gibi tek dokunuş etiketler | Sözleşmede yok |
-| Modlar / Canlı Podyum | Tasarımı hazır | Faz 2 |
+| Modlar / Canlı Podyum | Tasarımı hazır | Aktif backend planında: genel 30 dk fotoğraf + 30 dk oylama, yalnız katılımcılar oy verir; özel QR lobileri. API henüz yok; [oyun tasarımı](../../backend/docs/game-design.md). |
 
 ## 7. Açık konular
 
-- Frontend bu repoya `web/` klasörü olarak `feature/frontend` dalından PR ile öneriliyor. Backend dosyalarına, kök `package.json` ve `tsconfig` dahil, dokunulmadı; kök `tsconfig.json` yalnızca `src`, `prisma`, `scripts`, `tests` yollarını derlediği için `web/` backend derlemesini etkilemez.
-- Demo medyası (kişilerin fotoğraf ve videoları) repoya girmez; `web/public/demo/` `.gitignore` içindedir.
+- Frontend `Podyum/mobile/`, backend `Podyum/backend/` altında tutulur. İki tarafın `package.json`, kilit dosyaları ve TypeScript ayarları ayrıdır; kök `package.json` ortak çalıştırma komutlarını sağlar. Backend TypeScript derlemesi mobile kodlarını içermez.
+- Demo medyası (kişilerin fotoğraf ve videoları) repoya girmez; `mobile/public/demo/` `.gitignore` içindedir.
 - API bağlantısı başladığında adres `NEXT_PUBLIC_API_BASE_URL` ortam değişkeninden okunacak (henüz kodda yok).
