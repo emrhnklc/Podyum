@@ -414,6 +414,16 @@ Faz 2'de Socket, yeniden bağlanma, geri sayım, oyun simülasyonu ve yarışma 
 | Faz 2 oda, podyum, canlı olaylar, hızlı eşleşme | 19–21 |
 | Faz 2 puan/lig/rozet ve haftalık/sponsorlu yarışma | 22–23 |
 
+## Kayda alınan ek ürün fikirleri
+
+Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması atanmadı. Ayrıntılar ve açık kararlar: [ek ürün notları](mentor-notes-2026-10-10.md#ek-ürün-fikirleri--kullanıcının-sonraki-notları).
+
+- [ ] Profilde beğenilen kombinler; beğenme/tercih/kaydetme ayrımı ve görünürlük.
+- [ ] Giyilen kombinler için profil highlights alanı.
+- [ ] Halloween temalı kombin içeriği / özel gün deneyimi.
+- [ ] Uygulama içi moda toplulukları.
+- [ ] İleride AI ile ürün fikirlerini/görsellerini test edip en çok ilgi görenleri satışa sunmak isteyen üreticilere araçlar.
+
 ## Uygulama sırası
 
 **Faz 1 entegrasyon sırası:** 1–3 ortak temel/giriş → 4 profil → 5 sosyal → 6 medya → 7 ürün kataloğu → 8 paylaşım → 9 tercih/sonuç → 10 akış → 11 yorum/kaydetme → 12 bildirim → 13 trendler → 14 Plus/affiliate hakları → 15 reklamlar → 16 yönetim/hesap yaşam döngüsü → 17 doğrulama → 18 frontend teslimi.
