@@ -39,7 +39,7 @@
 | Arkadaş isteği | Yönsüz tek çift, açık alıcı kabulü; ters istek otomatik kabul olmaz. Red sonrası yeniden istek açılabilir; bekleme süresi henüz seçilmedi |
 | Sosyal tekrar | Aynı gönderim/kabul/red/iptal/kaldırma/engel etkisizse yeni olay yazmaz; userId komutları çiftin mevcut durumuna uygulanır |
 | Engel | Arkadaşlığı/bekleyen isteği kaldırır; iki yönlü görünürlük kapanır. Kendi engelini açmak eski ilişkiyi veya karşı tarafın engelini kaldırmaz |
-| Sosyal olay | İki kullanıcı UUID sırasıyla kilitlenir; ilişki/engel, socialRevision artışı ve iç outbox olayları aynı transaction'da yazılır. Bildirim işçisi henüz yok |
+| Sosyal olay | İki kullanıcı UUID sırasıyla kilitlenir; ilişki/engel, socialRevision artışı ve iç outbox olayları aynı transaction'da yazılır. Bildirime dönüşüm olay kuyruğu işçisindedir |
 | Yerel fotoğraf | Özel dosya deposu, Bearer + 15 dakikalık tek kullanımlık upload token, 10 MiB/25 MP sınırı, JPEG/PNG/WebP decode; EXIF'siz WebP display/thumbnail |
 | Blur ve önizleme | Otomatik tespit yok; manuel seçilen bölgeler veya açık yüz-yok doğrulaması; READY sonrası kullanıcı onayı olmadan avatar/yayın bağlanamaz |
 | Medya değişmezliği | Kaynak sürümü/checksum sabit; READY çıktı değiştirilemez. Aynı complete parametresi tekrar güvenli; geç işleme silinen kaydı canlandıramaz |
@@ -69,6 +69,7 @@ Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçla
 | Dış kullanıcı testinden önce | Minimum yaş, kayıt sırasında yaş uygunluğu, gizlilik ve izin metinleri |
 | 8–9: oylama | Tek değişmez oy, sonuç görünürlüğü, yayın sonrası sabit alanlar ve iptal önerilerini ürün kararı haline getirme |
 | 11: sosyal etkileşim | **Seçildi (10 Ekim 2026):** hazır etiket yorumdan ayrı, oy sonrası seçilen seçenek için kişi başına tek neden; yorum düzenleme yok; paylaşım sahibi kendi paylaşımındaki yorumu kaldırabilir; yalnız oy verenler ve sahip yorum yazar. [Etkileşim rehberi](interactions-development.md) |
+| 12: bildirim | **Seçildi (10 Ekim 2026):** oylama sonucu sahibe push'lu, oy verenlere yalnız uygulama içi; yorumlar paylaşım başına tek okunmamış bildirimde gruplanır; oyunda oylama başladı + sonuç; push metni genel. Varsayım: tür anahtarları yalnız push'u kapatır. [bildirim rehberi](notifications-development.md) |
 | 19–20: aktif oyun | Günlük saat/saat dilimi; QR katılım koşulu/lobi süre sınırları; teslim/oy uygunluğu, dengeli dağıtım, değerlendirme/beraberlik/engel kuralları |
 | 22: puan (Faz 2) | Ödül formülü, arkadaş odası uygunluğu, lig/sezon/rozet/seri koşulları |
 | 23: haftalık yarışma (Faz 2) | Katılım hakkı, oylama yöntemi, sponsor ödüllerinde beraberlik |

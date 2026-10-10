@@ -1,6 +1,6 @@
 # Günlük podyum ve QR lobileri — çalışan API
 
-10 Ekim 2026. Yol haritasının 19. adımı ve 20. adımın zamanlayıcı/state kısmı. `/v1` altında Bearer oturumu gerekir. [Tasarım ve kararlar](game-design.md), [HTTP örnekleri](../examples/games.http). Socket.IO bildirimleri, push ve mobil ekran henüz yoktur; istemci durumu REST ile okur.
+10 Ekim 2026. Yol haritasının 19. adımı ve 20. adımın zamanlayıcı/state kısmı. `/v1` altında Bearer oturumu gerekir. [Tasarım ve kararlar](game-design.md), [HTTP örnekleri](../examples/games.http). Socket.IO bildirimleri ve mobil ekran henüz yoktur; istemci durumu REST ile okur. Oylama başlayınca ve sonuç açıklanınca etkin üyelere bildirim/push gider: [bildirim rehberi](notifications-development.md).
 
 ## Uygulanan kullanıcı kararları
 
@@ -115,7 +115,7 @@ On birinci migration `GameSession`, `GameMembership`, `GameSubmission`, `GameSco
 
 Henüz yok:
 
-- Socket.IO bildirimleri ve push; oyun daveti/sonucu bildirimleri 12. adımla bağlanır.
+- Socket.IO bildirimleri. "Oylama başladı" ve "sonuç açıklandı" bildirimleri bağlandı; QR daveti kişiye hedefli olmadığından davet bildirimi yoktur.
 - Gerçek çok bağlantılı PostgreSQL'de iki işçi ve geçiş yarışı testleri. Yerel PGlite tek bağlantılıdır.
 - Günlük saatin ürün kararı ve tema yönetimi API'si; tema şimdilik `Theme` tablosundan ayarla seçilir.
 - Minimum oy eşiği, resmî kazanan, ödül/lig ve moderasyonla oyun iptali.

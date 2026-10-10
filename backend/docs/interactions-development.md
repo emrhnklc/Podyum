@@ -115,7 +115,7 @@ Kodlar sabittir; metni mobil çevirir:
 
 ## Olaylar
 
-Değişiklikle aynı transaction'da `OutboxEvent` yazılır; tüketici (bildirim) 12. adımdadır.
+Değişiklikle aynı transaction'da `OutboxEvent` yazılır. Yorum olayları paylaşım sahibine gruplu bildirim üretir: [bildirim rehberi](notifications-development.md).
 
 | Olay | Aggregate | İçerik |
 | --- | --- | --- |

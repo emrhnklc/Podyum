@@ -45,7 +45,7 @@ Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluştur
 | GET | `/me` | Çalışır: `{ profile, profileSetupRequired }`; özel alanlar dahil değildir |
 | PATCH | `/me` | Çalışır: kullanıcı adı, görünen ad, bio, stil etiketleri |
 | GET / PATCH | `/me/private` | Çalışır: yalnız kendi demografik bilgilerin ve analiz iznin |
-| GET / PATCH | `/me/settings` | Çalışır: kendi bildirim/paylaşım varsayılanların; tüketiciler sonraki modüllerde |
+| GET / PATCH | `/me/settings` | Çalışır: kendi push tercihlerin (oyun dahil) ve paylaşım varsayılanların |
 | GET | `/users/username-availability` | Çalışır: `username` query ile anlık uygunluk; rezervasyon değildir |
 | GET | `/users/:id` | Çalışır: aktif/engelsiz kamusal profil; sayaçlar izleyiciye göre |
 | GET | `/users/search` | Çalışır: `q` ile kullanıcı adı başlangıcı; sayfalı aktif/engelsiz kullanıcı özeti |
@@ -190,12 +190,14 @@ Yeniden bağlanma sırası: abone ol → state oku. Okuma sürerken daha yüksek
 
 | Metot | Yol | Davranış |
 | --- | --- | --- |
-| GET | `/me/notifications` | Kişisel bildirimler |
-| PUT | `/me/notifications/:id/read` | Kendi bildirimini okundu yap |
-| PUT / DELETE | `/me/devices/:installationId` | Push kaydı / çıkışta kaldırma; installationId alanı entegrasyonda eklenecek |
+| GET | `/me/notifications` | Çalışır: kişisel bildirimler, okunmamış sayısı; limit/cursor |
+| GET | `/me/notifications/unread-count` | Çalışır: sekme rozeti sayısı |
+| PUT | `/me/notifications/:id/read` | Çalışır: kendi bildirimini okundu yap |
+| POST | `/me/notifications/read-all` | Çalışır: verilen ana kadarkileri okundu yap |
+| PUT / DELETE | `/me/devices/:installationId` | Çalışır: kuruluma ve oturuma bağlı push kaydı / kaldırma; çıkış da kaldırır |
 | GET | `/me/points` | Sunucudaki ledger toplamı; alpha'da ödül yazılmaz |
 
-Lig, Plus, demografik sonuç, haftalık yarışma ve sponsor API'leri ilk sözleşmeden ayrı eklenecek. Profil toplamı mobil tarafından artırılamaz.
+Bildirim türleri, gruplama, push ve olay kuyruğu: [bildirim rehberi](notifications-development.md), [örnek HTTP](../examples/notifications.http). Lig, Plus, demografik sonuç, haftalık yarışma ve sponsor API'leri ilk sözleşmeden ayrı eklenecek. Profil toplamı mobil tarafından artırılamaz.
 
 ## 8. Idempotency ayrıntısı
 

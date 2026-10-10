@@ -146,7 +146,8 @@ model User {
   removedComments    Comment[]             @relation("CommentRemover")
   reportsMade        Report[]              @relation("ReportReporter")
   reportsReceived    Report[]              @relation("ReportTargetUser")
-  notifications      Notification[]
+  notifications      Notification[]        @relation("NotificationRecipient")
+  notificationsActed Notification[]        @relation("NotificationActor")
   devices            DeviceToken[]
   hostedRooms        GameRoom[]
   participations     GameParticipant[]
@@ -181,6 +182,7 @@ model AuthSession {
   createdAt         DateTime           @default(now()) @db.Timestamptz(3)
   user              User               @relation(fields: [userId], references: [id], onDelete: Restrict)
   usedRefreshTokens UsedRefreshToken[]
+  deviceTokens      DeviceToken[]
 
   @@index([userId, revokedAt])
   @@index([expiresAt])
@@ -238,6 +240,7 @@ model UserSettings {
   friendRequestNotifications Boolean    @default(true)
   pollResultNotifications    Boolean    @default(true)
   commentNotifications       Boolean    @default(true)
+  gameNotifications          Boolean    @default(true)
   defaultPollVisibility      Visibility @default(PUBLIC)
   defaultCommentsEnabled     Boolean    @default(true)
   defaultBlurFace            Boolean    @default(true)
@@ -507,23 +510,35 @@ model Notification {
   type         String    @db.VarChar(80)
   resourceType String    @db.VarChar(40)
   resourceId   String    @db.Uuid
+  actorId      String?   @db.Uuid
+  count        Int       @default(1)
   readAt       DateTime? @db.Timestamptz(3)
+  activityAt   DateTime  @default(now()) @db.Timestamptz(3)
   createdAt    DateTime  @default(now()) @db.Timestamptz(3)
-  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user         User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Restrict)
+  actor        User?     @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Restrict)
 
   @@unique([userId, eventId, type])
-  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, activityAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, readAt])
+  @@index([userId, type, resourceId])
+  @@index([actorId])
 }
 
 model DeviceToken {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  token     String   @unique @db.VarChar(512)
-  platform  String   @db.VarChar(20)
-  updatedAt DateTime @updatedAt @db.Timestamptz(3)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id             String      @id @default(uuid()) @db.Uuid
+  userId         String      @db.Uuid
+  installationId String      @unique @db.Uuid
+  sessionId      String      @db.Uuid
+  token          String      @unique @db.VarChar(512)
+  platform       String      @db.VarChar(20)
+  createdAt      DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime    @updatedAt @db.Timestamptz(3)
+  user           User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  session        AuthSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
 
-  @@index([userId])
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([sessionId])
 }
 
 model Theme {

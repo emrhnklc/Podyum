@@ -50,7 +50,7 @@ Toplam 32 model vardır. Health, auth, users, social, yerel media/avatar ve poll
 
 Altıncı migration UserSettings ve UserPrivate.analyticsRevision alanını ekler. Analiz izni/demografi değişikliği ve outbox olayı aynı transaction'a yazılır; ham demografik değerler olay gövdesinde yer almaz. İşçi/trend tüketimi henüz yoktur. Özel alanlar, ayar varsayılanları ve sayaç görünürlüğü: [users rehberi](users-development.md).
 
-Yedinci migration User.socialRevision ekler. İlişki/engel değişikliği, iki kullanıcının sosyal sürümü ve hedefli iç outbox olayları tek transaction'dadır. Bildirim işçisi henüz yok; engel olayının payload'u istemciye açılmaz. [Sosyal kurallar ve erişim servisi](social-development.md).
+Yedinci migration User.socialRevision ekler. İlişki/engel değişikliği, iki kullanıcının sosyal sürümü ve hedefli iç outbox olayları tek transaction'dadır. Bildirime dönüşüm olay kuyruğu işçisindedir ([bildirim rehberi](notifications-development.md)); engel olayının payload'u istemciye açılmaz. [Sosyal kurallar ve erişim servisi](social-development.md).
 
 Sekizinci migration MediaPurpose (POLL/AVATAR), uploadTokenHash/son süre/beyan alanları, thumbnailKey, processingRevision/processingRequestHash/rejectionCode/filesPurgedAt ve User.avatarMediaId ilişkisini ekler. ByteSize beyanı 1–10 MiB, işlem sürümü negatif olamaz. FK avatar sahipliği/amacı/onayını tek başına doğrulamaz; bunlar kilit altında MediaService tarafından kontrol edilir. Kaynak/çıktı anahtarları kamusal yanıta girmez. [Medya yaşam döngüsü](media-development.md).
 

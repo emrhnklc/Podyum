@@ -14,7 +14,7 @@
     "pretest:smoke": "npm run build",
     "test:smoke": "tsx scripts/smoke-api.ts",
     "pretest:api": "npm run build",
-    "test:api": "tsx --test --test-concurrency=1 tests/api.test.ts tests/users.test.ts tests/social.test.ts tests/media.test.ts tests/polls.test.ts tests/poll-votes.test.ts tests/feed.test.ts tests/poll-interactions.test.ts tests/games.test.ts",
+    "test:api": "tsx --test --test-concurrency=1 tests/api.test.ts tests/users.test.ts tests/social.test.ts tests/media.test.ts tests/polls.test.ts tests/poll-votes.test.ts tests/feed.test.ts tests/poll-interactions.test.ts tests/notifications.test.ts tests/games.test.ts",
     "pretest:votes": "npm run build",
     "test:votes": "tsx --test --test-concurrency=1 tests/poll-votes.test.ts",
     "prepolls:close": "npm run build",
@@ -47,7 +47,9 @@
     "pretest:games": "npm run build",
     "test:games": "tsx --test --test-concurrency=1 tests/games.test.ts",
     "pretest:interactions": "npm run build",
-    "test:interactions": "tsx --test --test-concurrency=1 tests/poll-interactions.test.ts"
+    "test:interactions": "tsx --test --test-concurrency=1 tests/poll-interactions.test.ts",
+    "pretest:notifications": "npm run build",
+    "test:notifications": "tsx --test --test-concurrency=1 tests/notifications.test.ts"
   },
   "dependencies": {
     "@nestjs/common": "12.1.2",

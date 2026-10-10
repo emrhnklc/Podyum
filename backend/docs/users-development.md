@@ -62,9 +62,9 @@ Olayın `id` alanı DB tarafından üretilir; tüketici eventId ve kullanıcı b
 
 ## Ayar varsayımları
 
-`pushEnabled`, `friendRequestNotifications`, `pollResultNotifications`, `commentNotifications`, `defaultCommentsEnabled` ve `defaultBlurFace` true; `defaultPollVisibility` PUBLIC. Bunlar değiştirilebilir geliştirme varsayımlarıdır. İlk GET, satır oluşturmadan varsayılanı döndürür. PATCH sadece gönderilen alanları günceller; kısmi güncellemeler birbirini silmez.
+`pushEnabled`, `friendRequestNotifications`, `pollResultNotifications`, `commentNotifications`, `gameNotifications`, `defaultCommentsEnabled` ve `defaultBlurFace` true; `defaultPollVisibility` PUBLIC. Bunlar değiştirilebilir geliştirme varsayımlarıdır. İlk GET, satır oluşturmadan varsayılanı döndürür. PATCH sadece gönderilen alanları günceller; kısmi güncellemeler birbirini silmez.
 
-Bildirim alanları ileride gönderim tercihi olarak kullanılacak; bugün push göndermez. `defaultBlurFace` yeni medya izninde, blurRequested gönderilmezse uygulanır. Manuel bölge seçimi ve önizleme onayı gerekir; otomatik yüz tespiti henüz yoktur. Oylama oluşturma görünürlük/yorum varsayılanlarını kullanır; mevcut bir paylaşımın görünürlüğü/yorumları ayar değişikliğiyle geriye dönük değişmez. Ayrı kapalı hesap özelliği eklenmedi; PUBLIC/FRIENDS paylaşım kuralı korunur.
+Bildirim alanları push tercihidir: `pushEnabled` hepsini, tür anahtarları kendi türünü kapatır; uygulama içi bildirim listesi tercihten bağımsız yazılır ([bildirim rehberi](notifications-development.md)). `defaultBlurFace` yeni medya izninde, blurRequested gönderilmezse uygulanır. Manuel bölge seçimi ve önizleme onayı gerekir; otomatik yüz tespiti henüz yoktur. Oylama oluşturma görünürlük/yorum varsayılanlarını kullanır; mevcut bir paylaşımın görünürlüğü/yorumları ayar değişikliğiyle geriye dönük değişmez. Ayrı kapalı hesap özelliği eklenmedi; PUBLIC/FRIENDS paylaşım kuralı korunur.
 
 ## Kurulum, doğrulama ve kalan bağlantılar
 

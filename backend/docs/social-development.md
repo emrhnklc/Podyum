@@ -70,7 +70,7 @@ Olay: type=`social.relationship.changed`, aggregateType=`user-social`, aggregate
 }
 ```
 
-Reason: REQUESTED, ACCEPTED, DECLINED, CANCELLED, REMOVED, BLOCKED veya UNBLOCKED. Outbox'ın id alanı eventId'dir. Bunlar iç olaylardır; ham payload istemciye/push'a yayınlanmaz. Bildirim işçisi sonraki adımda REQUESTED/ACCEPTED için güncel ilişki ve tercihleri kontrol ederek uygun kişiye bildirim üretebilir. Engel/red/kaldırma olayları otomatik olarak karşı tarafa bildirim göndermez. Sıra dışı veya eski olay erişim kazandırmaz; yetki güncel DB'den kontrol edilir. İşçi, Socket ve push henüz yok; publishedAt=null kalır.
+Reason: REQUESTED, ACCEPTED, DECLINED, CANCELLED, REMOVED, BLOCKED veya UNBLOCKED. Outbox'ın id alanı eventId'dir. Bunlar iç olaylardır; ham payload istemciye/push'a yayınlanmaz. Bildirim işçisi REQUESTED/ACCEPTED için güncel ilişkiyi kontrol ederek işlemi yapmayan tarafa bildirim üretir; diğer nedenler bekleyen istek bildirimini kaldırır ([bildirim rehberi](notifications-development.md)). Engel/red/kaldırma olayları otomatik olarak karşı tarafa bildirim göndermez. Sıra dışı veya eski olay erişim kazandırmaz; yetki güncel DB'den kontrol edilir. Olay kuyruğu işçisi olayı işleyince publishedAt dolar; Socket henüz yok.
 
 Yedinci migration yalnız User.socialRevision ekler. Diğer bilgisayarda güncel koddan `npm run db:deploy` ve `npm run db:generate` çalıştırılır; reset gerekmez. Yeni rol/admin/katalog alanı eklenmedi.
 
