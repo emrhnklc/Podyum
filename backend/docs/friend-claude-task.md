@@ -1,6 +1,8 @@
-# Arkadaşın Claude'una verilecek güncel görev
+# Önceki katalog/trend/gelir backend görevi
 
-Aşağıdaki metin eski oyun görevinin yerine geçer. Projenin güncel main dalı alınarak kullanılmalıdır.
+**Güncel aktif görev:** Arkadaş şimdi `mobile/` tema ve ekran tasarımını ilerletir, biz backend üzerinde çalışırız. Aşağıdaki metin önceki katalog/trend/gelir backend görevinin kaydıdır; mobil tema görevi yerine kullanılmaz. Yeni akış API’si: [sözleşme](feed-development.md), [HTTP örnekleri](../examples/feed.http). Güncel mobil kuralları `mobile/AGENTS.md` içindedir.
+
+Aşağıdaki metin eski oyun görevinin yerine hazırlanmıştı. Projenin güncel main dalı alınarak kullanılmalıdır.
 
 ```text
 Podyum adlı kombin uygulamasının backend'ini iki kişi geliştiriyoruz.

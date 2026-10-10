@@ -2,7 +2,7 @@
 
 **Kapsam güncellemesi:** Günlük podyum/QR lobisi aktif plandadır; oyun ve Socket.IO uçları henüz uygulanmamıştır. [Yeni oyun tasarımı](game-design.md). Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
-Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Tercih/sonuç endpoint’leri de çalışır; [oy rehberi](poll-votes-development.md). Akış/yorum/kaydetme ve oyun endpoint’leri henüz taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
+Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Tercih/sonuç endpoint’leri de çalışır; [oy rehberi](poll-votes-development.md). Organik [akış endpoint’i](feed-development.md) de çalışır. Yorum/kaydetme ve oyun endpoint’leri henüz taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
 
 ## 1. Ortak kurallar
 
@@ -94,7 +94,7 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 | DELETE | `/polls/:id?expectedVersion=0` | Çalışır: kendi taslağını ve seçenek/etiket bağlarını sil; medyayı koru |
 | PATCH | `/polls/:id/comment-settings` | Çalışır: yayın sonrası yorum kabulünü sürümle yönet |
 | GET | `/me/polls` | Çalışır: kendi taslak/yayın/iptal özetleri; status/limit/cursor |
-| GET | `/feed?scope=everyone\|friends&category=...` | Görünür ve oy verilebilir adaylar; uygunluk ayrıca döner |
+| GET | `/feed?scope=everyone\|friends&category=...` | Çalışır: açık, erişilebilir, kendine ait olmayan ve oy verilmemiş adaylar; limit/cursor, kalan süre ve uygunluk |
 | GET | `/polls/:id` | Çalışır: yetkili detay, seçenekler, manuel ürünler; myOptionId/canVote/canViewResults dahil |
 | PUT | `/polls/:id/vote` | Çalışır: tek tercih; aynı oy tekrarında ilk kabul, farklı tercih 409 |
 | GET | `/polls/:id/results` | Çalışır: yazar/oy veren veya kapanış sonrası yetkili izleyici; toplu anlık/kesin sonuç |
@@ -105,7 +105,7 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 
 Taslak/yayın yönetim yazma uçları Idempotency-Key ister; PUT oy doğal kullanıcı/oylama anahtarıyla çalışır, bu başlığı istemez; oluşturma dışındaki komutlarda expectedVersion gerekir (DELETE query, diğerleri body). options gönderilirse bütün liste ve ürünler değiştirilir, yeni kimlikler üretilir; yayın sonrası bu alanlar sabittir. Süre 1800/7200/86400 saniye; yayın anında başlar. Ürünler USER_ENTERED beyanıdır, ortak katalog eşleşmesi henüz yoktur. Detay status yanında serverNow/closesAt/effectiveStatus/remainingSeconds içerir; süresi dolan OPEN okuma sırasında CLOSED görünür, kalıcı kapanış tarayıcısı API açılışında ve varsayılan 15 saniyede bir çalışır; oy son sürede doğrudan durur. [Çalışan sözleşme](polls-development.md), [HTTP örnekleri](../examples/polls.http).
 
-Tercih/sonuç davranışları uygulanmıştır; akış/yorum/kaydetme halen planlanan sözleşmedir. Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar olacak; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil/kaydedilenler üzerinden görülebilecek. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez.
+Tercih/sonuç ve organik akış davranışları uygulanmıştır; yorum/kaydetme halen planlanan sözleşmedir. Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar vardır; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil/kaydedilenler üzerinden görülebilecek. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez. [Akış sözleşmesi ve sayfalama davranışı](feed-development.md), [örnek HTTP](../examples/feed.http).
 
 ```json
 {

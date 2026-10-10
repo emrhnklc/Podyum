@@ -48,4 +48,4 @@ Onuncu migration yalnız iki nullable izin alanı ve izin tarihi/revision çifti
 
 Yerel PGlite tek bağlantılıdır; HTTP tekrarları test edilir fakat gerçek çok bağlantılı PostgreSQL'de kilitte beklerken son sürenin geçmesi, iki işçi SKIP LOCKED ve vote/close yarışları ayrıca doğrulanmalıdır. Dağıtık rate limit, bildirim tüketicisi, trend hesapları ve gerçek sağlayıcı entegrasyonları tamamlanmış sayılmaz.
 
-Sıradaki sıra: **10 ana akış → 19 günlük podyum/QR lobileri → 20 oyun zamanlama/canlı durum**. Katalog/trend/gelir tarafı arkadaşta paralel ilerler.
+**10 organik ana akış hazır**; [akış sözleşmesi](feed-development.md). Sıradaki sıra: **19 günlük podyum/QR lobileri → 20 oyun zamanlama/canlı durum**. Arkadaşın aktif işi mobil tema; katalog/trend/gelir işleri bekleyen backend kapsamındadır.

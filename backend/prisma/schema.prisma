@@ -48,6 +48,7 @@ enum MediaStatus {
 enum MediaPurpose {
   POLL
   AVATAR
+  GAME
 }
 
 enum Visibility {
@@ -146,6 +147,8 @@ model User {
   devices            DeviceToken[]
   hostedRooms        GameRoom[]
   participations     GameParticipant[]
+  gameMemberships    GameMembership[]
+  hostedSessions     GameSession[]
   activeGame         ActiveGameMembership?
   points             PointsLedger[]
   idempotency        IdempotencyRecord[]
@@ -282,35 +285,36 @@ model Block {
 }
 
 model MediaAsset {
-  id                    String       @id @default(uuid()) @db.Uuid
-  ownerId               String       @db.Uuid
-  status                MediaStatus  @default(PENDING_UPLOAD)
-  purpose               MediaPurpose @default(POLL)
-  uploadKey             String       @unique @db.VarChar(500)
-  displayKey            String?      @unique @db.VarChar(500)
-  thumbnailKey          String?      @unique @db.VarChar(500)
-  uploadTokenHash       String?      @db.Char(64)
-  uploadExpiresAt       DateTime?    @db.Timestamptz(3)
-  declaredMimeType      String?      @db.VarChar(80)
+  id                    String           @id @default(uuid()) @db.Uuid
+  ownerId               String           @db.Uuid
+  status                MediaStatus      @default(PENDING_UPLOAD)
+  purpose               MediaPurpose     @default(POLL)
+  uploadKey             String           @unique @db.VarChar(500)
+  displayKey            String?          @unique @db.VarChar(500)
+  thumbnailKey          String?          @unique @db.VarChar(500)
+  uploadTokenHash       String?          @db.Char(64)
+  uploadExpiresAt       DateTime?        @db.Timestamptz(3)
+  declaredMimeType      String?          @db.VarChar(80)
   declaredByteSize      Int?
-  rejectionCode         String?      @db.VarChar(80)
-  processingRevision    Int          @default(0)
-  processingRequestHash String?      @db.Char(64)
-  filesPurgedAt         DateTime?    @db.Timestamptz(3)
-  sourceVersion         String?      @db.VarChar(255)
-  checksum              String?      @db.VarChar(128)
-  mimeType              String?      @db.VarChar(80)
+  rejectionCode         String?          @db.VarChar(80)
+  processingRevision    Int              @default(0)
+  processingRequestHash String?          @db.Char(64)
+  filesPurgedAt         DateTime?        @db.Timestamptz(3)
+  sourceVersion         String?          @db.VarChar(255)
+  checksum              String?          @db.VarChar(128)
+  mimeType              String?          @db.VarChar(80)
   byteSize              Int?
   width                 Int?
   height                Int?
-  blurRequested         Boolean      @default(false)
-  previewAcceptedAt     DateTime?    @db.Timestamptz(3)
-  createdAt             DateTime     @default(now()) @db.Timestamptz(3)
-  updatedAt             DateTime     @updatedAt @db.Timestamptz(3)
-  owner                 User         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  avatarFor             User?        @relation("AvatarMedia")
+  blurRequested         Boolean          @default(false)
+  previewAcceptedAt     DateTime?        @db.Timestamptz(3)
+  createdAt             DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime         @updatedAt @db.Timestamptz(3)
+  owner                 User             @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  avatarFor             User?            @relation("AvatarMedia")
   pollOptions           PollOption[]
   gameEntries           GameEntry[]
+  gameSubmissions       GameSubmission[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status, createdAt])
@@ -447,11 +451,12 @@ model DeviceToken {
 }
 
 model Theme {
-  id     String     @id @default(uuid()) @db.Uuid
-  slug   String     @unique @db.VarChar(80)
-  title  String     @db.VarChar(120)
-  active Boolean    @default(true)
-  rooms  GameRoom[]
+  id       String        @id @default(uuid()) @db.Uuid
+  slug     String        @unique @db.VarChar(80)
+  title    String        @db.VarChar(120)
+  active   Boolean       @default(true)
+  rooms    GameRoom[]
+  sessions GameSession[]
 }
 
 model GameRoom {
@@ -633,4 +638,134 @@ model IdempotencyRecord {
 
   @@id([userId, scope, key])
   @@index([expiresAt])
+}
+
+// Günlük 30+30 ve özel QR lobileri. Eski tur tabloları yerel veri için korunur.
+enum GameSessionKind {
+  DAILY
+  PRIVATE
+}
+
+enum GamePhase {
+  SCHEDULED
+  WAITING
+  SUBMISSION
+  VOTING
+  COMPLETED
+  CANCELLED
+}
+
+enum GameMemberStatus {
+  ACTIVE
+  LEFT
+}
+
+enum GameSubmissionStatus {
+  SUBMITTED
+  FROZEN
+  WITHDRAWN
+}
+
+model GameSession {
+  id                String           @id @default(uuid()) @db.Uuid
+  kind              GameSessionKind
+  phase             GamePhase
+  hostId            String?          @db.Uuid
+  themeId           String?          @db.Uuid
+  themeTitle        String           @db.VarChar(120)
+  dailyKey          String?          @unique @db.VarChar(10)
+  scheduleTimeZone  String?          @db.VarChar(80)
+  scheduleStartTime String?          @db.VarChar(5)
+  rulesVersion      String           @default("podyum-v1") @db.VarChar(40)
+  submissionSeconds Int              @default(1800)
+  votingSeconds     Int              @default(1800)
+  maxMembers        Int?
+  version           Int              @default(0)
+  ballotSlots       Int              @default(0)
+  waitingExpiresAt  DateTime?        @db.Timestamptz(3)
+  startsAt          DateTime?        @db.Timestamptz(3)
+  submissionEndsAt  DateTime?        @db.Timestamptz(3)
+  votingStartsAt    DateTime?        @db.Timestamptz(3)
+  votingEndsAt      DateTime?        @db.Timestamptz(3)
+  finishedAt        DateTime?        @db.Timestamptz(3)
+  cancelReason      String?          @db.VarChar(80)
+  inviteHash        String?          @unique @db.Char(64)
+  inviteExpiresAt   DateTime?        @db.Timestamptz(3)
+  createdAt         DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime         @updatedAt @db.Timestamptz(3)
+  host              User?            @relation(fields: [hostId], references: [id], onDelete: Restrict)
+  theme             Theme?           @relation(fields: [themeId], references: [id], onDelete: Restrict)
+  members           GameMembership[]
+  submissions       GameSubmission[]
+  outcomes          GameOutcome[]
+
+  @@index([phase, submissionEndsAt])
+  @@index([phase, votingEndsAt])
+  @@index([phase, startsAt])
+  @@index([phase, waitingExpiresAt])
+  @@index([hostId, createdAt(sort: Desc)])
+}
+
+model GameMembership {
+  sessionId  String           @db.Uuid
+  userId     String           @db.Uuid
+  status     GameMemberStatus @default(ACTIVE)
+  ballotSeed Int
+  joinedAt   DateTime         @default(now()) @db.Timestamptz(3)
+  leftAt     DateTime?        @db.Timestamptz(3)
+  session    GameSession      @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  submission GameSubmission?
+  ratings    GameScore[]
+
+  @@id([sessionId, userId])
+  @@index([userId, joinedAt(sort: Desc), sessionId(sort: Desc)])
+}
+
+model GameSubmission {
+  id          String               @id @default(uuid()) @db.Uuid
+  sessionId   String               @db.Uuid
+  userId      String               @db.Uuid
+  mediaId     String               @db.Uuid
+  position    Int
+  status      GameSubmissionStatus @default(SUBMITTED)
+  submittedAt DateTime             @default(now()) @db.Timestamptz(3)
+  session     GameSession          @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  member      GameMembership       @relation(fields: [sessionId, userId], references: [sessionId, userId], onDelete: Restrict)
+  media       MediaAsset           @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  scores      GameScore[]
+  outcome     GameOutcome?
+
+  @@unique([sessionId, userId])
+  @@unique([sessionId, position])
+  @@unique([id, sessionId, userId])
+  @@index([mediaId])
+}
+
+model GameScore {
+  submissionId String         @db.Uuid
+  sessionId    String         @db.Uuid
+  targetUserId String         @db.Uuid
+  voterId      String         @db.Uuid
+  stars        Int
+  createdAt    DateTime       @default(now()) @db.Timestamptz(3)
+  submission   GameSubmission @relation(fields: [submissionId, sessionId, targetUserId], references: [id, sessionId, userId], onDelete: Restrict)
+  voter        GameMembership @relation(fields: [sessionId, voterId], references: [sessionId, userId], onDelete: Restrict)
+
+  @@id([submissionId, voterId])
+  @@index([sessionId])
+}
+
+model GameOutcome {
+  sessionId    String         @db.Uuid
+  submissionId String         @unique @db.Uuid
+  userId       String         @db.Uuid
+  ratingCount  Int
+  ratingSum    Int
+  computedAt   DateTime       @default(now()) @db.Timestamptz(3)
+  session      GameSession    @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  submission   GameSubmission @relation(fields: [submissionId, sessionId, userId], references: [id, sessionId, userId], onDelete: Restrict)
+
+  @@id([sessionId, userId])
+  @@unique([submissionId, sessionId, userId])
 }

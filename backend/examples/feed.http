@@ -1,0 +1,32 @@
+@origin = http://127.0.0.1:3000
+@accessToken = REPLACE_ACCESS_TOKEN
+@cursor = REPLACE_NEXT_CURSOR
+@pollId = REPLACE_FEED_POLL_UUID
+@optionId = REPLACE_THIS_POLL_OPTION_UUID
+
+### Herkes: açık/erişilebilir, kendine ait olmayan ve oy vermediğin paylaşımlar
+GET {{origin}}/v1/feed?scope=everyone&limit=20
+Authorization: Bearer {{accessToken}}
+
+### Arkadaşlar: kabul edilmiş arkadaşların PUBLIC + FRIENDS yayınları
+GET {{origin}}/v1/feed?scope=friends&category=OUTFIT&limit=20
+Authorization: Bearer {{accessToken}}
+
+### Sonraki sayfa: aynı kullanıcı, sekme ve kategori; tümü için category gönderme
+GET {{origin}}/v1/feed?scope=friends&category=OUTFIT&limit=20&cursor={{cursor}}
+Authorization: Bearer {{accessToken}}
+
+### Kart seçimi: doğal tek oy; normal tercih profil puanı üretmez
+PUT {{origin}}/v1/polls/{{pollId}}/vote
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "optionId": "{{optionId}}" }
+
+### Tercih sonrası detay/sonuç korunur; yeniden alınan akışta kart artık yoktur
+GET {{origin}}/v1/polls/{{pollId}}/results
+Authorization: Bearer {{accessToken}}
+
+### Yenileme: ilk sayfa, cursor yok. Geç için kalıcı endpoint bulunmaz.
+GET {{origin}}/v1/feed?scope=everyone&limit=20
+Authorization: Bearer {{accessToken}}

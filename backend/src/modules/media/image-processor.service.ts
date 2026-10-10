@@ -23,7 +23,7 @@ export class ImageProcessor {
     }
   }
 
-  async process(source: Buffer, purpose: "POLL" | "AVATAR", regions: BlurRegionDto[]) {
+  async process(source: Buffer, purpose: "POLL" | "AVATAR" | "GAME", regions: BlurRegionDto[]) {
     try {
       // rotate() EXIF yönünü uygular. Yeni encode metadata/EXIF/GPS taşımaz.
       const normalized = await sharp(source, { limitInputPixels: MEDIA_LIMITS.maxPixels, failOn: "warning" })

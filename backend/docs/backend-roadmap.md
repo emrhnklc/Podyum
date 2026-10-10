@@ -6,16 +6,18 @@
 
 Adım kimlikleri belge bağlantıları bozulmasın diye korunur: **19–20 aktif ilk teslim oyun işleridir**, 21–23 hızlı eşleşme/ödül/haftalık-sponsorlu yarışma genişleme adaylarıdır. Sayı tek başına iş sırası değildir; güncel sıra belgenin sonundadır.
 
-## İki kişinin paralel çalışma özeti
+**Güncel aktif görev paylaşımı:** Arkadaş `mobile/` altında frontend temasını ilerletir; biz `backend/` işlerini tamamlamaya devam ederiz. Backend kodunu temadan bağımsız API sözleşmeleriyle teslim ederiz. Aşağıdaki katalog/trend/gelir dağılımı önceki backend paylaşım planıdır; o işlere dönüldüğünde sahiplik yeniden netleştirilir.
+
+## Önceki backend paralel çalışma planı
 
 | Alan | Biz: kullanıcı ve kombin | Arkadaş: ürün, trend ve gelir |
 | --- | --- | --- |
 | İlk iş | 4: profil ve ayarlar | 7: ürün kataloğu ve link eşleştirme |
 | Devam | 5–6: sosyal/medya, 8–12: oylama/akış/etkileşim/bildirim | 13: trendler, 14: Plus/affiliate hakları, 15: reklamlar |
 | Ortak teslim | 1–3 ortak temel, 16 yönetim sınırları, 17 test ve 18 frontend teslimi | Kendi modüllerinin yönetim API'leri, testleri ve sözleşmeleri |
-| Oyun | 19–20 günlük etkinlik/QR lobi/canlı durum; aktif sıra | Katalog/trend/gelir sahipliği değişmez |
+| Oyun | 19–20 günlük etkinlik/QR lobi/canlı durum; aktif sıra | Önceki backend planı; aktif iş mobile tema |
 
-Dosya sahipliği, servis sözleşmeleri, ilk görev ve Claude'a verilecek güncel metin: [iki kişilik çalışma planı](two-developer-plan.md), [arkadaş için görev metni](friend-claude-task.md).
+Dosya sahipliği, servis sözleşmeleri ve önceki katalog görevi: [iki kişilik çalışma planı](two-developer-plan.md), [arkadaş için görev metni](friend-claude-task.md).
 
 ## Mevcut durum
 
@@ -27,11 +29,12 @@ Dosya sahipliği, servis sözleşmeleri, ilk görev ve Claude'a verilecek günce
 - [x] Temel profil, stil seçimi, özel bilgiler/analiz izni, ayarlar ve avatar; sekme listeleri oylama modülüne bağlı.
 - [x] Kullanıcı arama, arkadaş isteği/kabul/red/iptal, arkadaş listesi/kaldırma, engelleme ve ortak sosyal erişim servisi.
 - [x] Yerel özel fotoğraf yükleme/işleme/önizleme/manuel blur/erişim ve avatar; otomatik yüz tespiti ve bulut deposu bekliyor.
+- [x] Organik herkes/arkadaşlar ana akışı, kategori, erişim/oy/süre filtreleri ve publishedAt/id cursor; mobil ekran henüz demo veri kullanır.
 - [ ] Faz 1 sosyal kombin, ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
 - [ ] Aktif kapsam: günlük 30+30 etkinlik ve süreli QR lobileri; tasarlandı, API/şema henüz uygulanmadı.
 
-**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/tercih/sonuç API’leri, kapanış tarayıcısı ve izinli oy snapshot/geri alma çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. Sonraki bizim işimiz 10. adım ana akış; ardından 19–20 günlük oyun/QR lobileri; 7. adım katalog arkadaşta paralel ilerler. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
+**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/tercih/sonuç API’leri, kapanış tarayıcısı ve izinli oy snapshot/geri alma çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. 10. adım organik ana akış da hazır: herkes/arkadaşlar, kategori, açık/oy verilmemiş adaylar ve cursor. Sonraki bizim işimiz 19–20 günlük oyun/QR lobileri; arkadaş şu an mobil tema üzerinde çalışır. [Akış sözleşmesi](feed-development.md). [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
 
 Hazır şema başlangıçtır; şikâyet, lig, haftalık etkinlik, abonelik gibi alanlar ilgili adımda yeni migration'larla eklenecek. Generated dosyalar elle düzenlenmeyecek.
 
@@ -170,7 +173,7 @@ Bu adım biz 4–6'yı geliştirirken arkadaş tarafından paralel tamamlanabili
 - [x] Kendi paylaşım listesi ve yetkili detay okuma.
 - [ ] Arkadaşın katalog teslimiyle ortak ürün eşleştirmesi ve ProductTag.productId bağlantısı; linki gerçek ürün olarak çözümleme. Manuel etiketler ortak kataloğu değiştirmez.
 
-Yerel akış ve 18 HTTP testi: [oylama rehberi](polls-development.md), [örnekler](../examples/polls.http). Katalog entegrasyonu beklerken tercih/sonuç geliştirmesi ilerleyebilir. Etkin kullanıcıya giriş zorunludur; ücretli hedefleme henüz açık değildir.
+Yerel akış ve 19 HTTP testi: [oylama rehberi](polls-development.md), [örnekler](../examples/polls.http). Katalog entegrasyonu beklerken tercih/sonuç geliştirmesi ilerleyebilir. Etkin kullanıcıya giriş zorunludur; ücretli hedefleme henüz açık değildir.
 
 **Bittiğinde:** ekranlardaki yeni oylama formu temel haliyle API'den yönetilir. Gelişmiş kitle filtreleri 14. adımda etkinleşir. Ürünler dış bağlantıdır; sepet/ödeme kapsamı eklenmez.
 
@@ -193,14 +196,14 @@ Yerel akış ve 18 HTTP testi: [oylama rehberi](polls-development.md), [örnekle
 
 **Sorumlu:** Biz; reklam servisini 15. adımda bağlarız.
 
-- [ ] Herkes/arkadaşlar akışları ve kategori filtreleri.
-- [ ] Seçilen kitlenin oy uygunluğu ve kalan süre bilgisi.
-- [ ] Oy verilmiş, kapanmış, engellenmiş veya görünmez içeriğin doğru davranışı.
-- [ ] Kararlı sayfalama; akış yenilendiğinde tutarlı sıralama.
-- [ ] Geçme davranışı; başlangıçta oturum içi geçiş yeterliyse gereksiz kalıcı kayıt oluşturmama.
-- [ ] Boş akış ve dar filtrede sonuç bulunamaması yanıtları.
+- [x] Herkes/arkadaşlar akışları ve kategori filtreleri.
+- [x] Seçilen kitlenin oy uygunluğu ve kalan süre bilgisi.
+- [x] Oy verilmiş, kapanmış, engellenmiş veya görünmez içeriğin doğru davranışı.
+- [x] Kararlı sayfalama; akış yenilendiğinde tutarlı sıralama.
+- [x] Geçme davranışı; başlangıçta oturum içi geçiş yeterliyse gereksiz kalıcı kayıt oluşturmama.
+- [x] Boş akış ve dar filtrede sonuç bulunamaması yanıtları.
 
-**Bittiğinde:** ana ekran başka kullanıcılardan gelen gerçek oylamalarla çalışır. İlk sıralama anlaşılır ve basit olur; kişiselleştirme sonraki veriyle geliştirilir.
+**Backend teslimi hazır:** `GET /feed` açık, erişilebilir ve henüz oy verilmemiş paylaşımları `publishedAt DESC, id DESC` ile listeler. `Geç` istemcide oturum içi geçiştir. Boş akış 200/boş liste döner. [Sözleşme ve sınırlar](feed-development.md); 15 akış testi ve gerçek fotoğraf/yayın/oy/sonuç zinciri doğrulanır. Mobil bağlantısı henüz yapılmadı; reklam ve kişiselleştirme ayrı işlerdir.
 
 ## 11. Yorumlar, hazır tepkiler ve kaydetmeyi bitir — Faz 1
 
@@ -433,10 +436,10 @@ Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması at
 
 ## Uygulama sırası
 
-**Bizim aktif sıra:** 9 tercih/sonuç → 10 ana akış → **19 günlük podyum/QR lobileri → 20 oyun zamanlama/canlı durum** → 11 yorum/kaydetme → 12 bildirim → 16 yönetim/hesap yaşam döngüsü → oyun dahil 17 doğrulama → 18 frontend teslimi.
+**Bizim aktif sıra:** 9 tercih/sonuç ve 10 ana akış tamam → **19 günlük podyum/QR lobileri → 20 oyun zamanlama/canlı durum** → 11 yorum/kaydetme → 12 bildirim → 16 yönetim/hesap yaşam döngüsü → oyun dahil 17 doğrulama → 18 frontend teslimi.
 
-**Arkadaşın paralel sırası:** 7 katalog → 13 trendler → 14 Plus/affiliate hakları → 15 reklamlar → kendi yönetim/test/frontend sözleşmeleri. Ortak ürün/oy/izin/hak noktaları koordine edilir; oyun sahipliği bizde kalır.
+**Arkadaşın güncel işi:** Mobil tema ve ekran tasarımı; `mobile/` dosyalarının sahibi arkadaş, `backend/` bizim sorumluluğumuzdadır. Katalog → trendler → Plus/affiliate → reklam backend işleri önceki planda arkadaş kolundaydı; aktif işe dönüşlerinde yeniden paylaştırılacak. API sözleşmesi gerektiren ekran ihtiyacı backend belgelerinde koordine edilir.
 
 **Sonraki genişleme adayları:** 21 hızlı eşleşme → 22 puan/lig → 23 haftalık/sponsorlu yarışma. Bunlar günlük etkinlik ve QR lobisini Faz 2'ye ertelemez. Mevcut oyun tabloları yeni akışa doğrudan uygun sayılmaz; aktif oyun adımında migration ile gözden geçirilir.
 
-Bir sonraki ürün işi bizim tarafta **10: ana akış; ardından 19–20 günlük oyun/QR lobileri**, arkadaş tarafında **7: ürün kataloğu ve link eşleştirme**. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.
+Bir sonraki ürün işi bizim tarafta **19–20 günlük oyun/QR lobileri**, arkadaş tarafında **mobil tema**. Organik ana akış backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.
