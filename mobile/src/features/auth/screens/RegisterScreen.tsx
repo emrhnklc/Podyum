@@ -1,5 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
+  ActivityIndicator,
+  Platform,
   Image,
   Pressable,
   ScrollView,
@@ -13,15 +15,25 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
-import { PreviewImage } from "@/components/media/PreviewImage";
-import { CATEGORY_ICON, type PollCategory } from "@/constants/poll-categories";
-import { useProfileEdits } from "@/features/profile/hooks/use-profile-edits";
+import { ApiImage } from "@/components/media/ApiImage";
+import { Screen } from "@/components/ui/Screen";
+import { BackButton } from "@/components/ui/BackButton";
+import { Button } from "@/components/ui/Button";
+import { useAuth } from "../hooks/use-auth";
+import { EmailVerificationForm } from "../components/EmailVerificationForm";
 import {
-  HANDLE_HINT,
-  HANDLE_PATTERN,
-  MAX_BIO,
-} from "@/features/profile/validation";
-import { usePreviewMessage } from "@/hooks/use-preview-message";
+  REGISTRATION_RULES,
+  registrationErrors,
+  registerAccount,
+  type RegistrationProfile,
+  type StyleTag,
+} from "../registration";
+import { ApiError, errorMessage } from "@/lib/api/client";
+import {
+  acceptAvatar,
+  prepareAvatar,
+  type AvatarAsset,
+} from "@/features/profile/api/avatar";
 import { brand, colors, fonts, serif } from "@/theme";
 import { markWelcomed } from "../welcome";
 
@@ -33,134 +45,267 @@ const HEART = require("../../../../assets/images/auth/sticker-heart-small.png");
 type IconName = keyof typeof Ionicons.glyphMap;
 
 const STEPS = 3;
-const MIN_PASSWORD = 8;
-const MIN_STYLES = 3;
+const MIN_PASSWORD = REGISTRATION_RULES.passwordMin;
 const MAX_STYLES = 5;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_BIO = REGISTRATION_RULES.bioMax;
+const STYLE_ICONS: Record<string, IconName> = {
+  minimal: "body-outline",
+  vintage: "radio-outline",
+  street: "footsteps-outline",
+};
 
-const STYLES: { label: string; icon: IconName }[] = [
-  { label: "Minimal", icon: "body-outline" },
-  { label: "Vintage", icon: "radio-outline" },
-  { label: "Sokak stili", icon: "footsteps-outline" },
-  { label: "Klasik", icon: "briefcase-outline" },
-  { label: "Soft girl", icon: "flower-outline" },
-  { label: "Smart casual", icon: "shirt-outline" },
-  { label: "Sneaker", icon: "walk-outline" },
-  { label: "Retro", icon: "camera-outline" },
-  { label: "Oversize", icon: "expand-outline" },
-  { label: "Kahve tonları", icon: "cafe-outline" },
-  { label: "Romantik", icon: "rose-outline" },
-  { label: "Basic", icon: "ellipse-outline" },
-];
-const INTERESTS: { value: PollCategory; label: string }[] = [
-  { value: "OUTFIT", label: "Kombin" },
-  { value: "SHOES", label: "Ayakkabı" },
-  { value: "BAG", label: "Çanta" },
-  { value: "JEWELRY", label: "Takı" },
-];
-
-// Üç adımlı kayıt: hesap, profil, stil. Sunucu bağlantısı yok; tamamlanınca
-// bilgiler önizleme profiline yazılır ve Keşfet açılır. Şifre hiçbir yerde
-// saklanmaz.
+// Oturum değişince form yeniden kurulur: başka hesaba taslak bilgi taşınmaz.
 export function RegisterScreen() {
-  const { save } = useProfileEdits();
-  const message = usePreviewMessage();
-  const [step, setStep] = useState(1);
+  const { ready, me, session } = useAuth();
+  if (!ready) return <ActivityIndicator style={{ flex: 1 }} />;
+  return (
+    <RegistrationForm key={session?.sessionId ?? "new"} authenticated={!!me} />
+  );
+}
+
+function RegistrationForm({ authenticated }: { authenticated: boolean }) {
+  const { client } = useAuth();
+  const [step, setStep] = useState(authenticated ? 2 : 1);
   const [showErrors, setShowErrors] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(authenticated);
+  const [reload, setReload] = useState(0);
+  const [tags, setTags] = useState<StyleTag[]>([]);
+  const lock = useRef(false);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
 
   const [fullName, setFullName] = useState("");
   const [handle, setHandle] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-
-  const [avatar, setAvatar] = useState<string>();
+  const [avatarPath, setAvatarPath] = useState<string | null>(null);
+  const [pendingAvatar, setPendingAvatar] = useState<AvatarAsset | null>(null);
+  const [loadedAvatarId, setLoadedAvatarId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
-  const [location, setLocation] = useState("");
-  const [instagram, setInstagram] = useState("");
-
   const [styles_, setStyles] = useState<string[]>([]);
-  const [interests, setInterests] = useState<PollCategory[]>([]);
 
-  const accountErrors = {
-    fullName: fullName.trim() ? undefined : "Adını ve soyadını yaz.",
-    handle: HANDLE_PATTERN.test(handle) ? undefined : HANDLE_HINT,
-    email: EMAIL_PATTERN.test(email.trim())
-      ? undefined
-      : "Geçerli bir e-posta adresi yaz.",
-    password:
-      password.length >= MIN_PASSWORD
-        ? undefined
-        : `En az ${MIN_PASSWORD} karakter kullan.`,
-    password2:
-      password2 && password2 === password ? undefined : "Şifreler aynı değil.",
-  };
+  useEffect(() => {
+    if (!authenticated) return;
+    const abort = new AbortController();
+    void Promise.all([
+      client.request<RegistrationProfile>("/me", { signal: abort.signal }),
+      client.request<StyleTag[]>("/style-tags", { signal: abort.signal }),
+    ])
+      .then(([{ profile }, styles]) => {
+        if (abort.signal.aborted) return;
+        setDisplayName(profile.displayName);
+        setBio(profile.bio ?? "");
+        setAvatarPath(profile.avatarPath);
+        setStyles(profile.styles.map((tag) => tag.id));
+        setTags(styles);
+        setLoading(false);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        if (!abort.signal.aborted) {
+          setLoadError(errorMessage(error));
+          setLoading(false);
+        }
+      });
+    return () => abort.abort();
+  }, [authenticated, client, reload]);
+
+  const accountErrors = registrationErrors(
+    { displayName: fullName, username: handle, email, password },
+    password2,
+  );
   const accountValid = Object.values(accountErrors).every((error) => !error);
-  const profileValid = displayName.trim().length > 0;
+  const profileValid =
+    displayName.trim().length > 0 &&
+    displayName.trim().length <= REGISTRATION_RULES.nameMax;
   const error = (key: keyof typeof accountErrors) =>
     showErrors ? accountErrors[key] : undefined;
 
-  function back() {
-    setShowErrors(false);
-    if (step > 1) setStep(step - 1);
-    else if (router.canGoBack()) router.back();
-    else router.replace("/auth");
+  async function run(action: () => Promise<void>) {
+    if (lock.current) return;
+    lock.current = true;
+    setBusy(true);
+    setApiError(null);
+    try {
+      await action();
+    } catch (error) {
+      if (alive.current) setApiError(errorMessage(error));
+    } finally {
+      lock.current = false;
+      if (alive.current) setBusy(false);
+    }
   }
-
+  function back() {
+    if (busy) return;
+    setShowErrors(false);
+    setApiError(null);
+    if (step === 3) setStep(2);
+    else if (router.canGoBack()) router.back();
+    else router.replace(authenticated ? "/" : "/auth");
+  }
   function next() {
     if (step === 1 && !accountValid) return setShowErrors(true);
     if (step === 2 && !profileValid) return setShowErrors(true);
+    if (step === 2 && pendingAvatar) return;
     setShowErrors(false);
-    if (step === 1 && !displayName) setDisplayName(fullName.trim());
-    setStep(step + 1);
-  }
-
-  function finish(withStyles: boolean) {
-    save({
-      handle,
-      displayName: displayName.trim(),
-      bio: bio.trim() || undefined,
-      location: location.trim() || undefined,
-      avatar,
-      ...(withStyles ? { styles: styles_ } : {}),
-      socials: {
-        instagram: instagram.trim().replace(/^@+/, ""),
-        tiktok: "",
-        youtube: "",
-      },
+    void run(async () => {
+      if (step === 1) {
+        await registerAccount({
+          displayName: fullName,
+          username: handle,
+          email,
+          password,
+        });
+        if (alive.current) {
+          setPassword2("");
+          setVerifying(true);
+        }
+      } else {
+        await client.request("/me", {
+          method: "PATCH",
+          body: JSON.stringify({
+            displayName: displayName.trim(),
+            bio: bio.trim(),
+          }),
+        });
+        if (alive.current) setStep(3);
+      }
     });
-    markWelcomed();
-    router.replace("/");
   }
-
+  function finish(withStyles: boolean) {
+    void run(async () => {
+      if (withStyles)
+        await client.request("/me", {
+          method: "PATCH",
+          body: JSON.stringify({ styleIds: styles_ }),
+        });
+      await client.reloadMe();
+      if (alive.current) {
+        markWelcomed();
+        router.replace("/");
+      }
+    });
+  }
   async function pickAvatar() {
-    try {
+    if (busy) return;
+    await run(async () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: "images",
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.85,
       });
-      if (!result.canceled) setAvatar(result.assets[0].uri);
-    } catch {
-      message("Fotoğraf seçilemedi. Galeri iznini kontrol edip tekrar dene.");
-    }
+      if (result.canceled || !alive.current) return;
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024)
+        throw new ApiError(
+          0,
+          "IMAGE_TOO_LARGE",
+          "Fotoğraf en fazla 10 MB olabilir.",
+        );
+      const response = await fetch(asset.uri);
+      const blob = await response.blob();
+      if (!alive.current) return;
+      const mimeType = ["image/jpeg", "image/png", "image/webp"].includes(
+        blob.type,
+      )
+        ? blob.type
+        : asset.mimeType || blob.type;
+      if (!["image/jpeg", "image/png", "image/webp"].includes(mimeType))
+        throw new ApiError(
+          0,
+          "UNSUPPORTED_IMAGE",
+          "JPEG, PNG veya WebP fotoğraf seç.",
+        );
+      if (!blob.size || blob.size > 10 * 1024 * 1024)
+        throw new ApiError(
+          0,
+          "IMAGE_TOO_LARGE",
+          "Fotoğraf en fazla 10 MB olabilir.",
+        );
+      const processed = await prepareAvatar(
+        client,
+        Platform.OS === "web"
+          ? blob
+          : {
+              uri: asset.uri,
+              name: asset.fileName ?? "avatar.jpg",
+              type: mimeType,
+            },
+        blob.size,
+        mimeType,
+      );
+      if (alive.current) {
+        setLoadedAvatarId(null);
+        setPendingAvatar(processed);
+      }
+    });
   }
-
-  const toggleStyle = (label: string) =>
+  const toggleStyle = (id: string) =>
     setStyles((previous) =>
-      previous.includes(label)
-        ? previous.filter((item) => item !== label)
+      previous.includes(id)
+        ? previous.filter((item) => item !== id)
         : previous.length < MAX_STYLES
-          ? [...previous, label]
+          ? [...previous, id]
           : previous,
     );
-  const toggleInterest = (value: PollCategory) =>
-    setInterests((previous) =>
-      previous.includes(value)
-        ? previous.filter((item) => item !== value)
-        : [...previous, value],
+
+  if (verifying)
+    return (
+      <Screen>
+        <BackButton />
+        <EmailVerificationForm
+          email={email.trim()}
+          continueLabel="Profilini tamamla"
+          onContinue={async () => {
+            await client.login(email, password);
+            setPassword("");
+          }}
+        />
+        <Button
+          title="Farklı bilgilerle giriş yap"
+          variant="outline"
+          onPress={() => {
+            setPassword("");
+            router.replace({
+              pathname: "/auth/login",
+              params: { onboarding: "1" },
+            });
+          }}
+        />
+      </Screen>
+    );
+  if (loading)
+    return (
+      <Screen>
+        <ActivityIndicator color={brand.accent} />
+        <Text>Profilin hazırlanıyor…</Text>
+      </Screen>
+    );
+  if (loadError)
+    return (
+      <Screen>
+        <BackButton />
+        <Text accessibilityRole="alert">{loadError}</Text>
+        <Button
+          title="Tekrar dene"
+          onPress={() => {
+            setLoading(true);
+            setReload((n) => n + 1);
+          }}
+        />
+      </Screen>
     );
 
   return (
@@ -179,6 +324,7 @@ export function RegisterScreen() {
             accessibilityRole="button"
             accessibilityLabel="Geri"
             onPress={back}
+            disabled={busy}
             style={styles.round}
           >
             <Ionicons name="arrow-back" size={22} color={colors.text} />
@@ -221,21 +367,24 @@ export function RegisterScreen() {
                 ? "Podyum'a katılmak için temel bilgilerini gir."
                 : step === 2
                   ? "Kendini kısaca tanıt, profilini tamamla."
-                  : `Sana daha iyi öneriler gösterebilmemiz için en az ${MIN_STYLES} stil seç.`}
+                  : `Tarzını anlatan en fazla ${MAX_STYLES} stil seçebilir veya bu adımı geçebilirsin.`}
             </Text>
           </View>
           {step === 2 ? (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={
-                avatar ? "Fotoğrafı değiştir" : "Fotoğraf ekle"
+                avatarPath || pendingAvatar
+                  ? "Fotoğrafı değiştir"
+                  : "Fotoğraf ekle"
               }
-              onPress={pickAvatar}
+              onPress={() => void pickAvatar()}
+              disabled={busy || !!pendingAvatar}
               style={{ alignItems: "center", gap: 6 }}
             >
               <View style={styles.avatar}>
-                {avatar ? (
-                  <PreviewImage uri={avatar} tone={brand.chip} />
+                {avatarPath || pendingAvatar ? (
+                  <ApiImage path={pendingAvatar?.displayPath ?? avatarPath} />
                 ) : (
                   <View style={styles.avatarDashed}>
                     <Ionicons
@@ -250,7 +399,9 @@ export function RegisterScreen() {
                 )}
               </View>
               <Text style={{ fontSize: 13 }}>
-                {avatar ? "Fotoğrafı değiştir" : "Fotoğraf ekle"}
+                {avatarPath || pendingAvatar
+                  ? "Fotoğrafı değiştir"
+                  : "Fotoğraf ekle"}
               </Text>
             </Pressable>
           ) : (
@@ -270,21 +421,68 @@ export function RegisterScreen() {
           )}
         </View>
 
-        <View style={styles.card}>
+        {apiError && (
+          <Text accessibilityRole="alert" style={{ color: colors.accent }}>
+            {apiError}
+          </Text>
+        )}
+        {busy && <ActivityIndicator color={brand.accent} />}
+        {!!pendingAvatar && (
+          <View style={{ gap: 10 }}>
+            <View style={{ height: 220, borderRadius: 20, overflow: "hidden" }}>
+              <ApiImage
+                key={pendingAvatar.id}
+                path={pendingAvatar.displayPath}
+                onLoad={() => setLoadedAvatarId(pendingAvatar.id)}
+              />
+            </View>
+            <Text>
+              Profil fotoğrafını kontrol et. Bu fotoğrafa bulanıklaştırma
+              uygulanmadı.
+            </Text>
+            <Button
+              title={
+                loadedAvatarId === pendingAvatar.id
+                  ? "Fotoğrafı onayla"
+                  : "Önizleme yükleniyor…"
+              }
+              disabled={busy || loadedAvatarId !== pendingAvatar.id}
+              onPress={() =>
+                void run(async () => {
+                  const saved = await acceptAvatar(client, pendingAvatar);
+                  if (alive.current) {
+                    setAvatarPath(saved.avatarPath);
+                    setPendingAvatar(null);
+                  }
+                })
+              }
+            />
+            <Button
+              title="Bu fotoğrafı kullanma"
+              variant="outline"
+              disabled={busy}
+              onPress={() => setPendingAvatar(null)}
+            />
+          </View>
+        )}
+        <View style={styles.card} pointerEvents={busy ? "none" : "auto"}>
           {step === 1 && (
             <>
               <Field
                 icon="person-outline"
                 placeholder="Ad Soyad"
                 value={fullName}
+                editable={!busy}
                 onChangeText={setFullName}
                 autoComplete="name"
+                maxLength={80}
                 error={error("fullName")}
               />
               <Field
                 icon="at-outline"
                 placeholder="Kullanıcı adı"
                 value={handle}
+                editable={!busy}
                 onChangeText={(value) => setHandle(value.toLowerCase())}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -295,38 +493,44 @@ export function RegisterScreen() {
                 icon="mail-outline"
                 placeholder="E-posta adresi"
                 value={email}
+                editable={!busy}
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
+                autoCorrect={false}
                 error={error("email")}
               />
               <PasswordField
                 placeholder="Şifre"
                 value={password}
+                editable={!busy}
                 onChangeText={setPassword}
                 error={error("password")}
+                maxLength={128}
               />
               <PasswordField
                 placeholder="Şifre tekrar"
                 value={password2}
+                editable={!busy}
                 onChangeText={setPassword2}
                 error={error("password2")}
+                maxLength={128}
               />
               {!showErrors && (
                 <Text style={styles.hint}>
-                  En az {MIN_PASSWORD} karakter kullan.
+                  En az {MIN_PASSWORD}, en fazla 128 karakter kullan.
                 </Text>
               )}
-              <Primary label="Devam et" onPress={next} />
+              <Primary
+                label={busy ? "Kaydediliyor…" : "Devam et"}
+                disabled={busy}
+                onPress={next}
+              />
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Zaten hesabın var mı? Giriş yap"
-                onPress={() =>
-                  message(
-                    "E-posta ile giriş sunucu bağlantısı eklendiğinde açılacak.",
-                  )
-                }
+                onPress={() => router.push("/auth/login")}
                 style={styles.signIn}
               >
                 <Text>Zaten hesabın var mı?</Text>
@@ -348,8 +552,9 @@ export function RegisterScreen() {
                 icon="person-outline"
                 placeholder="Görünen ad"
                 value={displayName}
+                editable={!busy}
                 onChangeText={setDisplayName}
-                maxLength={40}
+                maxLength={80}
                 error={
                   showErrors && !profileValid
                     ? "Görünen ad boş olamaz."
@@ -360,6 +565,7 @@ export function RegisterScreen() {
                 icon="document-text-outline"
                 placeholder="Biyografi"
                 value={bio}
+                editable={!busy}
                 onChangeText={setBio}
                 maxLength={MAX_BIO}
                 multiline
@@ -373,9 +579,12 @@ export function RegisterScreen() {
               <Field
                 icon="location-outline"
                 placeholder="Konum"
-                value={location}
-                onChangeText={setLocation}
-                maxLength={60}
+                editable={false}
+                footer={
+                  <Text style={styles.hint}>
+                    Konum paylaşımı henüz açılmadı; kayıt sırasında alınmaz.
+                  </Text>
+                }
               />
               <View style={styles.optional}>
                 <Text style={{ fontSize: 13, color: colors.muted }}>
@@ -386,12 +595,18 @@ export function RegisterScreen() {
               <Field
                 icon="logo-instagram"
                 placeholder="Instagram kullanıcı adın"
-                value={instagram}
-                onChangeText={setInstagram}
-                autoCapitalize="none"
-                autoCorrect={false}
+                editable={false}
+                footer={
+                  <Text style={styles.hint}>
+                    Sosyal hesap bağlantıları sonraki adımda.
+                  </Text>
+                }
               />
-              <Primary label="Devam et" onPress={next} />
+              <Primary
+                label={busy ? "Kaydediliyor…" : "Devam et"}
+                disabled={busy || !!pendingAvatar}
+                onPress={next}
+              />
               <View style={styles.rule} />
               <Text style={styles.footnote}>
                 Bu bilgileri daha sonra düzenleyebilirsin.
@@ -411,43 +626,38 @@ export function RegisterScreen() {
                 </Text>
               </View>
               <View style={styles.grid}>
-                {STYLES.map((item) => (
+                {tags.map((item) => (
                   <Choice
-                    key={item.label}
+                    key={item.id}
                     label={item.label}
-                    icon={item.icon}
-                    selected={styles_.includes(item.label)}
+                    icon={STYLE_ICONS[item.id] ?? "shirt-outline"}
+                    selected={styles_.includes(item.id)}
                     disabled={
-                      !styles_.includes(item.label) &&
-                      styles_.length >= MAX_STYLES
+                      !styles_.includes(item.id) && styles_.length >= MAX_STYLES
                     }
-                    onPress={() => toggleStyle(item.label)}
+                    onPress={() => toggleStyle(item.id)}
                   />
                 ))}
               </View>
+              {!tags.length && (
+                <Text style={styles.hint}>
+                  Henüz stil etiketi bulunmuyor. Bu adımı geçebilirsin.
+                </Text>
+              )}
               <View style={styles.rule} />
-              <Text style={styles.sectionTitle}>İlgini çeken kategoriler</Text>
-              <View style={styles.grid}>
-                {INTERESTS.map((item) => (
-                  <Choice
-                    key={item.value}
-                    label={item.label}
-                    icon={CATEGORY_ICON[item.value]}
-                    selected={interests.includes(item.value)}
-                    onPress={() => toggleInterest(item.value)}
-                    width="48.5%"
-                  />
-                ))}
-              </View>
+              <Text style={styles.hint}>
+                İlgi kategorisi tercihleri sonraki adımda açılacak.
+              </Text>
               <Primary
-                label="Kaydı tamamla"
-                disabled={styles_.length < MIN_STYLES}
+                label={busy ? "Kaydediliyor…" : "Kaydı tamamla"}
+                disabled={busy || !styles_.length}
                 onPress={() => finish(true)}
               />
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Şimdilik geç"
                 onPress={() => finish(false)}
+                disabled={busy}
                 style={styles.skip}
               >
                 <Text

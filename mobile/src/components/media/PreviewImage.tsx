@@ -22,10 +22,12 @@ export function PreviewImage({
   uri: rawUri,
   tone = colors.avatar,
   icon = "shirt-outline",
+  onLoad,
 }: {
   uri?: string;
   tone?: string;
   icon?: keyof typeof Ionicons.glyphMap;
+  onLoad?: () => void;
 }) {
   const uri = resolveDemoUri(rawUri);
   const [failedUri, setFailedUri] = useState<string>();
@@ -48,6 +50,7 @@ export function PreviewImage({
         <Image
           source={{ uri }}
           resizeMode="cover"
+          onLoad={onLoad}
           onError={() => setFailedUri(uri)}
           style={StyleSheet.absoluteFill}
         />

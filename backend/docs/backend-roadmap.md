@@ -326,7 +326,7 @@ Paket/fiyat/sağlayıcı kararı gelene kadar hak sözleşmesi ve testler ilerle
 
 ## 18. İlgili fazın frontend teslim paketini tamamla — Faz 1
 
-İlk mobil ana ekran bağlantısı hazır: mevcut e-posta hesabıyla oturum/yenileme, gerçek akış/filtre/cursor, yetkili görsel, tek tercih/sonuç/detay, kaydetme ve yorumlar. [Entegrasyon rehberi](../../mobile/docs/home-api-integration.md). Kayıt/doğrulama arayüzü ve diğer ekranlar hâlâ bekler; aşağıdaki bütün teslim paketi tamamlandı sayılmaz.
+İlk mobil ana ekran bağlantısı hazır: mevcut e-posta hesabıyla oturum/yenileme, gerçek akış/filtre/cursor, yetkili görsel, tek tercih/sonuç/detay, kaydetme ve yorumlar. [Entegrasyon rehberi](../../mobile/docs/home-api-integration.md). Mobil kayıt/yerel e-posta doğrulama ve profil/avatar/stil kurulumu da bağlandı; diğer ekranlar hâlâ bekler; aşağıdaki bütün teslim paketi tamamlandı sayılmaz.
 
 **Sorumlu:** Birlikte; kendi modülünün API örneklerini her geliştirici tamamlar.
 
@@ -457,4 +457,4 @@ Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması at
 
 Bir sonraki ürün işi bizim tarafta **16 genel saklama/süreli temizlik** (yönetim ve hesap silme yerel teslimi hazır), arkadaş tarafında **mobil tema**. Bildirim ve yorum/kaydetme/neden/şikâyet backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Günlük oyun/QR lobisi backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Organik ana akış backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.
 
-**Son kullanıcı önceliği:** Mobil ana ekranın API bağlantısı ilk teslimini aldı. Kayıt arayüzü eklendiğinde kayıt/doğrulama akışı bağlanacak; diğer ekranlar ve backend genel saklama işleri açık kalır. [Ana ekran kapsamı](../../mobile/docs/home-api-integration.md).
+**Son kullanıcı önceliği:** Mobil ana ekranın API bağlantısı ilk teslimini aldı. Kayıt/doğrulama ve profil kurulumu bağlandı; sırada gerçek profil sekmesi ve paylaşım hattı var; diğer ekranlar ve backend genel saklama işleri açık kalır. [Ana ekran kapsamı](../../mobile/docs/home-api-integration.md).

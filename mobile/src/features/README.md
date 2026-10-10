@@ -2,7 +2,7 @@
 
 | Feature | Sorumluluk |
 | --- | --- |
-| auth | Giriş/kayıt/oturum akışları; şimdi hazırlık ekranı |
+| auth | Gerçek giriş/kayıt/yerel doğrulama/oturum ve profil kurulumu |
 | feed | Keşfet filtresi, kart seçimi ve akış ekranı |
 | polls | Kombin kartı, tercih/sonuç, paylaş formu ve detay |
 | profile | Kullanıcı profili, paylaşım ve kaydedilenler görünümü |
@@ -15,4 +15,4 @@
 
 Ortak UI `components`, renk/font/ölçü `theme` altındadır. Bir feature'a özel hook veya bileşen ortak klasöre konmaz. Feature'lar başka feature'ın iç state'ini değiştirmez; demo tercih/kaydetme için PollsProvider açık bir hook sunar. Demo profil ve trend verileri kendi feature'larında tutulur.
 
-Auth ekranı şu an demo gezinmeyi engellemez; bu gerçek API yetkilendirmesi değildir. Kalıcı oturum, refresh ve güvenli depolama ayrı entegrasyondur. Oyun/ödül ve Plus hakkı istemci varsayımıyla açılmaz.
+Karşılamadaki Başla anonim demo gezinmesini açar; gerçek işlemler AuthProvider ve backend oturum denetimi gerektirir. Native güvenli oturum deposu ve refresh bağlıdır. Kayıt/profil kurulumu sözleşmesi `../../docs/registration-api-integration.md` içindedir. Oyun/ödül ve Plus hakkı istemci varsayımıyla açılmaz.

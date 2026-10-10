@@ -4,7 +4,7 @@ import { PreviewImage } from "./PreviewImage";
 
 // Özel medyayı Bearer ile alır; URL/token diske veya herkese açık bir cache'e yazılmaz.
 // Data URI web/native Image'ın HTTP header farkını ortadan kaldırır.
-export function ApiImage({ path }: { path: string | null }) {
+export function ApiImage({ path, onLoad }: { path: string | null; onLoad?: () => void }) {
   const { client, session } = useAuth();
   const sessionId = session?.sessionId;
   const identity = `${sessionId}:${path}`;
@@ -22,5 +22,5 @@ export function ApiImage({ path }: { path: string | null }) {
       }).catch(() => {});
     return () => { abort.abort(); if (reader?.readyState === 1) reader.abort(); };
   }, [client, identity, path, sessionId]);
-  return <PreviewImage uri={image?.identity === identity ? image.uri : undefined} />;
+  return <PreviewImage uri={image?.identity === identity ? image.uri : undefined} onLoad={onLoad} />;
 }

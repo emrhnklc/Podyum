@@ -50,6 +50,12 @@ export class SessionManager {
     await this.persist(session); this.unchanged(revision);
     this.update({ ready: true, session, me, error: null });
   }
+  async reloadMe() {
+    const revision = this.revision;
+    const me = await this.request<AuthMe>("/auth/me");
+    this.unchanged(revision);
+    this.update({ me });
+  }
   private refresh() {
     if (this.refreshFlight) return this.refreshFlight;
     const previous = this.state.session, revision = this.revision;
