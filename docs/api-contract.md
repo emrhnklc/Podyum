@@ -2,7 +2,7 @@
 
 **Kapsam güncellemesi:** Oyun ve Socket.IO bölümleri Faz 2 taslağıdır. Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
-Health, `/v1/auth/*`, temel profil/ayar ve sosyal endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md). Aşağıdaki medya/oylama/oyun endpoint'leri henüz uygulanmamış taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
+Health, `/v1/auth/*`, profil/ayar, sosyal ve yerel medya/avatar endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md), [medya rehberi](media-development.md). Aşağıdaki oylama/oyun endpoint'leri henüz uygulanmamış taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
 
 ## 1. Ortak kurallar
 
@@ -64,17 +64,22 @@ Health, `/v1/auth/*`, temel profil/ayar ve sosyal endpoint'leri çalışır. Con
 
 Hesap silme, şikâyet ve yönetim endpoint'leri ilk dış kullanıcı testinden önce eklenecek; normal kullanıcıya admin endpoint'i açılmayacak.
 
-Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil tarafından kullanılır; paylaşım/yorum/medya uçları kendi adımlarında bağlanır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
+Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil ve medya tarafından kullanılır; paylaşım/yorum uçları kendi adımlarında bağlanır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
 
 ## 3. Medya
 
 | Metot | Yol | Davranış |
 | --- | --- | --- |
 | POST | `/media/uploads` | Dosya türü/boyutu ve blur tercihiyle yükleme izni |
+| POST | `/media/:id/upload` | Çalışır: Bearer + X-Upload-Token ile tek multipart file, en fazla 10 MiB |
 | POST | `/media/:id/complete` | Yüklemeyi doğrula, sabit sürüm/checksum ile işleme al |
 | GET | `/media/:id` | Sahibi için işleme/önizleme durumu |
 | POST | `/media/:id/accept-preview` | Kullanıcı gösterilecek görüntüyü kabul eder |
 | GET | `/media/:id/content` | Yetkili işlenmiş görsel; private cache/no-store politikası |
+| DELETE | `/media/:id` | Çalışır: kendi kullanılmayan medyanı kapat/sil |
+| PUT / DELETE | `/me/avatar` | Çalışır: kendi onaylı AVATAR medyanı bağla / bağlantıyı kaldır |
+
+Bu bölümün yerel endpoint'leri çalışır. Complete manuel blur bölgelerini veya açık yüz-yok doğrulamasını tüketir; otomatik yüz tespiti henüz yok. `content?variant=thumbnail` küçük sürümdür; orijinal sürüm açılmaz. Durum/tekrar/erişim/limit sözleşmesi: [medya rehberi](media-development.md), [HTTP örnekleri](../examples/media.http).
 
 Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına gelmez. Body'deki ownerId/storageKey kullanılmaz; sunucu üretir. Sahibi taslak önizlemesine erişebilir; başkaları sadece erişebildikleri yayınlanmış içeriğin işlenmiş görseline erişir. Oyun sırasında başka oyuncunun dosya kaydı/metadata endpoint'i açılmaz.
 

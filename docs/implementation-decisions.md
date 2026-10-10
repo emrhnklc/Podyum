@@ -33,12 +33,17 @@
 | Profil düzenleme | Kullanıcı adı/ad/bio ve en fazla 10 sözlük stili; mock ilk kurulumu aynı istekte username+displayName ile tamamlanır |
 | Özel profil | Yaş grubu/cinsiyet/şehir isteğe bağlı, yalnız sahibine açık; analiz izni varsayılan false ve açık seçimle değişir |
 | Analiz değişikliği | İzin/demografi değişikliği monoton revision ve aynı transaction'da ham demografi içermeyen outbox olayı üretir; trend tüketimi sonraki adımda |
-| Ayar varsayılanları | Bildirim tercihleri, yorumlar ve yüz blur tercihi açık; yeni paylaşım görünürlüğü PUBLIC. Medya/oylama/push tüketicileri henüz yok |
+| Ayar varsayılanları | Bildirim tercihleri, yorumlar ve yüz blur tercihi açık; yeni paylaşım görünürlüğü PUBLIC. Medya blur varsayılanını kullanır; oylama/push tüketicileri henüz yok |
 | Profil erişimi | Oturum gerekir; aktif, iki yönde engel olmayan hedefin kamusal alanları açılır. Paylaşım sayısı izleyicinin erişimine göre hesaplanır |
 | Arkadaş isteği | Yönsüz tek çift, açık alıcı kabulü; ters istek otomatik kabul olmaz. Red sonrası yeniden istek açılabilir; bekleme süresi henüz seçilmedi |
 | Sosyal tekrar | Aynı gönderim/kabul/red/iptal/kaldırma/engel etkisizse yeni olay yazmaz; userId komutları çiftin mevcut durumuna uygulanır |
 | Engel | Arkadaşlığı/bekleyen isteği kaldırır; iki yönlü görünürlük kapanır. Kendi engelini açmak eski ilişkiyi veya karşı tarafın engelini kaldırmaz |
 | Sosyal olay | İki kullanıcı UUID sırasıyla kilitlenir; ilişki/engel, socialRevision artışı ve iç outbox olayları aynı transaction'da yazılır. Bildirim işçisi henüz yok |
+| Yerel fotoğraf | Özel dosya deposu, Bearer + 15 dakikalık tek kullanımlık upload token, 10 MiB/25 MP sınırı, JPEG/PNG/WebP decode; EXIF'siz WebP display/thumbnail |
+| Blur ve önizleme | Otomatik tespit yok; manuel seçilen bölgeler veya açık yüz-yok doğrulaması; READY sonrası kullanıcı onayı olmadan avatar/yayın bağlanamaz |
+| Medya değişmezliği | Kaynak sürümü/checksum sabit; READY çıktı değiştirilemez. Aynı complete parametresi tekrar güvenli; geç işleme silinen kaydı canlandıramaz |
+| Avatar ve erişim | Onaylı AVATAR purpose kendi profile bağlanır; eski avatar başkasına kapanır. Medya her istekte sosyal erişimi kontrol eder, orijinal dışarı açılmaz |
+| Medya temizlik | Süresi dolan yüklenmemiş veya 24 saati geçen kullanılmayan dosyalar yerel komutla silinir; bağlantılı dosyalar korunur. Cron/bulut/worker henüz yok |
 | Yerel erişim | Varsayılan `127.0.0.1`; dış kullanıcı kaydı ve üretim açılışı henüz kapalı |
 
 E-posta taşıyıcısı `.local/mailbox` altında dosyadır. Bu, gerçek e-posta gönderimi değildir. Dosyada tek kullanımlık token bulunur; HTTP'den servis edilmez, git'e alınmaz. Dosya yazımı başarısızsa kayıt/action transaction'ı geri alınır. İşlem commit edilmeden süreç çökerse dosyada geçersiz bağlantı kalabilir; gerçek taşıyıcıya geçerken kalıcı teslim kuyruğu/yeniden deneme eklenecek.
@@ -72,7 +77,7 @@ Güncel sahiplik: biz kullanıcı/kombin, arkadaş katalog/trend/gelir. İlk gö
 | E-posta | Yerel dosya posta kutusu | Sağlayıcı hesabı, doğrulanmış gönderen, API anahtarı, teslim/yeniden deneme |
 | Google | Açıkça etkinleştirilen mock | Mobil/web client ID'leri, gerçek ID token imza/issuer/audience/expiry doğrulaması |
 | Apple | Açıkça etkinleştirilen mock | Apple uygulama/servis kimliği, yapılandırma, gerçek token doğrulaması ve iptal olayları |
-| Fotoğraf | Henüz yok | Özel depolama alanı ve erişim anahtarları; yerel geliştirme alternatifi |
+| Fotoğraf | Özel yerel dosya deposu ve gerçek işleme; manuel bölge blur | Özel bulut deposu/anahtarlar, kuyruk/worker, otomatik yüz tespiti ve mobil önizleme testi |
 | Push | Henüz yok | Mobil uygulama kaydı, sağlayıcı bilgileri ve cihaz testi |
 | Plus | Henüz yok | Mağaza ürünleri, sunucu satın alma doğrulaması, webhook ve sandbox testleri |
 

@@ -45,6 +45,11 @@ enum MediaStatus {
   DELETED
 }
 
+enum MediaPurpose {
+  POLL
+  AVATAR
+}
+
 enum Visibility {
   PUBLIC
   FRIENDS
@@ -120,6 +125,8 @@ model User {
   status             UserStatus            @default(ACTIVE)
   profileCompletedAt DateTime?             @db.Timestamptz(3)
   socialRevision     Int                   @default(0)
+  avatarMediaId      String?               @unique @db.Uuid
+  avatar             MediaAsset?           @relation("AvatarMedia", fields: [avatarMediaId], references: [id], onDelete: Restrict)
   createdAt          DateTime              @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime              @updatedAt @db.Timestamptz(3)
   identities         AuthIdentity[]
@@ -275,24 +282,35 @@ model Block {
 }
 
 model MediaAsset {
-  id                String       @id @default(uuid()) @db.Uuid
-  ownerId           String       @db.Uuid
-  status            MediaStatus  @default(PENDING_UPLOAD)
-  uploadKey         String       @unique @db.VarChar(500)
-  displayKey        String?      @unique @db.VarChar(500)
-  sourceVersion     String?      @db.VarChar(255)
-  checksum          String?      @db.VarChar(128)
-  mimeType          String?      @db.VarChar(80)
-  byteSize          Int?
-  width             Int?
-  height            Int?
-  blurRequested     Boolean      @default(false)
-  previewAcceptedAt DateTime?    @db.Timestamptz(3)
-  createdAt         DateTime     @default(now()) @db.Timestamptz(3)
-  updatedAt         DateTime     @updatedAt @db.Timestamptz(3)
-  owner             User         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
-  pollOptions       PollOption[]
-  gameEntries       GameEntry[]
+  id                    String       @id @default(uuid()) @db.Uuid
+  ownerId               String       @db.Uuid
+  status                MediaStatus  @default(PENDING_UPLOAD)
+  purpose               MediaPurpose @default(POLL)
+  uploadKey             String       @unique @db.VarChar(500)
+  displayKey            String?      @unique @db.VarChar(500)
+  thumbnailKey          String?      @unique @db.VarChar(500)
+  uploadTokenHash       String?      @db.Char(64)
+  uploadExpiresAt       DateTime?    @db.Timestamptz(3)
+  declaredMimeType      String?      @db.VarChar(80)
+  declaredByteSize      Int?
+  rejectionCode         String?      @db.VarChar(80)
+  processingRevision    Int          @default(0)
+  processingRequestHash String?      @db.Char(64)
+  filesPurgedAt         DateTime?    @db.Timestamptz(3)
+  sourceVersion         String?      @db.VarChar(255)
+  checksum              String?      @db.VarChar(128)
+  mimeType              String?      @db.VarChar(80)
+  byteSize              Int?
+  width                 Int?
+  height                Int?
+  blurRequested         Boolean      @default(false)
+  previewAcceptedAt     DateTime?    @db.Timestamptz(3)
+  createdAt             DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime     @updatedAt @db.Timestamptz(3)
+  owner                 User         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  avatarFor             User?        @relation("AvatarMedia")
+  pollOptions           PollOption[]
+  gameEntries           GameEntry[]
 
   @@index([ownerId, createdAt(sort: Desc)])
   @@index([status, createdAt])

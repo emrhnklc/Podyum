@@ -20,17 +20,18 @@ Dosya sahipliği, servis sözleşmeleri, ilk görev ve Claude'a verilecek günce
 ## Mevcut durum
 
 - [x] NestJS başlangıcı, health endpoint'leri ve özellik klasörleri.
-- [x] Prisma şeması, yerel veritabanı, yedi migration ve demo kayıtları.
+- [x] Prisma şeması, yerel veritabanı, sekiz migration ve demo kayıtları.
 - [x] Veritabanı hedef kontrolü, 13 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
 - [x] Yerel e-posta/şifre ve oturum akışları; Google/Apple mock.
 - [x] Auth/ortak API, profil/ayar ve sosyal HTTP testleri; mevcut 13 DB testi ve bootstrap kontrolü.
-- [x] Temel profil, stil seçimi, özel bilgiler/analiz izni ve ayarlar; avatar ve sekme listeleri sonraki modüllere bağlı.
+- [x] Temel profil, stil seçimi, özel bilgiler/analiz izni, ayarlar ve avatar; sekme listeleri oylama modülüne bağlı.
 - [x] Kullanıcı arama, arkadaş isteği/kabul/red/iptal, arkadaş listesi/kaldırma, engelleme ve ortak sosyal erişim servisi.
+- [x] Yerel özel fotoğraf yükleme/işleme/önizleme/manuel blur/erişim ve avatar; otomatik yüz tespiti ve bulut deposu bekliyor.
 - [ ] Faz 1 sosyal kombin, ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
 - [ ] Faz 2 oyun/rekabet akışları; ertelendi.
 
-**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar ve sosyal API'ler tamamlandı. E-posta/şifre akışı HTTP ile doğrulandı; Google/Apple mock. Gerçek OAuth ve e-posta gönderimi tamamlanmış sayılmıyor. Sonraki bizim işimiz 6. adım medya. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md).
+**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal ve yerel medya/avatar API'leri tamamlandı. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. Sonraki bizim işimiz 8. adım oylama taslağı/yayınlama; 7. adım katalog arkadaşta paralel ilerler. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md).
 
 Hazır şema başlangıçtır; şikâyet, lig, haftalık etkinlik, abonelik gibi alanlar ilgili adımda yeni migration'larla eklenecek. Generated dosyalar elle düzenlenmeyecek.
 
@@ -96,7 +97,7 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 **Sorumlu:** Biz.
 
 - [x] Kullanıcı adı uygunluğu, görünen ad, bio ve stil etiketleri.
-- [ ] Avatar yükleme bağlantısı; medya adımıyla birlikte tamamlanır.
+- [x] Avatar yükleme/önizleme onayı ve profile bağlama/kaldırma; medya API'si.
 - [x] İsteğe bağlı yaş grubu, cinsiyet/şehir bilgileri ve izin tercihleri; kamusal yanıttan ayrım. Değişiklikler için transaction içinde kalıcı olay kaydı; trend tüketicisi 13. adımda.
 - [x] Kendi profili, başkasının profili ve profil düzenleme.
 - [x] Paylaşım/arkadaş/puan sayaçlarının sözleşmesi; henüz oluşmamış veride sıfır/boş davranışı.
@@ -115,7 +116,7 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 - [x] Gelen/giden istekler; kabul, red, arkadaş listesi ve arkadaşlıktan çıkarma.
 - [x] Çift/ters istek, kendine istek ve yinelenen kabul davranışı.
 - [x] Kullanıcı engelleme/engeli kaldırma ve engellenenler listesi.
-- [x] Ortak SocialAccessService ve profil bağlantısı. Paylaşım/yorum/medya uçları kendi adımlarında aynı servise bağlanacak; henüz mevcut değiller.
+- [x] Ortak SocialAccessService, profil ve medya bağlantısı. Paylaşım/yorum uçları kendi adımlarında aynı servise bağlanacak; henüz mevcut değiller.
 - [x] Engel ve arkadaşlık değişince özel yayın erişiminin kapanması; erişim servisi ve profil sayaçlarında gerçek sosyal HTTP komutlarıyla doğrulandı.
 
 Sosyal değişiklik ve kalıcı outbox olayı aynı transaction'dadır. Bildirim tüketimi 12. adımda bağlanır. [Çalışan sosyal API ve varsayımlar](social-development.md).
@@ -126,13 +127,17 @@ Sosyal değişiklik ve kalıcı outbox olayı aynı transaction'dadır. Bildirim
 
 **Sorumlu:** Biz.
 
-- [ ] Yükleme izni, yükleme tamamlama ve sahiplik kontrolü.
-- [ ] Gerçek dosya türü, boyut/piksel sınırı, thumbnail/display üretimi ve EXIF temizleme.
-- [ ] Yüz bulanıklaştırma, kullanıcı önizlemesi ve onayı.
-- [ ] İşleniyor/hazır/reddedildi durumları ve yeniden deneme davranışı.
-- [ ] Yayınlanmış fotoğrafın yeniden kullanılan upload linkiyle değiştirilememesi.
-- [ ] Arkadaş içeriğine yetkili erişim; orijinal dosyaların dışarı açılmaması. Oyun fotoğrafı erişimi Faz 2'de bağlanır.
-- [ ] Kullanılmamış yüklemelerin ve silinen içeriğin dosya temizliği.
+- [x] Yerel yükleme izni, yükleme tamamlama ve sahiplik kontrolü.
+- [x] Gerçek dosya türü, boyut/piksel sınırı, thumbnail/display üretimi ve EXIF temizleme.
+- [x] Manuel seçilen bölgelerde yüz bulanıklaştırma, kullanıcı önizlemesi ve açık onay.
+- [ ] Otomatik yüz tespit sağlayıcısı/modeli; mobil bölge seçme ve önizleme ekranının cihaz üzerinde doğrulanması.
+- [x] İşleniyor/hazır/reddedildi durumları ve geçici hatadan yeniden deneme.
+- [x] Tamamlanmış fotoğrafın yeniden kullanılan upload linkiyle değiştirilememesi.
+- [x] Arkadaş içeriğine yetkili erişim; orijinal dosyaların dışarı açılmaması. DB fixture'larıyla gerçek sosyal HTTP komutlarına karşı doğrulandı; oylama yayını 8. adımda bağlanacak. Oyun fotoğrafı erişimi Faz 2'de bağlanır.
+- [x] Kullanılmamış/silinen dosyalar için tekrar çalıştırılabilir yerel temizlik komutu; kullanımda medya korunur.
+- [ ] Özel bulut deposu, ayrı işçi/kuyruk ve periyodik temizlik zamanlaması; canlı entegrasyon.
+
+Yerel akış sonraki oylama adımına hazırdır; bütün medya/otomatik blur entegrasyonu tamamlandı denmez. Sınırlar ve servis sözleşmesi: [medya rehberi](media-development.md).
 
 **Bittiğinde:** kullanıcı fotoğraf yükler, işlenmiş halini görür ve yayınlayabilir. Bulanıklaştırma hatasında orijinal dosya sessizce paylaşılmaz. Aynı hat oylama ve podyumda kullanılır.
 
@@ -417,4 +422,4 @@ Faz 2'de Socket, yeniden bağlanma, geri sayım, oyun simülasyonu ve yarışma 
 
 **Faz 2:** 19 arkadaş odası/podyum → 20 canlı olaylar → 21 hızlı eşleşme → 22 oyun puanı/lig → 23 haftalık/sponsorlu yarışma → Faz 2 test ve frontend entegrasyonu. Mevcut oyun tabloları korunur; önceki oyun görevi aktif iş değildir.
 
-Bir sonraki ürün işi bizim tarafta **4: profil ve ayarlar**, arkadaş tarafında **7: ürün kataloğu ve link eşleştirme**. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir; gerçek sağlayıcı entegrasyonları ayrıca takip edilir.
+Bir sonraki ürün işi bizim tarafta **8: oylama taslağı ve yayınlama**, arkadaş tarafında **7: ürün kataloğu ve link eşleştirme**. Yerel profil/sosyal/medya akışları hazır; otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.

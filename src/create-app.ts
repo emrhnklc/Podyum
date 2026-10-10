@@ -36,7 +36,7 @@ export async function createApp(rootModule: Type = AppModule, env = readEnvironm
         for (const method of ["get", "post", "put", "patch", "delete"] as const) {
           const operation = path[method];
           if (!operation) continue;
-          for (const status of [400, 401, 403, 404, 409, 413, 429, 500, 503]) {
+          for (const status of [400, 401, 403, 404, 409, 413, 415, 422, 429, 500, 503]) {
             operation.responses[status] ??= {
               description: "Ortak hata yanıtı; error.code kararlıdır.",
               content: { "application/json": { schema: { $ref: getSchemaPath(ApiErrorResponseDto) } } },

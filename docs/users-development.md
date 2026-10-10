@@ -13,8 +13,9 @@
 | GET | `/style-tags` | Kontrollü stil sözlüğü; `{ id, label }[]` |
 | GET / PATCH | `/me/private` | Kendi isteğe bağlı demografik bilgilerin ve analiz iznin |
 | GET / PATCH | `/me/settings` | Kendi bildirim ve paylaşım varsayılanların |
+| PUT / DELETE | `/me/avatar` | Medya modülü: kendi onaylı AVATAR fotoğrafını bağla / bağlantıyı kaldır |
 
-Kamusal profil: `id`, `username`, `displayName`, `bio`, `styles`, `createdAt`, `updatedAt`, `counts`. E-posta, oturum, özel bilgiler, analiz izni ve ayarlar bu nesneye girmez. GET `/me` de özel bilgileri içermez; ilgili özel endpoint ayrı okunur. Kapatılmış/askıya alınmış hedef ve iki yönlü engel, bulunamayan kullanıcıyla aynı `404 RESOURCE_NOT_FOUND` sonucunu verir.
+Kamusal profil: `id`, `username`, `displayName`, `bio`, `styles`, nullable `avatarMediaId/avatarPath`, `createdAt`, `updatedAt`, `counts`. E-posta, oturum, özel bilgiler, analiz izni ve ayarlar bu nesneye girmez. GET `/me` de özel bilgileri içermez; ilgili özel endpoint ayrı okunur. Kapatılmış/askıya alınmış hedef ve iki yönlü engel, bulunamayan kullanıcıyla aynı `404 RESOURCE_NOT_FOUND` sonucunu verir.
 
 ## Düzenleme kuralları
 
@@ -63,7 +64,7 @@ Olayın `id` alanı DB tarafından üretilir; tüketici eventId ve kullanıcı b
 
 `pushEnabled`, `friendRequestNotifications`, `pollResultNotifications`, `commentNotifications`, `defaultCommentsEnabled` ve `defaultBlurFace` true; `defaultPollVisibility` PUBLIC. Bunlar değiştirilebilir geliştirme varsayımlarıdır. İlk GET, satır oluşturmadan varsayılanı döndürür. PATCH sadece gönderilen alanları günceller; kısmi güncellemeler birbirini silmez.
 
-Bildirim alanları ileride gönderim tercihi olarak kullanılacak; bugün push göndermez. `defaultBlurFace` tek başına görsel işlemez. Medya/oylama adımı bu varsayılanları kullanacak; mevcut bir paylaşımın görünürlüğü/yorumları ayar değişikliğiyle geriye dönük değişmez. Ayrı kapalı hesap özelliği eklenmedi; PUBLIC/FRIENDS paylaşım kuralı korunur.
+Bildirim alanları ileride gönderim tercihi olarak kullanılacak; bugün push göndermez. `defaultBlurFace` yeni medya izninde, blurRequested gönderilmezse uygulanır. Manuel bölge seçimi ve önizleme onayı gerekir; otomatik yüz tespiti henüz yoktur. Oylama adımı görünürlük/yorum varsayılanlarını kullanacak; mevcut bir paylaşımın görünürlüğü/yorumları ayar değişikliğiyle geriye dönük değişmez. Ayrı kapalı hesap özelliği eklenmedi; PUBLIC/FRIENDS paylaşım kuralı korunur.
 
 ## Kurulum, doğrulama ve kalan bağlantılar
 
@@ -71,4 +72,4 @@ Altıncı migration `UserSettings` ve `UserPrivate.analyticsRevision` ekler. Di�
 
 `npm run test:users` profil/ayar HTTP testlerini, `npm run test:api` auth + profil testlerini çalıştırır. Derlenmiş gerçek Nest uygulaması ve mevcut yerel DB kullanılır. Testler yalnız kendi benzersiz hesap, stil, ilişki, paylaşım ve olay fixture'larını temizler. Tek bağlantılı yerel Prisma Postgres gerçek eşzamanlı yarış testi değildir.
 
-Avatar/yükleme, profil paylaşımları ve kaydedilenlerin sayfalı listeleri, push tüketimi, trend işçisi ve Plus alanları ilgili modüllerde bağlanacak. Bu modül bunlar için çalışan sahte endpoint veya ücretli hak üretmez. Sosyal modül şimdi çalışır; profil görünürlüğü ve sayaçlar ortak SocialAccessService'i kullanır. [Sosyal rehber](social-development.md). Sonraki bizim işimiz medya yükleme/işleme/önizlemedir.
+Avatar/yükleme şimdi yerel medya modülüne bağlıdır; profil PATCH'i mediaId veya avatarMediaId kabul etmez. Profil paylaşımları ve kaydedilenlerin sayfalı listeleri, push tüketimi, trend işçisi ve Plus alanları ilgili modüllerde bağlanacak. Bu modül bunlar için çalışan sahte endpoint veya ücretli hak üretmez. Sosyal ve medya modülleri ortak SocialAccessService'i kullanır. [Sosyal rehber](social-development.md), [medya rehberi](media-development.md). Sonraki bizim işimiz oylama taslağı/yayınlamadır.

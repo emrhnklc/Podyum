@@ -1,6 +1,6 @@
 # Özellik modülleri
 
-`health`, `auth`, `users` ve `social` çalışır. Auth: e-posta/şifre, yerel doğrulama/reset mesajları, opaque oturumlar ve Google/Apple mock. Users: profil/stil, özel bilgiler/analiz izni ve ayarlar. Social: arama, arkadaş isteği/kabul/red/iptal, arkadaş/engel listeleri ve ortak erişim servisi. Diğer özellik klasörleri henüz controller/service içermezler. [Auth rehberi](../../docs/auth-development.md), [profil rehberi](../../docs/users-development.md), [sosyal rehber](../../docs/social-development.md).
+`health`, `auth`, `users`, `social` ve `media` çalışır. Auth: e-posta/şifre, yerel doğrulama/reset mesajları, opaque oturumlar ve Google/Apple mock. Users: profil/stil, özel bilgiler/analiz izni ve ayarlar. Social: arama, arkadaş isteği/kabul/red/iptal, arkadaş/engel listeleri ve ortak erişim servisi. Media: özel yerel yükleme, gerçek görsel işleme/EXIF temizliği, manuel bölge blur, önizleme onayı, erişim ve avatar. Otomatik yüz tespiti/bulut deposu henüz yoktur. Diğer özellik klasörleri henüz controller/service içermezler. [Auth rehberi](../../docs/auth-development.md), [profil rehberi](../../docs/users-development.md), [sosyal rehber](../../docs/social-development.md), [medya rehberi](../../docs/media-development.md).
 
 Faz 1 görev paylaşımı: biz `auth/users/social/media/polls/notifications` ve ortak altyapı; arkadaş ileride oluşturulacak `catalog/trends/billing/ads` modülleri. `games/rewards` Faz 2 için bekler. Ticari modüller henüz yazılmadı. Sahiplik, ortak şema ve servis sınırları: [iki kişilik plan](../../docs/two-developer-plan.md).
 
@@ -22,4 +22,4 @@ Controller HTTP giriş/çıkışını yönetir; service iş kurallarını ve tra
 
 Başka modülün işlemi gerekiyorsa onun export ettiği servis kullanılır. DatabaseModule ortak DB istemcisini sağlar; domain yetkilendirmesini üstlenmez.
 
-SocialModule, SocialAccessService'i export eder; UsersModule onu import eder. Paylaşım/yorum/medya modülleri aynı görünürlük servisini kullanacak. İlişki/engel transaction'ları User.socialRevision ve outbox kaydıyla atomiktir; bildirim işçisi henüz yoktur.
+SocialModule, SocialAccessService'i export eder; UsersModule ve MediaModule onu kullanır. Paylaşım/yorum modülleri de aynı görünürlük servisine bağlanacak. MediaModule, MediaService.requirePublishableAsset'i export eder; oylama aynı transaction'da sahiplik/onay/amaç kontrolüyle bağlantı kurmalıdır. İlişki/engel transaction'ları User.socialRevision ve outbox kaydıyla atomiktir; bildirim işçisi henüz yoktur.

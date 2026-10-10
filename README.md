@@ -2,11 +2,11 @@
 
 Kombin tercihi oylamaları ve fotoğraflarla oynanan canlı tema yarışması için mimari taslak ve çalışan yerel veritabanı temeli.
 
-**Hazır:** Ortak API doğrulama/hata/request ID/Swagger altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; kullanıcı arama, arkadaşlık/engel ve ortak erişim servisi; health endpoint'leri; Prisma şeması (32 model), yedi migration, demo seed ve DB hedef koruması. **Planlanan:** Oylama/oyun API'leri, avatar/medya işleme, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
+**Hazır:** Ortak API doğrulama/hata/request ID/Swagger altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; kullanıcı arama, arkadaşlık/engel ve ortak erişim servisi; yerel özel fotoğraf yükleme/işleme/önizleme, manuel bölge bulanıklaştırma ve avatar; health endpoint'leri; Prisma şeması (32 model), sekiz migration, demo seed ve DB hedef koruması. **Planlanan:** Oylama/oyun API'leri, otomatik yüz tespiti/bulut medya deposu, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
 
 E-posta teslimi şimdilik yerel dosyadır. Gerçek Google/Apple girişi tamamlanmadı. Çalışan akış: [Auth geliştirme rehberi](docs/auth-development.md).
 
-Çalışan profil/ayar uçları ve kalan medya/sekme bağlantıları: [Profil rehberi](docs/users-development.md), [HTTP örnekleri](examples/users.http). Çalışan sosyal API: [Sosyal rehber](docs/social-development.md), [HTTP örnekleri](examples/social.http). Sonraki bizim işimiz medya; arkadaş katalogla paralel ilerleyebilir.
+Çalışan profil/ayar uçları: [Profil rehberi](docs/users-development.md), [HTTP örnekleri](examples/users.http). Sosyal API: [Sosyal rehber](docs/social-development.md), [HTTP örnekleri](examples/social.http). Fotoğraf/avatar: [Medya rehberi](docs/media-development.md), [HTTP örnekleri](examples/media.http). Sonraki bizim işimiz oylama taslağı/yayınlama; arkadaş katalogla paralel ilerleyebilir. Otomatik yüz tespiti henüz bağlı değildir.
 
 ## Belgeleri okuma sırası
 
@@ -90,7 +90,9 @@ npm run test:api
 npm run db:check
 ```
 
-NestJS uygulamasını başlatmak için `npm start` kullanın; önce Prisma istemcisini üretir ve TypeScript'i derler. Varsayılan adres `http://127.0.0.1:3000`; port doluysa `PORT=3100 npm start` ile ayrı port seçin. Health, `/v1/auth/*`, profil/ayar ve sosyal endpoint'leri çalışır. Açılışta ortam ve hedef DB doğrulanır; kapanışta Prisma bağlantısı bırakılır.
+NestJS uygulamasını başlatmak için `npm start` kullanın; önce Prisma istemcisini üretir ve TypeScript'i derler. Varsayılan adres `http://127.0.0.1:3000`; port doluysa `PORT=3100 npm start` ile ayrı port seçin. Health, `/v1/auth/*`, profil/ayar, sosyal ve medya/avatar endpoint'leri çalışır. Açılışta ortam ve hedef DB doğrulanır; kapanışta Prisma bağlantısı bırakılır.
+
+Yerel fotoğraflar `.local/media` altında, HTTP'den doğrudan açılmayan özel dosyalardır; `LOCAL_MEDIA_DIR` ile ayrı dizin seçilebilir. `npm run test:media` fotoğraf hattını kontrol eder; `npm run media:cleanup` süresi dolan/boşta dosyaları temizler. Otomatik cron henüz yoktur.
 
 Swagger `http://127.0.0.1:3000/v1/docs`, OpenAPI `/v1/openapi.json` adresindedir. [Örnek HTTP istekleri](examples/auth.http) ile kayıt/giriş denenebilir. Doğrulama/reset mesajları `.local/mailbox` altında oluşur. Google/Apple mock için `.env` dosyasında `AUTH_MOCK_ENABLED="true"` gerekir; varsayılan kapalıdır.
 

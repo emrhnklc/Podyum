@@ -14,7 +14,11 @@
     "pretest:smoke": "npm run build",
     "test:smoke": "tsx scripts/smoke-api.ts",
     "pretest:api": "npm run build",
-    "test:api": "tsx --test --test-concurrency=1 tests/api.test.ts tests/users.test.ts tests/social.test.ts",
+    "test:api": "tsx --test --test-concurrency=1 tests/api.test.ts tests/users.test.ts tests/social.test.ts tests/media.test.ts",
+    "pretest:media": "npm run build",
+    "test:media": "tsx --test --test-concurrency=1 tests/media.test.ts",
+    "premedia:cleanup": "npm run build",
+    "media:cleanup": "tsx scripts/cleanup-media.ts",
     "pretest:social": "npm run build",
     "test:social": "tsx --test --test-concurrency=1 tests/social.test.ts",
     "pretest:users": "npm run build",
@@ -45,10 +49,12 @@
     "dotenv": "^17.2.3",
     "pg": "^8.16.3",
     "reflect-metadata": "0.2.2",
-    "rxjs": "7.8.2"
+    "rxjs": "7.8.2",
+    "sharp": "0.35.5"
   },
   "devDependencies": {
     "@types/express": "5.0.6",
+    "@types/multer": "2.3.0",
     "@types/node": "^24.10.0",
     "@types/pg": "^8.15.6",
     "prisma": "7.10.0",
