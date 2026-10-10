@@ -20,16 +20,17 @@ Dosya sahipliği, servis sözleşmeleri, ilk görev ve Claude'a verilecek günce
 ## Mevcut durum
 
 - [x] NestJS başlangıcı, health endpoint'leri ve özellik klasörleri.
-- [x] Prisma şeması, yerel veritabanı, altı migration ve demo kayıtları.
+- [x] Prisma şeması, yerel veritabanı, yedi migration ve demo kayıtları.
 - [x] Veritabanı hedef kontrolü, 13 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
 - [x] Yerel e-posta/şifre ve oturum akışları; Google/Apple mock.
-- [x] Auth/ortak API ve profil/ayar HTTP testleri; mevcut 13 DB testi ve bootstrap kontrolü.
+- [x] Auth/ortak API, profil/ayar ve sosyal HTTP testleri; mevcut 13 DB testi ve bootstrap kontrolü.
 - [x] Temel profil, stil seçimi, özel bilgiler/analiz izni ve ayarlar; avatar ve sekme listeleri sonraki modüllere bağlı.
+- [x] Kullanıcı arama, arkadaş isteği/kabul/red/iptal, arkadaş listesi/kaldırma, engelleme ve ortak sosyal erişim servisi.
 - [ ] Faz 1 sosyal kombin, ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
 - [ ] Faz 2 oyun/rekabet akışları; ertelendi.
 
-**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth ve temel profil/ayar API'leri tamamlandı. E-posta/şifre akışı HTTP ile doğrulandı; Google/Apple mock. Gerçek OAuth ve e-posta gönderimi tamamlanmış sayılmıyor. Sonraki bizim işimiz 5. adım sosyal modül. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md).
+**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar ve sosyal API'ler tamamlandı. E-posta/şifre akışı HTTP ile doğrulandı; Google/Apple mock. Gerçek OAuth ve e-posta gönderimi tamamlanmış sayılmıyor. Sonraki bizim işimiz 6. adım medya. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md).
 
 Hazır şema başlangıçtır; şikâyet, lig, haftalık etkinlik, abonelik gibi alanlar ilgili adımda yeni migration'larla eklenecek. Generated dosyalar elle düzenlenmeyecek.
 
@@ -110,12 +111,14 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 
 **Sorumlu:** Biz.
 
-- [ ] Kullanıcı adıyla arama, arkadaş isteği gönderme ve iptal etme.
-- [ ] Gelen/giden istekler; kabul, red, arkadaş listesi ve arkadaşlıktan çıkarma.
-- [ ] Çift/ters istek, kendine istek ve yinelenen kabul davranışı.
-- [ ] Kullanıcı engelleme/engeli kaldırma ve engellenenler listesi.
-- [ ] Görünürlük kontrolünü profil, paylaşım, yorum ve medyanın ortak kullanması.
-- [ ] Engel ve arkadaşlık değişince sonraki özel içerik erişiminin kapanması.
+- [x] Kullanıcı adıyla arama, arkadaş isteği gönderme ve iptal etme.
+- [x] Gelen/giden istekler; kabul, red, arkadaş listesi ve arkadaşlıktan çıkarma.
+- [x] Çift/ters istek, kendine istek ve yinelenen kabul davranışı.
+- [x] Kullanıcı engelleme/engeli kaldırma ve engellenenler listesi.
+- [x] Ortak SocialAccessService ve profil bağlantısı. Paylaşım/yorum/medya uçları kendi adımlarında aynı servise bağlanacak; henüz mevcut değiller.
+- [x] Engel ve arkadaşlık değişince özel yayın erişiminin kapanması; erişim servisi ve profil sayaçlarında gerçek sosyal HTTP komutlarıyla doğrulandı.
+
+Sosyal değişiklik ve kalıcı outbox olayı aynı transaction'dadır. Bildirim tüketimi 12. adımda bağlanır. [Çalışan sosyal API ve varsayımlar](social-development.md).
 
 **Bittiğinde:** A ile B arkadaşken özel paylaşımı C göremez. Arkadaşlıktan çıkma ve engelleme sadece arayüzde kart gizlemekten ibaret kalmaz.
 

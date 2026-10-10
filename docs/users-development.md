@@ -71,4 +71,4 @@ Altıncı migration `UserSettings` ve `UserPrivate.analyticsRevision` ekler. Di�
 
 `npm run test:users` profil/ayar HTTP testlerini, `npm run test:api` auth + profil testlerini çalıştırır. Derlenmiş gerçek Nest uygulaması ve mevcut yerel DB kullanılır. Testler yalnız kendi benzersiz hesap, stil, ilişki, paylaşım ve olay fixture'larını temizler. Tek bağlantılı yerel Prisma Postgres gerçek eşzamanlı yarış testi değildir.
 
-Avatar/yükleme, profil paylaşımları ve kaydedilenlerin sayfalı listeleri, push tüketimi, trend işçisi ve Plus alanları ilgili modüllerde bağlanacak. Bu modül bunlar için çalışan sahte endpoint veya ücretli hak üretmez. Bir sonraki bizim işimiz sosyal modüldür: arkadaş istekleri, listeler, engelleme ve ortak erişim kuralları.
+Avatar/yükleme, profil paylaşımları ve kaydedilenlerin sayfalı listeleri, push tüketimi, trend işçisi ve Plus alanları ilgili modüllerde bağlanacak. Bu modül bunlar için çalışan sahte endpoint veya ücretli hak üretmez. Sosyal modül şimdi çalışır; profil görünürlüğü ve sayaçlar ortak SocialAccessService'i kullanır. [Sosyal rehber](social-development.md). Sonraki bizim işimiz medya yükleme/işleme/önizlemedir.

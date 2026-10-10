@@ -1,0 +1,60 @@
+@baseUrl = http://127.0.0.1:3000/v1
+@accessTokenA = BIRINCI_HESABIN_ACCESS_TOKENI
+@accessTokenB = IKINCI_HESABIN_ACCESS_TOKENI
+@userIdA = BIRINCI_HESABIN_UUID_DEGERI
+@userIdB = IKINCI_HESABIN_UUID_DEGERI
+
+### Kullanıcı adı başlangıcıyla arama
+GET {{baseUrl}}/users/search?q=elif&limit=20
+Authorization: Bearer {{accessTokenA}}
+
+### A açısından B ile ilişki
+GET {{baseUrl}}/users/{{userIdB}}/relationship
+Authorization: Bearer {{accessTokenA}}
+
+### A, B'ye istek gönderir
+POST {{baseUrl}}/friend-requests
+Authorization: Bearer {{accessTokenA}}
+Content-Type: application/json
+
+{"targetUserId":"{{userIdB}}"}
+
+### A'nın giden istekleri
+GET {{baseUrl}}/me/friend-requests?direction=outgoing
+Authorization: Bearer {{accessTokenA}}
+
+### B'nin gelen istekleri
+GET {{baseUrl}}/me/friend-requests?direction=incoming
+Authorization: Bearer {{accessTokenB}}
+
+### B, A'dan gelen isteği kabul eder
+POST {{baseUrl}}/friend-requests/{{userIdA}}/accept
+Authorization: Bearer {{accessTokenB}}
+
+### A'nın arkadaşları
+GET {{baseUrl}}/me/friends?limit=20
+Authorization: Bearer {{accessTokenA}}
+
+### Arkadaşlıktan çıkar
+DELETE {{baseUrl}}/friends/{{userIdB}}
+Authorization: Bearer {{accessTokenA}}
+
+### Alternatif: yalnız bekleyen gelen isteği reddet
+POST {{baseUrl}}/friend-requests/{{userIdA}}/decline
+Authorization: Bearer {{accessTokenB}}
+
+### Alternatif: yalnız kendi bekleyen giden isteğini iptal et
+DELETE {{baseUrl}}/friend-requests/{{userIdB}}
+Authorization: Bearer {{accessTokenA}}
+
+### Engelle; arkadaşlık/bekleyen istek de kaldırılır
+PUT {{baseUrl}}/blocks/{{userIdB}}
+Authorization: Bearer {{accessTokenA}}
+
+### Yalnız A'nın engelledikleri
+GET {{baseUrl}}/me/blocks
+Authorization: Bearer {{accessTokenA}}
+
+### Engeli kaldır; eski arkadaşlık/istek geri gelmez
+DELETE {{baseUrl}}/blocks/{{userIdB}}
+Authorization: Bearer {{accessTokenA}}

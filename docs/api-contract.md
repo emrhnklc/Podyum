@@ -2,7 +2,7 @@
 
 **Kapsam güncellemesi:** Oyun ve Socket.IO bölümleri Faz 2 taslağıdır. Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
-Health, `/v1/auth/*` ve temel profil/ayar endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md). Aşağıdaki sosyal/medya/oylama/oyun endpoint'leri henüz uygulanmamış taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
+Health, `/v1/auth/*`, temel profil/ayar ve sosyal endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md). Aşağıdaki medya/oylama/oyun endpoint'leri henüz uygulanmamış taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
 
 ## 1. Ortak kurallar
 
@@ -48,17 +48,23 @@ Health, `/v1/auth/*` ve temel profil/ayar endpoint'leri çalışır. Controller/
 | GET / PATCH | `/me/settings` | Çalışır: kendi bildirim/paylaşım varsayılanların; tüketiciler sonraki modüllerde |
 | GET | `/users/username-availability` | Çalışır: `username` query ile anlık uygunluk; rezervasyon değildir |
 | GET | `/users/:id` | Çalışır: aktif/engelsiz kamusal profil; sayaçlar izleyiciye göre |
+| GET | `/users/search` | Çalışır: `q` ile kullanıcı adı başlangıcı; sayfalı aktif/engelsiz kullanıcı özeti |
+| GET | `/users/:userId/relationship` | Çalışır: izleyiciye göre SELF/NONE/OUTGOING_REQUEST/INCOMING_REQUEST/FRIENDS |
 | GET | `/users/:id/polls` | Yalnızca izleyicinin görebildiği paylaşımlar |
-| GET | `/me/friends` | Kabul edilmiş arkadaşlar |
-| GET | `/me/friend-requests` | Gelen/giden istekler |
-| POST | `/friend-requests` | `targetUserId`; yönsüz tek çift; karşı istek otomatik kabul sayılmaz |
-| POST | `/friend-requests/:userId/accept` | Yalnızca isteğin alıcısı kabul eder |
-| POST | `/friend-requests/:userId/decline` | Gelen isteği reddet |
-| DELETE | `/friends/:userId` | Arkadaşlığı kaldır; özel içerik için yeni erişim durur |
-| PUT / DELETE | `/blocks/:userId` | Engelle / engeli kaldır |
+| GET | `/me/friends` | Çalışır: kabul edilmiş aktif/engelsiz arkadaşlar; cursor |
+| GET | `/me/friend-requests` | Çalışır: direction=incoming (varsayılan)/outgoing; cursor |
+| POST | `/friend-requests` | Çalışır: `targetUserId`; yönsüz tek çift; karşı istek otomatik kabul sayılmaz |
+| DELETE | `/friend-requests/:userId` | Çalışır: yalnız gönderdiğin isteği iptal et |
+| POST | `/friend-requests/:userId/accept` | Çalışır: yalnızca isteğin alıcısı kabul eder |
+| POST | `/friend-requests/:userId/decline` | Çalışır: gelen isteği reddet |
+| DELETE | `/friends/:userId` | Çalışır: arkadaşlığı kaldır; ortak serviste özel yayın erişimi kapanır |
+| GET | `/me/blocks` | Çalışır: yalnız kendi engellediklerin; cursor |
+| PUT / DELETE | `/blocks/:userId` | Çalışır: engelle / kendi engelini kaldır; engel ilişkileri siler, unblock geri getirmez |
 | GET | `/style-tags` | Çalışır: stil sözlüğü |
 
 Hesap silme, şikâyet ve yönetim endpoint'leri ilk dış kullanıcı testinden önce eklenecek; normal kullanıcıya admin endpoint'i açılmayacak.
+
+Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil tarafından kullanılır; paylaşım/yorum/medya uçları kendi adımlarında bağlanır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
 
 ## 3. Medya
 

@@ -14,7 +14,7 @@ docs/auth-development.md, docs/users-development.md ve prisma/schema.prisma dosy
 Bu belgelerde onaylı kararlar ve henüz seçilmemiş kurallar ayrılıyor.
 
 Mevcut proje NestJS + TypeScript, PostgreSQL + Prisma. Health, ortak
-API altyapısı, auth ve temel profil/ayarlar çalışıyor. E-posta/şifre ve opaque oturumlar
+API altyapısı, auth, temel profil/ayarlar ve sosyal modül çalışıyor. E-posta/şifre ve opaque oturumlar
 gerçek yerel akış; e-posta teslimi dosya, Google/Apple mock.
 Yeni ürün/trend/billing/ads servisleri henüz uygulanmış değil.
 

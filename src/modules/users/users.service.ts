@@ -3,6 +3,7 @@ import { ApiError } from "../../common/errors/api-error.js";
 import { PrismaService } from "../../database/prisma.service.js";
 import type { Prisma, UserPrivate } from "../../generated/prisma/client.js";
 import type { UpdatePrivateProfileDto, UpdateProfileDto, UpdateSettingsDto } from "./dto/users.dto.js";
+import { SocialAccessService } from "../social/social-access.service.js";
 
 type Transaction = Prisma.TransactionClient;
 const missing = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Kullanıcı bulunamadı.");
@@ -40,7 +41,7 @@ function privateResponse(row: UserPrivate | null) {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private readonly access: SocialAccessService) {}
 
   private async lockActiveUser(tx: Transaction, userId: string) {
     await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR UPDATE`;
@@ -59,29 +60,13 @@ export class UsersService {
   }
 
   private async profile(tx: Transaction, viewerId: string, targetId: string) {
+    await this.access.requireUserAccess(tx, viewerId, targetId);
     const user = await tx.user.findUnique({ where: { id: targetId, status: "ACTIVE" }, select: profileSelect });
     if (!user) throw missing();
-    const isSelf = viewerId === targetId;
-    let isFriend = false;
-    if (!isSelf) {
-      const blocked = await tx.block.findFirst({ where: { OR: [
-        { blockerId: viewerId, blockedId: targetId },
-        { blockerId: targetId, blockedId: viewerId },
-      ] }, select: { blockerId: true } });
-      if (blocked) throw missing();
-      const [userAId, userBId] = [viewerId, targetId].sort();
-      const friendship = await tx.friendship.findUnique({ where: { userAId_userBId: { userAId, userBId } }, select: { status: true } });
-      isFriend = friendship?.status === "ACCEPTED";
-    }
     const polls = await tx.poll.count({ where: {
-      authorId: targetId, contentStatus: "VISIBLE", status: { in: ["OPEN", "CLOSED"] },
-      ...(!isSelf && !isFriend ? { visibility: "PUBLIC" as const } : {}),
+      ...this.access.visiblePublishedPollWhere(viewerId), authorId: targetId,
     } });
-    const activeUnblockedFriend = {
-      status: "ACTIVE" as const,
-      blocksMade: { none: { blockedId: targetId } },
-      blocksReceived: { none: { blockerId: targetId } },
-    };
+    const activeUnblockedFriend = this.access.activeUnblockedUserWhere(targetId);
     const friends = await tx.friendship.count({ where: { status: "ACCEPTED", OR: [
       { userAId: targetId, userB: activeUnblockedFriend },
       { userBId: targetId, userA: activeUnblockedFriend },

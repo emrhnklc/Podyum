@@ -46,9 +46,11 @@ Arkadaşlık ve engelleme User'a iki taraftan bağlanan ayrı ilişkilerdir. Oyl
 | Ödül | PointsLedger | Kaynağı belli puan hareketleri; ödül dağıtımı kapalı |
 | Güvenilirlik | OutboxEvent, IdempotencyRecord | Transaction sonrası işler ve komut tekrarları |
 
-Toplam 32 model vardır. Health, auth ve temel users API'leri çalışır; diğer model API'leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
+Toplam 32 model vardır. Health, auth, temel users ve social API'leri çalışır; diğer model API'leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
 
 Altıncı migration UserSettings ve UserPrivate.analyticsRevision alanını ekler. Analiz izni/demografi değişikliği ve outbox olayı aynı transaction'a yazılır; ham demografik değerler olay gövdesinde yer almaz. İşçi/trend tüketimi henüz yoktur. Özel alanlar, ayar varsayılanları ve sayaç görünürlüğü: [users rehberi](users-development.md).
+
+Yedinci migration User.socialRevision ekler. İlişki/engel değişikliği, iki kullanıcının sosyal sürümü ve hedefli iç outbox olayları tek transaction'dadır. Bildirim işçisi henüz yok; engel olayının payload'u istemciye açılmaz. [Sosyal kurallar ve erişim servisi](social-development.md).
 
 ## 3. Veritabanının bugün koruduğu kurallar
 
