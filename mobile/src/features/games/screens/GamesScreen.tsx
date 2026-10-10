@@ -1,50 +1,675 @@
-import { View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
-import { Screen } from "@/components/ui/Screen";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
-import { Button } from "@/components/ui/Button";
-import { common, colors, fonts } from "@/theme";
+import { ME } from "@/constants/demo";
+import { getUser } from "@/features/profile/data/demo-users";
+import { compactCount } from "@/lib/format";
+import { usePreviewMessage } from "@/hooks/use-preview-message";
+import { blush, colors, common, fonts, serif } from "@/theme";
+import { leagueFor } from "../data/league";
+import {
+  liveGame,
+  tour,
+  weeklyFriends,
+  weeklyTheme,
+} from "../data/demo-defile";
+
+const GOLD = "#F2B627";
+const MEDALS = ["#F2B627", "#B9BCC6", "#D08A55"];
 
 export function GamesScreen() {
+  const message = usePreviewMessage();
+  const soon = (what: string) =>
+    message(`${what} oyun API'si bağlanınca açılacak.`);
+  const myStars = getUser(ME)?.counts.stars ?? 0;
+  const league = leagueFor(myStars);
   return (
-    <Screen>
-      <Button
-        title="Geri"
-        variant="outline"
-        onPress={() =>
-          router.canGoBack() ? router.back() : router.replace("/")
-        }
-      />
-      <Text style={common.title}>Podyum</Text>
-      <Text style={common.subtitle}>
-        Bir tema, farklı yorumlar. Sıra sende.
-      </Text>
-      <View style={[common.card, { backgroundColor: "#FBE7EB" }]}>
-        <Text style={{ fontFamily: fonts.extraBold, fontSize: 24 }}>
-          Günlük tema
-        </Text>
-        <Text>30 dakika kombin fotoğrafını hazırla.</Text>
-        <Text>Sonraki 30 dakika katılımcılar oy versin.</Text>
-        <Text style={{ color: colors.muted }}>
-          Günlük saat ve tema yakında açıklanacak.
-        </Text>
-        <Button title="Katılım yakında" disabled onPress={() => {}} />
-      </View>
-      <View style={common.card}>
-        <Text style={{ fontFamily: fonts.extraBold, fontSize: 24 }}>
-          Arkadaşlarla oda
-        </Text>
-        <Text>
-          Lobini kur, QR ile paylaş. Fotoğraf ve oylama sürelerini birlikte
-          belirleyin.
-        </Text>
-        <Button
-          title="Lobiler yakında"
-          variant="dark"
-          disabled
-          onPress={() => {}}
-        />
-      </View>
-    </Screen>
+    <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={styles.page}
+        contentContainerStyle={styles.content}
+      >
+        <View style={common.spread}>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={styles.logo}>Defile</Text>
+            <Ionicons name="sparkles" size={16} color={blush.pink} />
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Defile filtreleri"
+            onPress={() => soon("Defile filtreleri")}
+            style={styles.round}
+          >
+            <Ionicons name="options-outline" size={24} color={colors.text} />
+          </Pressable>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${league.name}, ${myStars} yıldız`}
+          onPress={() => soon("Lig tablosu")}
+          style={[styles.box, styles.league]}
+        >
+          <Ionicons name="trophy" size={24} color={GOLD} />
+          <Text style={{ fontFamily: fonts.bold, fontSize: 16 }}>
+            {league.name}
+          </Text>
+          <View style={styles.track}>
+            <View
+              style={[styles.fill, { width: `${league.progress * 100}%` }]}
+            />
+          </View>
+          <Ionicons name="star" size={20} color={GOLD} />
+          <Text style={{ fontFamily: fonts.bold, fontSize: 16 }}>
+            {myStars.toLocaleString("tr-TR")}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.text} />
+        </Pressable>
+
+        <View style={[styles.box, styles.hero]}>
+          <HeroArt />
+          <View style={[common.row, { gap: 8 }]}>
+            <Text style={styles.heroTitle}>{liveGame.title}</Text>
+            <View style={styles.live}>
+              <View style={styles.liveDot} />
+              <Text
+                style={{
+                  fontSize: 12,
+                  fontFamily: fonts.bold,
+                  color: blush.wine,
+                }}
+              >
+                CANLI
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.heroText}>{liveGame.description}</Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            <Cta
+              label="Hızlı eşleş"
+              icon="flash"
+              filled
+              onPress={() => soon("Hızlı eşleşme")}
+            />
+            <Cta
+              label="Arkadaşlarla oda"
+              icon="people-outline"
+              onPress={() => soon("Arkadaş odası")}
+            />
+          </View>
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Haftalık tema: ${weeklyTheme.title}`}
+          onPress={() => soon("Tema detayı")}
+          style={[styles.box, { gap: 12 }]}
+        >
+          <ThemeArt />
+          <View style={[common.row, { gap: 8 }]}>
+            <Ionicons name="calendar-outline" size={20} color={blush.wine} />
+            <Text
+              style={{ flex: 1, fontFamily: fonts.bold, color: blush.wine }}
+            >
+              Haftalık tema
+            </Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.text} />
+          </View>
+          <Text style={styles.themeTitle}>{weeklyTheme.title}</Text>
+          <Text style={[styles.heroText, { marginRight: 110 }]}>
+            {weeklyTheme.description}
+          </Text>
+          <View style={[common.row, { flexWrap: "wrap", gap: 10 }]}>
+            <View style={styles.timer}>
+              <Ionicons name="time-outline" size={16} color={blush.wine} />
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontFamily: fonts.bold,
+                  color: blush.wine,
+                }}
+              >
+                {weeklyTheme.timeLeft} kaldı
+              </Text>
+            </View>
+            <View style={[common.row, { gap: 6 }]}>
+              <View style={{ flexDirection: "row" }}>
+                {weeklyTheme.sampleUsers.map((username, index) => (
+                  <Avatar
+                    key={username}
+                    username={username}
+                    size={28}
+                    style={{ marginLeft: index ? -8 : 0 }}
+                  />
+                ))}
+              </View>
+              <Text style={{ fontSize: 13, color: colors.muted }}>
+                {compactCount(weeklyTheme.participants)} katılımcı
+              </Text>
+            </View>
+          </View>
+          <Cta
+            label="Katıl"
+            icon="sparkles"
+            filled
+            onPress={() => soon("Haftalık temaya katılım")}
+          />
+        </Pressable>
+
+        <View style={[styles.box, { gap: 12 }]}>
+          <View style={common.spread}>
+            <View style={[common.row, { gap: 8 }]}>
+              <Ionicons name="people" size={20} color={blush.wine} />
+              <Text>
+                <Text style={{ fontFamily: fonts.bold, color: blush.wine }}>
+                  Arkadaşlar
+                </Text>
+                <Text style={{ color: colors.muted }}> · bu hafta</Text>
+              </Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/friends")}
+              style={[common.row, { gap: 2 }]}
+            >
+              <Text style={{ fontSize: 13, color: colors.muted }}>
+                Tümünü gör
+              </Text>
+              <Ionicons
+                name="chevron-forward"
+                size={15}
+                color={colors.muted}
+              />
+            </Pressable>
+          </View>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {weeklyFriends.map((friend, index) => (
+              <Pressable
+                key={friend.username}
+                accessibilityRole="button"
+                accessibilityLabel={`${index + 1}. ${friend.username}, ${friend.stars} yıldız`}
+                onPress={() =>
+                  friend.username === ME
+                    ? router.push("/profil")
+                    : router.push({
+                        pathname: "/u/[username]",
+                        params: { username: friend.username },
+                      })
+                }
+                style={styles.rank}
+              >
+                <View>
+                  <Avatar username={friend.username} size={40} />
+                  <View
+                    style={[styles.medal, { backgroundColor: MEDALS[index] }]}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontFamily: fonts.bold,
+                        color: colors.onAccent,
+                      }}
+                    >
+                      {index + 1}
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 12 }} numberOfLines={1}>
+                    {friend.username}
+                  </Text>
+                  <View style={[common.row, { gap: 3 }]}>
+                    <Ionicons name="star" size={12} color={GOLD} />
+                    <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
+                      {compactCount(friend.stars)}
+                    </Text>
+                  </View>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <View style={[styles.box, common.row, { gap: 14 }]}>
+          <View style={styles.tourIcon}>
+            <Ionicons name="shirt" size={28} color={blush.wine} />
+          </View>
+          <View style={{ flex: 1, gap: 8 }}>
+            <View style={common.spread}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: fonts.bold, fontSize: 16 }}>
+                  Podyum Turu · {tour.step}/{tour.total}
+                </Text>
+                <Text style={{ fontSize: 13, color: colors.muted }}>
+                  Tema: {tour.theme}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => soon("Podyum Turu")}
+                style={styles.tourButton}
+              >
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontFamily: fonts.bold,
+                    color: blush.wine,
+                  }}
+                >
+                  Turu gör
+                </Text>
+                <Ionicons name="arrow-forward" size={15} color={blush.wine} />
+              </Pressable>
+            </View>
+            <View style={styles.steps}>
+              <View style={styles.stepLine} />
+              {Array.from({ length: tour.total }, (_, index) => {
+                const done = index < tour.step;
+                return (
+                  <View key={index} style={[styles.step, done && styles.stepDone]}>
+                    {done && (
+                      <Ionicons
+                        name="checkmark"
+                        size={11}
+                        color={colors.onAccent}
+                      />
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
+
+function Cta({
+  label,
+  icon,
+  filled = false,
+  onPress,
+}: {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  filled?: boolean;
+  onPress: () => void;
+}) {
+  const tint = filled ? colors.onAccent : colors.text;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.cta,
+        filled ? styles.ctaFilled : styles.ctaOutline,
+        { opacity: pressed ? 0.8 : 1 },
+      ]}
+    >
+      <Ionicons name={icon} size={18} color={tint} />
+      <Text
+        style={{ fontFamily: fonts.bold, fontSize: 15, color: tint }}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function Avatar({
+  username,
+  size,
+  style,
+}: {
+  username: string;
+  size: number;
+  style?: object;
+}) {
+  const user = getUser(username);
+  return (
+    <View
+      style={[
+        {
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          backgroundColor: blush.pinkSoft,
+          borderWidth: 2,
+          borderColor: blush.card,
+          alignItems: "center",
+          justifyContent: "center",
+        },
+        style,
+      ]}
+    >
+      <Text
+        style={{
+          fontSize: size * 0.32,
+          fontFamily: fonts.bold,
+          color: blush.wine,
+        }}
+      >
+        {user?.initials ?? "?"}
+      </Text>
+    </View>
+  );
+}
+
+// Fotoğraf yerine çıkartma tarzı süsleme; gerçek görseller asset'ler eklenince gelir.
+function HeroArt() {
+  return (
+    <View pointerEvents="none" style={styles.heroArt}>
+      <View style={styles.polaroid}>
+        <Ionicons name="person" size={54} color={blush.lilac} />
+        <View style={styles.rating}>
+          {[0, 1, 2, 3].map((index) => (
+            <Ionicons key={index} name="star" size={11} color={GOLD} />
+          ))}
+          <Ionicons name="star" size={11} color="#9A9A9A" />
+        </View>
+      </View>
+      <Sticker name="star" color={blush.pink} size={30} top={-4} left={-8} />
+      <Sticker
+        name="heart-outline"
+        color={colors.text}
+        size={20}
+        top={56}
+        right={-6}
+      />
+      <Sticker
+        name="sparkles"
+        color={blush.pink}
+        size={16}
+        top={-10}
+        right={6}
+      />
+    </View>
+  );
+}
+
+function ThemeArt() {
+  return (
+    <View pointerEvents="none" style={styles.themeArt}>
+      <View
+        style={[
+          styles.swatch,
+          { backgroundColor: "#7A4E3A", transform: [{ rotate: "-8deg" }] },
+        ]}
+      >
+        <Ionicons name="shirt" size={34} color="#F3E6D8" />
+      </View>
+      <View
+        style={[
+          styles.swatch,
+          {
+            backgroundColor: "#EADBC8",
+            left: 38,
+            top: 22,
+            transform: [{ rotate: "6deg" }],
+          },
+        ]}
+      >
+        <Ionicons name="bag-handle" size={28} color="#5B3A2C" />
+      </View>
+      <Sticker name="leaf" color="#C9772F" size={22} top={-4} right={-2} />
+    </View>
+  );
+}
+
+function Sticker({
+  name,
+  color,
+  size,
+  ...position
+}: {
+  name: keyof typeof Ionicons.glyphMap;
+  color: string;
+  size: number;
+  top?: number;
+  left?: number;
+  right?: number;
+}) {
+  return (
+    <Ionicons
+      name={name}
+      size={size}
+      color={color}
+      style={{ position: "absolute", ...position }}
+    />
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: blush.background },
+  page: { width: "100%", maxWidth: 520, alignSelf: "center" },
+  content: { padding: 16, paddingBottom: 28, gap: 14 },
+  logo: {
+    fontFamily: serif,
+    fontStyle: "italic",
+    fontWeight: "700",
+    fontSize: 40,
+    letterSpacing: -1,
+    color: colors.text,
+  },
+  round: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: blush.surface,
+    borderWidth: 1,
+    borderColor: blush.line,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  box: {
+    padding: 16,
+    borderRadius: 26,
+    backgroundColor: blush.surface,
+    borderWidth: 1,
+    borderColor: blush.line,
+    overflow: "hidden",
+  },
+  league: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 14,
+  },
+  track: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: blush.chip,
+    overflow: "hidden",
+  },
+  fill: { height: "100%", borderRadius: 4, backgroundColor: blush.pink },
+  hero: { gap: 12, backgroundColor: "#FBE6EE" },
+  heroTitle: {
+    fontFamily: serif,
+    fontStyle: "italic",
+    fontWeight: "700",
+    fontSize: 34,
+    letterSpacing: -1,
+    color: colors.text,
+  },
+  live: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: blush.card,
+    borderWidth: 1,
+    borderColor: blush.pinkSoft,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 14,
+  },
+  liveDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: blush.pink,
+  },
+  heroText: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: colors.muted,
+    marginRight: 120,
+  },
+  heroArt: {
+    position: "absolute",
+    top: 18,
+    right: 14,
+    width: 112,
+    height: 150,
+  },
+  polaroid: {
+    position: "absolute",
+    top: 8,
+    right: 0,
+    width: 104,
+    height: 132,
+    borderRadius: 10,
+    backgroundColor: "#E7DCE6",
+    borderWidth: 5,
+    borderColor: blush.card,
+    alignItems: "center",
+    justifyContent: "center",
+    transform: [{ rotate: "6deg" }],
+  },
+  rating: {
+    position: "absolute",
+    bottom: 8,
+    flexDirection: "row",
+    gap: 1,
+    backgroundColor: "#222",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  cta: {
+    flex: 1,
+    minHeight: 50,
+    borderRadius: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+  },
+  ctaFilled: {
+    backgroundColor: blush.pink,
+    shadowColor: blush.pink,
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+  ctaOutline: {
+    backgroundColor: blush.card,
+    borderWidth: 1,
+    borderColor: blush.line,
+  },
+  themeTitle: {
+    fontFamily: serif,
+    fontWeight: "700",
+    fontSize: 28,
+    letterSpacing: -0.8,
+    color: colors.text,
+    marginRight: 90,
+  },
+  themeArt: {
+    position: "absolute",
+    top: 44,
+    right: 14,
+    width: 100,
+    height: 110,
+  },
+  swatch: {
+    position: "absolute",
+    width: 62,
+    height: 76,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: blush.chip,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 16,
+  },
+  rank: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: blush.card,
+    borderWidth: 1,
+    borderColor: blush.line,
+  },
+  medal: {
+    position: "absolute",
+    left: -4,
+    bottom: -2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: blush.card,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tourIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: blush.pinkSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tourButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: blush.pinkSoft,
+    backgroundColor: blush.card,
+  },
+  steps: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  stepLine: {
+    position: "absolute",
+    left: 8,
+    right: 8,
+    height: 2,
+    backgroundColor: blush.line,
+  },
+  step: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: blush.card,
+    borderWidth: 1.5,
+    borderColor: blush.line,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stepDone: { backgroundColor: blush.pink, borderColor: blush.pink },
+});

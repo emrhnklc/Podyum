@@ -8,13 +8,15 @@
 | --- | --- | --- |
 | `/` | feed/FeedScreen | Herkes/arkadaş ve kategori filtreleri, sıradaki kombin |
 | `/trendler` | trends/TrendsScreen | Dönem, kategori, tercih yapanlar ve fiyat filtreleri |
-| `/paylas` | polls/CreatePollScreen | Form tasarımı; fotoğraf/yayın henüz yok |
-| `/bildirimler` | notifications/NotificationsScreen | Boş durum |
-| `/profil` | profile/ProfileScreen | Demo kendi profili; paylaşım/kaydedilenler |
+| `/paylas` | polls/CreatePollScreen | Form tasarımı (2–4 seçenek, kitle seçimi); fotoğraf/yayın henüz yok |
+| `/bildirimler` | notifications/NotificationsScreen | Boş durum (sekme çubuğunda gizli) |
+| `/defile` | games/GamesScreen | Defile: lig, canlı Podyum, haftalık tema, arkadaş sıralaması, Podyum Turu (demo) |
+| `/profil` | profile/ProfileScreen | Demo kendi profili; lig, rozetler, paylaşım/kaydedilenler/yarışmalar |
 | `/u/:username` | profile/ProfileScreen | Demo hedef profil; bilinmeyen kullanıcı için boş durum |
 | `/polls/:id` | polls/PollDetailScreen | Demo kombin detayı; aynı tercih state'i |
+| `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
 | `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |
-| `/games` | games/GamesScreen | Günlük 30+30 ve özel QR lobisi hazırlık ekranı |
+| `/games` | → `/defile` | Eski bağlantılar Defile sekmesine yönlenir |
 | `/auth` | auth/AuthScreen | Giriş entegrasyonuna kadar açıklama/Keşfet'e dönüş |
 | bilinmeyen route | +not-found | Güvenli Keşfet'e dönüş |
 
