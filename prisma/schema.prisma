@@ -1,0 +1,600 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum AuthActionKind {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+enum Gender {
+  WOMAN
+  MAN
+  NON_BINARY
+  UNSPECIFIED
+}
+
+enum AgeBand {
+  AGE_18_24
+  AGE_25_34
+  AGE_35_PLUS
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum MediaStatus {
+  PENDING_UPLOAD
+  PROCESSING
+  READY
+  REJECTED
+  DELETED
+}
+
+enum Visibility {
+  PUBLIC
+  FRIENDS
+}
+
+enum ContentStatus {
+  VISIBLE
+  HIDDEN
+  REMOVED
+}
+
+enum PollStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum PollCategory {
+  OUTFIT
+  SHOES
+  BAG
+  JEWELRY
+  ACCESSORY
+  TATTOO
+}
+
+enum AudienceGender {
+  ANY
+  WOMEN
+  MEN
+}
+
+enum GameRoomKind {
+  MATCHMAKING
+  FRIENDS
+}
+
+enum GameRoomStatus {
+  WAITING
+  PREPARING
+  PROCESSING
+  VOTING
+  CALCULATING
+  COMPLETED
+  CANCELLED
+}
+
+enum ParticipantStatus {
+  JOINED
+  READY
+  WITHDRAWN
+  DISQUALIFIED
+}
+
+enum GameEntryStatus {
+  SUBMITTED
+  QUALIFIED
+  DISQUALIFIED
+}
+
+enum GameRoundStatus {
+  PENDING
+  OPEN
+  CLOSED
+}
+
+model User {
+  id                 String                @id @default(uuid()) @db.Uuid
+  username           String                @unique @db.VarChar(30)
+  displayName        String                @db.VarChar(80)
+  bio                String?               @db.VarChar(300)
+  status             UserStatus            @default(ACTIVE)
+  profileCompletedAt DateTime?             @db.Timestamptz(3)
+  createdAt          DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime              @updatedAt @db.Timestamptz(3)
+  identities         AuthIdentity[]
+  privateData        UserPrivate?
+  styles             UserStyle[]
+  friendshipsA       Friendship[]          @relation("FriendA")
+  friendshipsB       Friendship[]          @relation("FriendB")
+  blocksMade         Block[]               @relation("Blocker")
+  blocksReceived     Block[]               @relation("Blocked")
+  media              MediaAsset[]
+  polls              Poll[]
+  votes              PollVote[]
+  saves              PollSave[]
+  comments           Comment[]
+  notifications      Notification[]
+  devices            DeviceToken[]
+  hostedRooms        GameRoom[]
+  participations     GameParticipant[]
+  activeGame         ActiveGameMembership?
+  points             PointsLedger[]
+  idempotency        IdempotencyRecord[]
+  credential         AuthCredential?
+  sessions           AuthSession[]
+  authActions        AuthActionToken[]
+}
+
+model AuthCredential {
+  userId          String    @id @db.Uuid
+  email           String    @unique @db.VarChar(254)
+  passwordHash    String    @db.VarChar(255)
+  emailVerifiedAt DateTime? @db.Timestamptz(3)
+  version         Int       @default(1)
+  user            User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model AuthSession {
+  id                String             @id @default(uuid()) @db.Uuid
+  userId            String             @db.Uuid
+  provider          String             @db.VarChar(40)
+  accessTokenHash   String             @unique @db.Char(64)
+  refreshTokenHash  String             @unique @db.Char(64)
+  accessExpiresAt   DateTime           @db.Timestamptz(3)
+  expiresAt         DateTime           @db.Timestamptz(3)
+  revokedAt         DateTime?          @db.Timestamptz(3)
+  createdAt         DateTime           @default(now()) @db.Timestamptz(3)
+  user              User               @relation(fields: [userId], references: [id], onDelete: Restrict)
+  usedRefreshTokens UsedRefreshToken[]
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+model UsedRefreshToken {
+  tokenHash String      @id @db.Char(64)
+  sessionId String      @db.Uuid
+  expiresAt DateTime    @db.Timestamptz(3)
+  session   AuthSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+
+  @@index([sessionId])
+  @@index([expiresAt])
+}
+
+model AuthActionToken {
+  id                String         @id @default(uuid()) @db.Uuid
+  userId            String         @db.Uuid
+  kind              AuthActionKind
+  tokenHash         String         @unique @db.Char(64)
+  credentialVersion Int
+  expiresAt         DateTime       @db.Timestamptz(3)
+  consumedAt        DateTime?      @db.Timestamptz(3)
+  createdAt         DateTime       @default(now()) @db.Timestamptz(3)
+  user              User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId, kind])
+  @@index([expiresAt])
+}
+
+model AuthIdentity {
+  id      String @id @default(uuid()) @db.Uuid
+  userId  String @db.Uuid
+  issuer  String @db.VarChar(255)
+  subject String @db.VarChar(255)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([issuer, subject])
+  @@index([userId])
+}
+
+model UserPrivate {
+  userId             String    @id @db.Uuid
+  gender             Gender?
+  ageBand            AgeBand?
+  cityCode           String?   @db.VarChar(30)
+  analyticsConsentAt DateTime? @db.Timestamptz(3)
+  user               User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+}
+
+model StyleTag {
+  id    String      @id @db.VarChar(40)
+  label String      @db.VarChar(80)
+  users UserStyle[]
+}
+
+model UserStyle {
+  userId  String   @db.Uuid
+  styleId String   @db.VarChar(40)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  style   StyleTag @relation(fields: [styleId], references: [id], onDelete: Restrict)
+
+  @@id([userId, styleId])
+  @@index([styleId, userId])
+}
+
+// A/B UUID sırası SQL CHECK ile kanonik tutulur; requesterId bu çiftin üyesi olmalı.
+model Friendship {
+  userAId     String           @db.Uuid
+  userBId     String           @db.Uuid
+  requesterId String           @db.Uuid
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
+  userA       User             @relation("FriendA", fields: [userAId], references: [id], onDelete: Restrict)
+  userB       User             @relation("FriendB", fields: [userBId], references: [id], onDelete: Restrict)
+
+  @@id([userAId, userBId])
+  @@index([userBId, status])
+  @@index([userAId, status])
+}
+
+model Block {
+  blockerId String   @db.Uuid
+  blockedId String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Restrict)
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Restrict)
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model MediaAsset {
+  id                String       @id @default(uuid()) @db.Uuid
+  ownerId           String       @db.Uuid
+  status            MediaStatus  @default(PENDING_UPLOAD)
+  uploadKey         String       @unique @db.VarChar(500)
+  displayKey        String?      @unique @db.VarChar(500)
+  sourceVersion     String?      @db.VarChar(255)
+  checksum          String?      @db.VarChar(128)
+  mimeType          String?      @db.VarChar(80)
+  byteSize          Int?
+  width             Int?
+  height            Int?
+  blurRequested     Boolean      @default(false)
+  previewAcceptedAt DateTime?    @db.Timestamptz(3)
+  createdAt         DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime     @updatedAt @db.Timestamptz(3)
+  owner             User         @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  pollOptions       PollOption[]
+  gameEntries       GameEntry[]
+
+  @@index([ownerId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+}
+
+model Poll {
+  id                 String         @id @default(uuid()) @db.Uuid
+  authorId           String         @db.Uuid
+  question           String         @db.VarChar(280)
+  category           PollCategory
+  occasion           String?        @db.VarChar(60)
+  visibility         Visibility     @default(PUBLIC)
+  audienceGender     AudienceGender @default(ANY)
+  audienceAgeBand    AgeBand?
+  styleMatchRequired Boolean        @default(false)
+  commentsEnabled    Boolean        @default(true)
+  status             PollStatus     @default(DRAFT)
+  contentStatus      ContentStatus  @default(VISIBLE)
+  durationSeconds    Int            @default(1800)
+  publishedAt        DateTime?      @db.Timestamptz(3)
+  closesAt           DateTime?      @db.Timestamptz(3)
+  closedAt           DateTime?      @db.Timestamptz(3)
+  version            Int            @default(0)
+  createdAt          DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime       @updatedAt @db.Timestamptz(3)
+  author             User           @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  options            PollOption[]
+  votes              PollVote[]
+  saves              PollSave[]
+  comments           Comment[]
+
+  @@index([status, visibility, publishedAt(sort: Desc), id(sort: Desc)])
+  @@index([authorId, publishedAt(sort: Desc), id(sort: Desc)])
+  @@index([status, closesAt])
+}
+
+model PollOption {
+  id       String       @id @default(uuid()) @db.Uuid
+  pollId   String       @db.Uuid
+  position Int
+  mediaId  String       @db.Uuid
+  poll     Poll         @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  media    MediaAsset   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  products ProductTag[]
+  votes    PollVote[]
+
+  @@unique([pollId, position])
+  @@unique([id, pollId])
+  @@index([mediaId])
+}
+
+model ProductTag {
+  id          String     @id @default(uuid()) @db.Uuid
+  optionId    String     @db.Uuid
+  title       String     @db.VarChar(150)
+  brand       String?    @db.VarChar(100)
+  priceMinor  Int?
+  currency    String     @default("TRY") @db.Char(3)
+  externalUrl String     @db.VarChar(2048)
+  option      PollOption @relation(fields: [optionId], references: [id], onDelete: Restrict)
+
+  @@index([optionId])
+}
+
+model PollVote {
+  pollId        String     @db.Uuid
+  voterId       String     @db.Uuid
+  optionId      String     @db.Uuid
+  genderAtVote  Gender?
+  ageBandAtVote AgeBand?
+  createdAt     DateTime   @default(now()) @db.Timestamptz(3)
+  poll          Poll       @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  voter         User       @relation(fields: [voterId], references: [id], onDelete: Restrict)
+  option        PollOption @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
+
+  @@id([pollId, voterId])
+  @@index([pollId, optionId])
+  @@index([voterId, createdAt(sort: Desc)])
+}
+
+model PollSave {
+  pollId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([pollId, userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model Comment {
+  id            String        @id @default(uuid()) @db.Uuid
+  pollId        String        @db.Uuid
+  authorId      String        @db.Uuid
+  body          String        @db.VarChar(1000)
+  contentStatus ContentStatus @default(VISIBLE)
+  createdAt     DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
+  poll          Poll          @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  author        User          @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([pollId, createdAt, id])
+  @@index([authorId])
+}
+
+model Notification {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  eventId      String    @db.Uuid
+  type         String    @db.VarChar(80)
+  resourceType String    @db.VarChar(40)
+  resourceId   String    @db.Uuid
+  readAt       DateTime? @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, eventId, type])
+  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  token     String   @unique @db.VarChar(512)
+  platform  String   @db.VarChar(20)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+}
+
+model Theme {
+  id     String     @id @default(uuid()) @db.Uuid
+  slug   String     @unique @db.VarChar(80)
+  title  String     @db.VarChar(120)
+  active Boolean    @default(true)
+  rooms  GameRoom[]
+}
+
+model GameRoom {
+  id                 String            @id @default(uuid()) @db.Uuid
+  hostId             String?           @db.Uuid
+  themeId            String?           @db.Uuid
+  kind               GameRoomKind
+  status             GameRoomStatus    @default(WAITING)
+  inviteCodeHash     String?           @unique @db.VarChar(128)
+  maxPlayers         Int               @default(8)
+  minPlayers         Int               @default(3)
+  preparationSeconds Int               @default(600)
+  roundSeconds       Int               @default(20)
+  processingSeconds  Int               @default(30)
+  rulesVersion       String            @default("alpha-v1") @db.VarChar(40)
+  rulesSnapshot      Json
+  version            Int               @default(0)
+  phaseEndsAt        DateTime?         @db.Timestamptz(3)
+  currentRoundIndex  Int?
+  qualifiedCount     Int               @default(0)
+  startedAt          DateTime?         @db.Timestamptz(3)
+  finishedAt         DateTime?         @db.Timestamptz(3)
+  cancelReason       String?           @db.VarChar(80)
+  createdAt          DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime          @updatedAt @db.Timestamptz(3)
+  host               User?             @relation(fields: [hostId], references: [id], onDelete: Restrict)
+  theme              Theme?            @relation(fields: [themeId], references: [id], onDelete: Restrict)
+  participants       GameParticipant[]
+  entries            GameEntry[]
+  rounds             GameRound[]
+  results            GameResult[]
+  points             PointsLedger[]
+
+  @@index([status, phaseEndsAt])
+  @@index([kind, status, createdAt])
+  @@index([hostId])
+}
+
+model GameParticipant {
+  roomId           String                @db.Uuid
+  userId           String                @db.Uuid
+  status           ParticipantStatus     @default(JOINED)
+  qualified        Boolean               @default(false)
+  joinedAt         DateTime              @default(now()) @db.Timestamptz(3)
+  room             GameRoom              @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  entry            GameEntry?
+  ratings          GameRating[]
+  activeMembership ActiveGameMembership?
+
+  @@id([roomId, userId])
+  @@index([userId, joinedAt(sort: Desc)])
+}
+
+// Kullanıcı aynı anda tek aktif oyunda: bitiş/iptal işlemi bu kaydı transaction içinde kaldırır.
+model ActiveGameMembership {
+  userId      String          @id @db.Uuid
+  roomId      String          @db.Uuid
+  user        User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  participant GameParticipant @relation(fields: [roomId, userId], references: [roomId, userId], onDelete: Restrict)
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+}
+
+model GameEntry {
+  id          String          @id @default(uuid()) @db.Uuid
+  roomId      String          @db.Uuid
+  userId      String          @db.Uuid
+  mediaId     String          @db.Uuid
+  status      GameEntryStatus @default(SUBMITTED)
+  submittedAt DateTime        @default(now()) @db.Timestamptz(3)
+  room        GameRoom        @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  participant GameParticipant @relation(fields: [roomId, userId], references: [roomId, userId], onDelete: Restrict)
+  media       MediaAsset      @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  round       GameRound?
+  result      GameResult?
+
+  @@unique([roomId, userId])
+  @@unique([id, roomId, userId])
+  @@index([mediaId])
+}
+
+model GameRound {
+  id           String          @id @default(uuid()) @db.Uuid
+  roomId       String          @db.Uuid
+  entryId      String          @unique @db.Uuid
+  targetUserId String          @db.Uuid
+  position     Int
+  status       GameRoundStatus @default(PENDING)
+  opensAt      DateTime?       @db.Timestamptz(3)
+  closesAt     DateTime?       @db.Timestamptz(3)
+  room         GameRoom        @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  entry        GameEntry       @relation(fields: [entryId, roomId, targetUserId], references: [id, roomId, userId], onDelete: Restrict)
+  ratings      GameRating[]
+
+  @@unique([roomId, position])
+  @@unique([entryId, roomId, targetUserId])
+  @@unique([id, roomId, targetUserId])
+}
+
+model GameRating {
+  roundId      String          @db.Uuid
+  roomId       String          @db.Uuid
+  voterId      String          @db.Uuid
+  targetUserId String          @db.Uuid
+  stars        Int
+  themeFits    Boolean
+  createdAt    DateTime        @default(now()) @db.Timestamptz(3)
+  round        GameRound       @relation(fields: [roundId, roomId, targetUserId], references: [id, roomId, targetUserId], onDelete: Restrict)
+  voter        GameParticipant @relation(fields: [roomId, voterId], references: [roomId, userId], onDelete: Restrict)
+
+  @@id([roundId, voterId])
+  @@index([roomId])
+}
+
+model GameResult {
+  roomId        String    @db.Uuid
+  entryId       String    @unique @db.Uuid
+  userId        String    @db.Uuid
+  rank          Int?
+  ratingCount   Int
+  ratingSum     Int
+  themeYesCount Int
+  quorumMet     Boolean
+  official      Boolean   @default(false)
+  computedAt    DateTime  @default(now()) @db.Timestamptz(3)
+  room          GameRoom  @relation(fields: [roomId], references: [id], onDelete: Restrict)
+  entry         GameEntry @relation(fields: [entryId, roomId, userId], references: [id, roomId, userId], onDelete: Restrict)
+
+  @@id([roomId, userId])
+  @@unique([entryId, roomId, userId])
+}
+
+model PointsLedger {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @db.Uuid
+  roomId        String   @db.Uuid
+  sourceKind    String   @db.VarChar(40)
+  sourceId      String   @db.Uuid
+  awardCode     String   @db.VarChar(40)
+  policyVersion String   @db.VarChar(40)
+  delta         Int
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  room          GameRoom @relation(fields: [roomId], references: [id], onDelete: Restrict)
+
+  @@unique([userId, sourceKind, sourceId, awardCode])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([roomId])
+}
+
+model OutboxEvent {
+  id               String    @id @default(uuid()) @db.Uuid
+  aggregateType    String    @db.VarChar(40)
+  aggregateId      String    @db.Uuid
+  aggregateVersion Int
+  type             String    @db.VarChar(100)
+  payload          Json
+  attempts         Int       @default(0)
+  availableAt      DateTime  @default(now()) @db.Timestamptz(3)
+  leaseUntil       DateTime? @db.Timestamptz(3)
+  publishedAt      DateTime? @db.Timestamptz(3)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([publishedAt, availableAt, leaseUntil])
+  @@index([aggregateType, aggregateId, aggregateVersion])
+}
+
+model IdempotencyRecord {
+  userId       String   @db.Uuid
+  scope        String   @db.VarChar(150)
+  key          String   @db.VarChar(100)
+  requestHash  String   @db.Char(64)
+  responseCode Int
+  responseBody Json
+  expiresAt    DateTime @db.Timestamptz(3)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([userId, scope, key])
+  @@index([expiresAt])
+}

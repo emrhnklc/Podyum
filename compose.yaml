@@ -1,0 +1,19 @@
+# Alternatif ortam: Docker kurulu olduğunda gerçek çok bağlantılı PostgreSQL.
+services:
+  postgres:
+    image: postgres:18
+    ports:
+      - "127.0.0.1:54329:5432"
+    environment:
+      POSTGRES_USER: kombin
+      POSTGRES_PASSWORD: local_kombin_only
+      POSTGRES_DB: kombin
+    volumes:
+      - kombin_pg:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kombin -d kombin"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  kombin_pg:

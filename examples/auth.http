@@ -1,0 +1,69 @@
+@baseUrl = http://127.0.0.1:3000/v1
+@accessToken = LOGIN_YANITINDAN_ACCESS_TOKEN
+@refreshToken = LOGIN_YANITINDAN_REFRESH_TOKEN
+@verificationToken = YEREL_POSTA_KUTUSUNDAN_VERIFY_EMAIL_TOKEN
+@resetToken = YEREL_POSTA_KUTUSUNDAN_RESET_PASSWORD_TOKEN
+
+### Çalışan giriş yöntemleri
+GET {{baseUrl}}/auth/providers
+
+### Kayıt; e-posta .local/mailbox altına yazılır
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "elif.local@example.com",
+  "password": "Yerel deneme için uzun şifre 123!",
+  "username": "elif_local",
+  "displayName": "Elif"
+}
+
+### Doğrulama
+POST {{baseUrl}}/auth/email-verification/confirm
+Content-Type: application/json
+
+{"token": "{{verificationToken}}"}
+
+### Giriş
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{"email": "elif.local@example.com", "password": "Yerel deneme için uzun şifre 123!"}
+
+### Kendi oturum bilgim
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+### Yenile; dönen token çiftini birlikte sakla. Eski token'ı tekrar gönderme.
+POST {{baseUrl}}/auth/refresh
+Content-Type: application/json
+
+{"refreshToken": "{{refreshToken}}"}
+
+### Şifre sıfırlama isteği
+POST {{baseUrl}}/auth/password-reset/request
+Content-Type: application/json
+
+{"email": "elif.local@example.com"}
+
+### Şifre sıfırlama onayı
+POST {{baseUrl}}/auth/password-reset/confirm
+Content-Type: application/json
+
+{"token": "{{resetToken}}", "password": "Yeni yerel deneme şifresi 456!"}
+
+### Çıkış
+POST {{baseUrl}}/auth/logout
+Authorization: Bearer {{accessToken}}
+
+### Google mock; .env içinde AUTH_MOCK_ENABLED=true gerekir
+POST {{baseUrl}}/auth/mock
+Content-Type: application/json
+
+{"provider": "google", "subject": "local-elif", "acknowledgeMock": true}
+
+### Apple mock; aynı subject Google hesabından ayrı kimliktir
+POST {{baseUrl}}/auth/mock
+Content-Type: application/json
+
+{"provider": "apple", "subject": "local-elif", "acknowledgeMock": true}
