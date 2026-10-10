@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "./Text";
-import { blush, colors, fonts } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 
 export function PillChip({
   label,
@@ -14,7 +14,7 @@ export function PillChip({
   active: boolean;
   onPress: () => void;
 }) {
-  const tint = active ? blush.wine : colors.text;
+  const tint = active ? brand.accentDark : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -44,9 +44,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     minHeight: 42,
     borderRadius: 21,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
-  active: { backgroundColor: blush.pinkSoft, borderColor: blush.pink },
+  active: { backgroundColor: brand.accentSoft, borderColor: brand.accent },
 });

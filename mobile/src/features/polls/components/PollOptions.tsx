@@ -7,12 +7,12 @@ import {
 } from "react-native";
 import { Text } from "@/components/ui/Text";
 import { PreviewImage } from "@/components/media/PreviewImage";
-import { blush, colors, fonts } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 import { ME } from "@/constants/demo";
 import { demoResults, useDemoPolls } from "../hooks/use-demo-polls";
 import type { DemoPost } from "../types";
 
-const BADGE_TONE = { A: "rgba(204,92,134,0.85)", B: "rgba(160,112,160,0.85)" };
+const BADGE_TONE = { A: "rgba(183,118,74,0.9)", B: "rgba(107,65,40,0.85)" };
 
 // Yan yana iki seçenek. Dokununca tercih kaydedilir; oylama açıkken diğerine
 // dokunarak tercih değiştirilebilir. Kendi paylaşımında ve kapanmış oylamada
@@ -50,7 +50,7 @@ export function PollOptions({
             onPress={() => vote(post.id, option.label)}
             style={[
               styles.option,
-              { borderColor: selected ? blush.pink : "transparent" },
+              { borderColor: selected ? brand.accent : "transparent" },
             ]}
           >
             <PreviewImage uri={option.image} tone={option.tone} />
@@ -66,7 +66,7 @@ export function PollOptions({
                     {
                       height: `${option.percent}%`,
                       backgroundColor: selected
-                        ? "rgba(236,94,146,0.82)"
+                        ? "rgba(183,118,74,0.85)"
                         : "rgba(17,17,17,0.45)",
                     },
                   ]}
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     left: 10,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 7,

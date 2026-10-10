@@ -1,23 +1,23 @@
 import { Platform, StyleSheet } from "react-native";
 
-// Keşfet ekranının pembe "Podyum" görünümü.
-export const blush = {
-  background: "#FCF3F5",
-  surface: "#FDF6F8",
-  card: "#FFFFFF",
-  line: "#F1DCE3",
-  chip: "#FBE4EC",
-  pink: "#EC5E92",
-  pinkSoft: "#F7C9D9",
-  wine: "#8E1E48",
-  lilac: "#B07AA1",
+// Podyum kahve/krem paleti; tüm sekme ve ayrıntı ekranları bunu kullanır.
+export const brand = {
+  background: "#F3ECE6", // genel arka plan
+  surface: "#F1E4D8", // kart arka planları
+  card: "#FAF8F5", // açık yüzeyler
+  line: "#E4D3C3",
+  chip: "#EADACB",
+  accent: "#B7764A", // ana butonlar
+  accentSoft: "#DDBFA5", // seçili kategoriler
+  accentDark: "#6B4128", // seçili öğe yazısı
+  muted: "#9C8576",
 };
 // Giriş ekranının kahve/krem görünümü.
 export const sand = {
-  background: "#FBF4EA",
-  card: "#FFFDF9",
-  line: "#EAD9C4",
-  brown: "#A86A35",
+  background: "#F3ECE6",
+  card: "#FAF8F5",
+  line: "#E4D3C3",
+  brown: "#B7764A",
   brownDark: "#7A4A22",
   muted: "#6E6257",
 };
@@ -28,13 +28,13 @@ export const serif = Platform.select({
 });
 
 export const colors = {
-  background: "#FFFFFF",
-  text: "#111111",
-  muted: "#5F5F5A",
-  surface: "#F4F3EF",
-  chip: "#E9E9E6",
-  line: "#DAD9D4",
-  accent: "#D00A26",
+  background: "#F3ECE6",
+  text: "#25212A",
+  muted: "#6B625D",
+  surface: "#F1E4D8",
+  chip: "#EADACB",
+  line: "#E4D3C3",
+  accent: "#B7764A",
   onAccent: "#FFFFFF",
   blue: "#0B66D0",
   avatar: "#D9D4CC",

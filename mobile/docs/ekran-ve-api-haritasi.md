@@ -15,6 +15,7 @@
 | `/u/:username` | profile/ProfileScreen | "Profil": lig rozeti, Takip Et/Mesaj, öne çıkanlar; bilinmeyen kullanıcı için boş durum |
 | `/polls/:id` | polls/PollDetailScreen | Demo kombin detayı; aynı tercih state'i |
 | `/profile/edit` | profile/EditProfileScreen | Profili Düzenle: kapak/avatar seçimi, ad, bio, konum, stil etiketleri, sosyal hesaplar; Kaydet bellekte tutar |
+| `/auth/register` | auth/RegisterScreen | 3 adımlı kayıt (hesap, profil, stil); sunucu yok, tamamlanınca önizleme profiline yazar ve Keşfet'i açar |
 | `/settings` | settings/SettingsScreen | Ayarlar: Bildirimler ekranına gider, Çıkış karşılama ekranına döner; diğer satırlar henüz bağlı değil |
 | `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
 | `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |

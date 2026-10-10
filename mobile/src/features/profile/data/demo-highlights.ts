@@ -9,16 +9,16 @@ export type DemoHighlight = {
 
 export const myHighlights: DemoHighlight[] = [
   { label: "Günlük", icon: "cafe-outline", tone: "#F1E2D6" },
-  { label: "Seyahat", icon: "airplane-outline", tone: "#DDE6F1" },
+  { label: "Seyahat", icon: "airplane-outline", tone: "#E2DCD3" },
   { label: "Kombinler", icon: "shirt-outline", tone: "#EADBC8" },
   { label: "Kahve", icon: "cafe", tone: "#E8D3C3" },
-  { label: "Podyum", icon: "sparkles-outline", tone: "#F3D2E2" },
+  { label: "Podyum", icon: "sparkles-outline", tone: "#E8D3C3" },
 ];
 
 export const otherHighlights: DemoHighlight[] = [
   { label: "Kombinler", icon: "shirt-outline", tone: "#E2DDD4" },
-  { label: "Seyahat", icon: "airplane-outline", tone: "#DDE6F1" },
-  { label: "Spor", icon: "barbell-outline", tone: "#DCDDE6" },
+  { label: "Seyahat", icon: "airplane-outline", tone: "#E2DCD3" },
+  { label: "Spor", icon: "barbell-outline", tone: "#DDD8D0" },
   { label: "Davet", icon: "wine-outline", tone: "#EADBC8" },
-  { label: "Ayna", icon: "camera-outline", tone: "#F1D6D6" },
+  { label: "Ayna", icon: "camera-outline", tone: "#EBD9CC" },
 ];
