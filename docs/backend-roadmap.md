@@ -138,12 +138,14 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 **Sorumlu:** Arkadaş; ortak şema entegrasyonunu biz koordine ederiz.
 
 - [ ] Ortak ürün kataloğunu seçenek başına ProductTag'den ayır; aynı ürünün farklı paylaşımlarda birleştirilmesi.
-- [ ] Mağaza/ürün kimliği veya normalize URL ile çözümleme; isimden belirsiz eşleşme ve manuel düzeltme.
+- [ ] Mağaza/ürün kimliği veya normalize URL ile çözümleme; isimden belirsiz eşleşme ve kişinin kendi taslak etiket/eşleşmesinde manuel seçim veya bilgi düzeltme. Ortak ürünün üzerine yazma yetkisi vermez.
 - [ ] Varyant, fiyat zamanı, para birimi ve eşleşmeyen link davranışı.
 - [ ] Özgün dış/affiliate linkini ortak ürün kimliğinden ayrı koruma; normal ve ticari link beyanı/doğrulama sözleşmesi.
 - [ ] Linkten otomatik ürün bilgisi alma için desteklenen kaynaklar ve başarısızlıkta kullanıcı girişi; her mağazaya otomatik entegrasyon varsaymama.
 
 Bu adım biz 4–6'yı geliştirirken arkadaş tarafından paralel tamamlanabilir. İlk ortak ürün/etiket şema sözleşmesi erken birleştirilir.
+
+İlk katalog teslimi çözümleme ve eşleşmedi/belirsiz durumda kullanıcı beyanını taşımadır. Bu beyan otomatik olarak doğrulanmış ortak ürün olmaz; ayrı kalıcı öneri tablosu ilk teslim için zorunlu değildir. Ortak ürün düzeltme/birleştirme API'si ortak yönetici yetkisiyle 16. adımda eklenir. Yönetici yetkisini biz, katalog yönetim API'sini arkadaş sağlar; ilk teslim bu altyapıyı beklemez.
 
 **Bittiğinde:** farklı paylaşımlardaki aynı ürün tanınabilir; affiliate linkler ürün kimliğini çoğaltmaz. Trendleri hesaplayacak ilişki tercih API'si geliştirilirken dikkate alınır. Ücretli kullanım hakkı 14. adımda bağlanır.
 

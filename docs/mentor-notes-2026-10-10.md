@@ -39,6 +39,7 @@ Filtreler: dönem, tercih yapanların cinsiyeti, tercih yapanların yaş grubu, 
 - Mevcut `ProductTag`, seçenek başına ad/marka/fiyat/link tutuyor; tek başına ortak ürün kataloğu veya trend altyapısı değil.
 - Mağaza + doğrulanmış ürün kimliği/temizlenmiş ürün URL'siyle eşleştirme öncelikli aday. Affiliate parametreleri ürün kimliğinden ayrı tutulmalı; kullanıcının özgün yönlendirme linki korunmalı.
 - İsimden eşleştirme belirsiz olabilir. Aynı adlı farklı ürünleri otomatik birleştirmeyeceğiz; çözülemeyen ürün için manuel seçim/düzeltme veya eşleşmedi durumu gerekecek.
+- Uygulama kapsamı açıklaması: manuel düzeltme kullanıcının kendi taslak etiketi/eşleşmesidir; ortak katalog kaydını değiştirmez. İlk katalog tesliminde admin düzeltme/birleştirme endpoint'i yoktur; ortak yönetici yetkisi geldiğinde ayrı eklenir. Kullanıcı beyanı otomatik olarak doğrulanmış ürün sayılmaz.
 - Renk/beden varyantlarının ayrı ürün sayılıp sayılmayacağı ve URL'den bilgi alma yöntemi açık karar. Her mağazadan otomatik veri okunabildiği varsayılmayacak.
 - Fiyatın hangi tarihe ait olduğu ve para birimi tutulacak. Farklı para birimleri doğrudan aynı fiyat aralığına karşılaştırılmayacak.
 

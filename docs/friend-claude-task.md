@@ -44,12 +44,23 @@ Senin modüllerin sırayla:
 - Ürün ana kimliği ile kullanıcının özgün/affiliate linkini ayır.
   Affiliate parametrelerini temizleyerek kişinin yönlendirmesini bozma.
 - Fiyat, para birimi ve fiyatın zaman/kaynak bağlamını ele al.
-- Sıradan kullanıcının ortak katalog kaydını keyfi değiştirememesi
-  için oluşturma/düzeltme/yetki ve veri kaynağı kurallarını belirt.
+- İlk teslimde kullanıcı mevcut ürünü çözümler veya eşleşmedi/belirsiz
+  sonucuyla manuel bilgi girer. Kullanıcı girdisi doğrulanmış ortak
+  ürün kaydını oluşturma, üzerine yazma veya birleştirme yetkisi vermez.
+- Manuel seçim/düzeltme kişinin kendi taslak ürün etiketine ve seçtiği
+  eşleşmeye aittir; ProductTag kaydını diğer geliştiricinin oylama modülü yönetir.
+  Fiyat da etiketin zaman/para birimi bağlamındadır; ortak ürün fiyatını ezmez.
+- Önerilen ürün bilgisini eşleşmedi yanıtında taşıyabilirsin; ilk teslim
+  için ayrı bir öneri tablosu zorunlu değil. Kalıcı öneri kaydı gerekiyorsa
+  doğrulanmış katalogdan ayrı durum/kaynak olarak model taslağında belirt.
+- Ortak ürün düzeltme/birleştirme ve admin endpoint'leri ilk teslimin
+  dışında. Ortak yönetici yetkisini diğer geliştirici 16. adımda sağlar;
+  ihtiyacı not et, kendi rol sistemi veya geçici açık admin yolu kurma.
 - Mevcut CurrentUser/AuthGuard, PrismaService, ApiError,
   validation, pagination ve Swagger altyapısını kullan.
 - Tekrar çözümleme, belirsiz ürün, affiliate linkin korunması,
-  yetkisiz erişim ve bozuk DTO gibi anlamlı davranışları test et.
+  kullanıcı verisinin ortak kaydı değiştirmemesi, yetkisiz erişim ve
+  bozuk DTO gibi anlamlı davranışları test et. Admin düzeltme testi ilk teslimde yok.
 
 Ortak Product modelinin ve ProductTag bağlantısının erken birleşmesi
 gerekiyor; tüm katalog modülünün bitmesini beklemeden bu küçük
