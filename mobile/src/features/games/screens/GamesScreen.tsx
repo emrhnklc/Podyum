@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
     height: 144,
     borderRadius: 10,
     overflow: "hidden",
-    backgroundColor: "#F3E3D3",
+    backgroundColor: colors.surface,
     borderWidth: 5,
     borderColor: colors.background,
     alignItems: "center",

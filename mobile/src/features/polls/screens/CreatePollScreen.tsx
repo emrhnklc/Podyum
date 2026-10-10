@@ -479,7 +479,9 @@ function SwitchRow({
         value={value}
         onValueChange={onChange}
         trackColor={{ true: colors.accent, false: colors.line }}
-        thumbColor="#FFFFFF"
+        thumbColor={colors.text}
+        // Web'de açık konumdaki topun rengi ayrı bir özellikten okunur.
+        {...({ activeThumbColor: colors.text } as object)}
       />
     </View>
   );

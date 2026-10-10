@@ -32,9 +32,9 @@ const STICKERS = {
 
 const GOLD = "#F2B627";
 
-// Arka plandaki pano: pastel karolardan oluşan, alta doğru beyaza eriyen bir
+// Arka plandaki pano: açık kırmızı ve gri karolardan oluşan, alta doğru beyaza eriyen bir
 // "pin duvarı". Görsel dosyası kullanmaz; her ekran genişliğinde yeniden dizilir.
-const PIN_TONES = [colors.accentSoft, "#F1EBDA", "#DDE6F1", "#F6DCDC", colors.surface, "#ECDDF1"];
+const PIN_TONES = [colors.accentSoft, colors.chip, "#F5C9CF", colors.surface, "#D6D6D3", colors.accentSoft];
 const PIN_HEIGHTS = [
   [150, 110, 190, 130, 170],
   [100, 180, 120, 200, 140],
