@@ -142,7 +142,10 @@ model User {
   polls              Poll[]
   votes              PollVote[]
   saves              PollSave[]
-  comments           Comment[]
+  comments           Comment[]             @relation("CommentAuthor")
+  removedComments    Comment[]             @relation("CommentRemover")
+  reportsMade        Report[]              @relation("ReportReporter")
+  reportsReceived    Report[]              @relation("ReportTargetUser")
   notifications      Notification[]
   devices            DeviceToken[]
   hostedRooms        GameRoom[]
@@ -345,6 +348,7 @@ model Poll {
   votes              PollVote[]
   saves              PollSave[]
   comments           Comment[]
+  reports            Report[]
 
   @@index([status, visibility, publishedAt(sort: Desc), id(sort: Desc)])
   @@index([authorId, publishedAt(sort: Desc), id(sort: Desc)])
@@ -381,17 +385,18 @@ model ProductTag {
 }
 
 model PollVote {
-  pollId                  String     @db.Uuid
-  voterId                 String     @db.Uuid
-  optionId                String     @db.Uuid
+  pollId                  String          @db.Uuid
+  voterId                 String          @db.Uuid
+  optionId                String          @db.Uuid
   genderAtVote            Gender?
   ageBandAtVote           AgeBand?
-  analyticsConsentAtVote  DateTime?  @db.Timestamptz(3)
+  analyticsConsentAtVote  DateTime?       @db.Timestamptz(3)
   analyticsRevisionAtVote Int?
-  createdAt               DateTime   @default(now()) @db.Timestamptz(3)
-  poll                    Poll       @relation(fields: [pollId], references: [id], onDelete: Restrict)
-  voter                   User       @relation(fields: [voterId], references: [id], onDelete: Restrict)
-  option                  PollOption @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
+  createdAt               DateTime        @default(now()) @db.Timestamptz(3)
+  poll                    Poll            @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  voter                   User            @relation(fields: [voterId], references: [id], onDelete: Restrict)
+  option                  PollOption      @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
+  reason                  PollVoteReason?
 
   @@id([pollId, voterId])
   @@index([pollId, optionId])
@@ -417,11 +422,82 @@ model Comment {
   contentStatus ContentStatus @default(VISIBLE)
   createdAt     DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
+  removedAt     DateTime?     @db.Timestamptz(3)
+  removedById   String?       @db.Uuid
   poll          Poll          @relation(fields: [pollId], references: [id], onDelete: Restrict)
-  author        User          @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  author        User          @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  removedBy     User?         @relation("CommentRemover", fields: [removedById], references: [id], onDelete: Restrict)
+  reports       Report[]
 
   @@index([pollId, createdAt, id])
   @@index([authorId])
+}
+
+enum PollReasonCode {
+  COLOR_HARMONY
+  MORE_STYLISH
+  MORE_COMFORTABLE
+  FITS_OCCASION
+  BETTER_FIT
+}
+
+// Oy verenin kendi seçtiği seçenek için işaretlediği tek hazır neden.
+// Seçenek ayrı tutulmaz; değişmez PollVote kaydından okunur.
+model PollVoteReason {
+  pollId    String         @db.Uuid
+  voterId   String         @db.Uuid
+  reason    PollReasonCode
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime       @updatedAt @db.Timestamptz(3)
+  vote      PollVote       @relation(fields: [pollId, voterId], references: [pollId, voterId], onDelete: Restrict)
+
+  @@id([pollId, voterId])
+  @@index([pollId, reason])
+}
+
+enum ReportTargetType {
+  POLL
+  COMMENT
+  USER
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE
+  IMPERSONATION
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+// Hedef türüne göre tam bir hedef sütunu doludur (migration'da CHECK).
+model Report {
+  id           String           @id @default(uuid()) @db.Uuid
+  reporterId   String           @db.Uuid
+  targetType   ReportTargetType
+  pollId       String?          @db.Uuid
+  commentId    String?          @db.Uuid
+  targetUserId String?          @db.Uuid
+  reason       ReportReason
+  note         String?          @db.VarChar(500)
+  status       ReportStatus     @default(OPEN)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+  reporter     User             @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  poll         Poll?            @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  comment      Comment?         @relation(fields: [commentId], references: [id], onDelete: Restrict)
+  targetUser   User?            @relation("ReportTargetUser", fields: [targetUserId], references: [id], onDelete: Restrict)
+
+  @@unique([reporterId, pollId])
+  @@unique([reporterId, commentId])
+  @@unique([reporterId, targetUserId])
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt(sort: Desc)])
 }
 
 model Notification {

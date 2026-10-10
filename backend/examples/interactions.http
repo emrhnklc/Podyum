@@ -1,0 +1,79 @@
+@origin = http://127.0.0.1:3000
+@accessToken = REPLACE_ACCESS_TOKEN
+@pollId = REPLACE_VISIBLE_POLL_UUID
+@userId = REPLACE_OTHER_USER_UUID
+@commentId = REPLACE_COMMENT_UUID
+@cursor = REPLACE_NEXT_CURSOR
+@commentKey = REPLACE_WITH_NEW_UUID_PER_COMMENT
+
+### Kaydet: görebildiğin yayın; tekrar aynı kaydı döndürür
+PUT {{origin}}/v1/polls/{{pollId}}/save
+Authorization: Bearer {{accessToken}}
+
+### Kaydı kaldır: kayıt yoksa da 200
+DELETE {{origin}}/v1/polls/{{pollId}}/save
+Authorization: Bearer {{accessToken}}
+
+### Kaydedilenler: yalnız hâlâ görebildiklerin, son kaydedilen önce
+GET {{origin}}/v1/me/saved-polls?limit=20
+Authorization: Bearer {{accessToken}}
+
+### Kaydedilenler: sonraki sayfa
+GET {{origin}}/v1/me/saved-polls?limit=20&cursor={{cursor}}
+Authorization: Bearer {{accessToken}}
+
+### Başkasının profili: görebildiğin yayınları (açık + kapanmış)
+GET {{origin}}/v1/users/{{userId}}/polls?limit=20
+Authorization: Bearer {{accessToken}}
+
+### Yorumlar: yeniden eskiye; canComment ve canRemove ipuçları dahil
+GET {{origin}}/v1/polls/{{pollId}}/comments?limit=20
+Authorization: Bearer {{accessToken}}
+
+### Yorum ekle: önce oy vermiş olmalısın (veya paylaşım senin). Her yeni yorumda yeni anahtar.
+POST {{origin}}/v1/polls/{{pollId}}/comments
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{commentKey}}
+Content-Type: application/json
+
+{ "body": "Renkler çok uyumlu" }
+
+### Yorumu kaldır: yazan veya paylaşım sahibi; düzenleme ucu yoktur
+DELETE {{origin}}/v1/comments/{{commentId}}
+Authorization: Bearer {{accessToken}}
+
+### Neden seç/değiştir: oy verdiğin seçenek için tek neden
+PUT {{origin}}/v1/polls/{{pollId}}/reason
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "reason": "COLOR_HARMONY" }
+
+### Nedeni kaldır
+DELETE {{origin}}/v1/polls/{{pollId}}/reason
+Authorization: Bearer {{accessToken}}
+
+### Neden sayıları: sahip, oy veren veya kapanış sonrası
+GET {{origin}}/v1/polls/{{pollId}}/reasons
+Authorization: Bearer {{accessToken}}
+
+### Paylaşımı şikâyet et; aynı hedefin tekrarı ilk kaydı döndürür
+POST {{origin}}/v1/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "targetType": "POLL", "targetId": "{{pollId}}", "reason": "INAPPROPRIATE", "note": "İsteğe bağlı kısa açıklama" }
+
+### Yorumu şikâyet et
+POST {{origin}}/v1/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "targetType": "COMMENT", "targetId": "{{commentId}}", "reason": "HARASSMENT" }
+
+### Kullanıcıyı şikâyet et
+POST {{origin}}/v1/reports
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "targetType": "USER", "targetId": "{{userId}}", "reason": "IMPERSONATION" }

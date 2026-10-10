@@ -62,9 +62,9 @@ Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluştur
 | PUT / DELETE | `/blocks/:userId` | Çalışır: engelle / kendi engelini kaldır; engel ilişkileri siler, unblock geri getirmez |
 | GET | `/style-tags` | Çalışır: stil sözlüğü |
 
-Hesap silme, şikâyet ve yönetim endpoint'leri ilk dış kullanıcı testinden önce eklenecek; normal kullanıcıya admin endpoint'i açılmayacak.
+Şikâyet kaydı (`POST /reports`) çalışır: [etkileşim rehberi](interactions-development.md). Hesap silme ve yönetim endpoint'leri ilk dış kullanıcı testinden önce eklenecek; normal kullanıcıya admin endpoint'i açılmayacak.
 
-Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil, medya ve oylama detay tarafından kullanılır; yorum uçları kendi adımında bağlanır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
+Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil, medya, oylama detay, yorum, kaydetme ve şikâyet tarafından kullanılır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
 
 ## 3. Medya
 
@@ -98,14 +98,18 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 | GET | `/polls/:id` | Çalışır: yetkili detay, seçenekler, manuel ürünler; myOptionId/canVote/canViewResults dahil |
 | PUT | `/polls/:id/vote` | Çalışır: tek tercih; aynı oy tekrarında ilk kabul, farklı tercih 409 |
 | GET | `/polls/:id/results` | Çalışır: yazar/oy veren veya kapanış sonrası yetkili izleyici; toplu anlık/kesin sonuç |
-| PUT / DELETE | `/polls/:id/save` | Kişisel kaydet/kaldır |
-| GET | `/me/saved-polls` | Hâlâ görünür kayıtlar |
-| GET / POST | `/polls/:id/comments` | Yetkili yorum listesi / yorum ekleme |
-| DELETE | `/comments/:id` | Kendi yorumunu kaldırma |
+| PUT / DELETE | `/polls/:id/save` | Çalışır: kişisel kaydet/kaldır; doğal tekrar, erişim vermez |
+| GET | `/me/saved-polls` | Çalışır: hâlâ görünür kayıtlar; limit/cursor |
+| GET | `/users/:id/polls` | Çalışır: o kullanıcının izleyiciye görünür yayınları; limit/cursor |
+| GET / POST | `/polls/:id/comments` | Çalışır: yetkili yorum listesi / yalnız oy veren veya sahip yorum ekler (Idempotency-Key) |
+| DELETE | `/comments/:id` | Çalışır: yazan veya paylaşım sahibi kaldırır; düzenleme yok |
+| PUT / DELETE | `/polls/:id/reason` | Çalışır: oy sonrası seçilen seçenek için tek hazır neden |
+| GET | `/polls/:id/reasons` | Çalışır: seçenek başına neden sayıları; sonuçla aynı görünürlük |
+| POST | `/reports` | Çalışır: görünen paylaşım/yorum/kullanıcı şikâyeti; hedef başına tek kayıt |
 
 Taslak/yayın yönetim yazma uçları Idempotency-Key ister; PUT oy doğal kullanıcı/oylama anahtarıyla çalışır, bu başlığı istemez; oluşturma dışındaki komutlarda expectedVersion gerekir (DELETE query, diğerleri body). options gönderilirse bütün liste ve ürünler değiştirilir, yeni kimlikler üretilir; yayın sonrası bu alanlar sabittir. Süre 1800/7200/86400 saniye; yayın anında başlar. Ürünler USER_ENTERED beyanıdır, ortak katalog eşleşmesi henüz yoktur. Detay status yanında serverNow/closesAt/effectiveStatus/remainingSeconds içerir; süresi dolan OPEN okuma sırasında CLOSED görünür, kalıcı kapanış tarayıcısı API açılışında ve varsayılan 15 saniyede bir çalışır; oy son sürede doğrudan durur. [Çalışan sözleşme](polls-development.md), [HTTP örnekleri](../examples/polls.http).
 
-Tercih/sonuç ve organik akış davranışları uygulanmıştır; yorum/kaydetme halen planlanan sözleşmedir. Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar vardır; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil/kaydedilenler üzerinden görülebilecek. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez. [Akış sözleşmesi ve sayfalama davranışı](feed-development.md), [örnek HTTP](../examples/feed.http).
+Tercih/sonuç, organik akış ve yorum/kaydetme/neden/şikâyet davranışları uygulanmıştır: [etkileşim rehberi](interactions-development.md), [örnek HTTP](../examples/interactions.http). Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar vardır; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil (`/users/:id/polls`) ve kaydedilenler üzerinden görülür. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez. [Akış sözleşmesi ve sayfalama davranışı](feed-development.md), [örnek HTTP](../examples/feed.http).
 
 ```json
 {

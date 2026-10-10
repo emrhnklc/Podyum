@@ -68,7 +68,7 @@ Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçla
 | --- | --- |
 | Dış kullanıcı testinden önce | Minimum yaş, kayıt sırasında yaş uygunluğu, gizlilik ve izin metinleri |
 | 8–9: oylama | Tek değişmez oy, sonuç görünürlüğü, yayın sonrası sabit alanlar ve iptal önerilerini ürün kararı haline getirme |
-| 11: sosyal etkileşim | Hazır etiketler ayrı tepki mi; kişi başına kaç etiket; düzenleme davranışı |
+| 11: sosyal etkileşim | **Seçildi (10 Ekim 2026):** hazır etiket yorumdan ayrı, oy sonrası seçilen seçenek için kişi başına tek neden; yorum düzenleme yok; paylaşım sahibi kendi paylaşımındaki yorumu kaldırabilir; yalnız oy verenler ve sahip yorum yazar. [Etkileşim rehberi](interactions-development.md) |
 | 19–20: aktif oyun | Günlük saat/saat dilimi; QR katılım koşulu/lobi süre sınırları; teslim/oy uygunluğu, dengeli dağıtım, değerlendirme/beraberlik/engel kuralları |
 | 22: puan (Faz 2) | Ödül formülü, arkadaş odası uygunluğu, lig/sezon/rozet/seri koşulları |
 | 23: haftalık yarışma (Faz 2) | Katılım hakkı, oylama yöntemi, sponsor ödüllerinde beraberlik |
