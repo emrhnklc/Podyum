@@ -53,6 +53,8 @@ Paralel kodlama öncesinde şu sınırlar kayda girer:
 
 Profil/ayar adımı şimdi çalışır. İzin/demografi değişikliği için uygulanan ilk kaynak olayı `user.analytics-preferences.changed`, aggregate `user-analytics` ve kullanıcı başına monoton `analyticsRevision`'dır. Tam payload ve henüz olmayan işçi/tüketim sınırı: [profil rehberi](users-development.md). Arkadaş trend entegrasyonunda bu sözleşmeyi kullanır; tercih olayı ayrıca hazırlanacak.
 
+Sosyal adım da çalışır: SocialAccessService ortak profil/yayın görünürlüğü kaynağıdır. Sosyal değişiklikler `social.relationship.changed`, aggregate `user-social` ve kullanıcı başına `socialRevision` taşır; bunlar iç olaylardır ve ham payload bildirim olarak yayınlanmaz. User.socialRevision yedinci migration'la eklenir; yönetici rolü/katalog alanı eklenmedi. [Sosyal rehber](social-development.md).
+
 İlk şema teslimi: arkadaş ortak ürün/mağaza kimliği, belirsiz eşleşme ve fiyat bağlamı için önerisini yazar; biz ProductTag bağlantısıyla birlikte migration'ı sıraya alırız. Şema hazır olana kadar arkadaş URL normalizasyonunu, eşleştirme davranışını ve test fixture'larını geliştirebilir. Ancak gerçek DB entegrasyonunu yapılmış sayamaz.
 
 ## Paralel teslimler
@@ -124,4 +126,4 @@ Her PR: değişen sözleşmeler, migration/bağımlılık ihtiyacı, HTTP örnek
 
 Ayrı modüllerin içini bağımsız geliştirebiliriz. Ortak ürün modeli, tercih/izin olayı, ücretli haklar ve reklam–akış bağlantısında küçük entegrasyon teslimleri gerekir. Bu noktalar sözleşmeyle ve tek sahiplikle yönetilir; tamamen bağlantısız iki backend yapılmaz.
 
-Temel profil/ayar API'si şimdi hazır; avatar ve sekme listeleri medya/oylama adımında bağlanacak. **Sonraki bizim işimiz sosyal modül; arkadaşın ilk işi hâlâ katalog/ürün linkleri.** Oyun geliştirmesi yok. Güncel Claude görevi: [arkadaş için metin](friend-claude-task.md).
+Temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/iptal/silme/detay/kendi liste API'leri şimdi hazır. **Sonraki bizim işimiz tercih oyu/kapanış/sonuç; arkadaşın ilk işi hâlâ katalog/ürün linkleri.** Ürün etiketleri USER_ENTERED; ortak ürün eşleşmesi/productId henüz yoktur. Dokuzuncu migration yalnız nullable ProductTag.priceRecordedAt ekler: kullanıcı fiyat beyanının sunucu zamanı, eski veride null. Arkadaş ortak ürün/store/eşleşme şemasını önerirken bu alanı ve özgün linki korur; biz schema/migration entegrasyonunu yaparız. Güncel kod alınınca `npm ci`, `npm run db:deploy`, `npm run db:generate`; reset yok. Otomatik yüz tespiti/bulut depo, başkasının profil listesi ve kaydedilenler bekliyor. [Medya sözleşmesi](media-development.md), [oylama/ürün etiketi sözleşmesi](polls-development.md). Oyun geliştirmesi yok. Güncel Claude görevi: [arkadaş için metin](friend-claude-task.md).

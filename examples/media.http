@@ -1,0 +1,76 @@
+@origin = http://127.0.0.1:3000
+@accessToken = REPLACE_ACCESS_TOKEN
+@mediaId = REPLACE_MEDIA_UUID
+@uploadToken = REPLACE_UPLOAD_TOKEN
+
+### İzin: byteSize gerçek dosyanın byte uzunluğu olmalı. Avatar için purpose=AVATAR.
+POST {{origin}}/v1/media/uploads
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "purpose": "POLL",
+  "mimeType": "image/jpeg",
+  "byteSize": 12345,
+  "blurRequested": true
+}
+
+### Gerçek JPEG dosyasını file alanında yükle; izin yanıtından token/id al.
+POST {{origin}}/v1/media/{{mediaId}}/upload
+Authorization: Bearer {{accessToken}}
+X-Upload-Token: {{uploadToken}}
+Content-Type: multipart/form-data; boundary=PodyumBoundary
+
+--PodyumBoundary
+Content-Disposition: form-data; name="file"; filename="outfit.jpg"
+Content-Type: image/jpeg
+
+< ./outfit.jpg
+--PodyumBoundary--
+
+### Seçilen yüz bölgesini bulanıklaştır. Koordinatlar yönü düzeltilmiş fotoğrafta 0–1.
+POST {{origin}}/v1/media/{{mediaId}}/complete
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "blurRegions": [{ "x": 0.3, "y": 0.05, "width": 0.25, "height": 0.2 }]
+}
+
+### Fotoğrafta yüz yoksa kullanıcı onayıyla alternatif complete gövdesi:
+# { "confirmNoFaces": true }
+# blurRequested=false ise complete gövdesi: {}
+
+### Durum yalnız sahibi tarafından okunur
+GET {{origin}}/v1/media/{{mediaId}}
+Authorization: Bearer {{accessToken}}
+
+### İşlenmiş önizlemeyi gör; orijinal için endpoint yok
+GET {{origin}}/v1/media/{{mediaId}}/content
+Authorization: Bearer {{accessToken}}
+
+### Thumbnail
+GET {{origin}}/v1/media/{{mediaId}}/content?variant=thumbnail
+Authorization: Bearer {{accessToken}}
+
+### Kullanıcı görüntüyü inceledikten sonra onayla
+POST {{origin}}/v1/media/{{mediaId}}/accept-preview
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "confirmed": true }
+
+### Yalnız purpose=AVATAR olan kendi onaylı fotoğrafın için
+PUT {{origin}}/v1/me/avatar
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "mediaId": "{{mediaId}}" }
+
+### Avatar bağlantısını kaldır
+DELETE {{origin}}/v1/me/avatar
+Authorization: Bearer {{accessToken}}
+
+### Bağlı olmayan fotoğrafı sil
+DELETE {{origin}}/v1/media/{{mediaId}}
+Authorization: Bearer {{accessToken}}

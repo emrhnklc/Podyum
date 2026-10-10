@@ -12,7 +12,7 @@ Faz 1 sahipliği: kullanıcı/sosyal/medya/oylama/bildirim ve ortak altyapı biz
 
 **Önerilen başlangıç:** TypeScript + NestJS ile modüler monolit; Prisma ORM + PostgreSQL; REST üzerinden komutlar; Socket.IO üzerinden durum değişikliği haberleri; arka plan işçisi. Redis/BullMQ, medya deposu ve kimlik sağlayıcısı ilgili aşamada eklenecektir. Bunlar bugün kurulmuş servisler değildir.
 
-Bu depoda bugün veritabanı temeli, ortak HTTP altyapısı, Swagger, health, auth ve temel users modülü çalışır. E-posta/şifre ve yerel opaque oturumlar, profil/stil/özel bilgiler/izin ve ayarlar uygulanmıştır; e-posta yerel dosyaya teslim edilir, Google/Apple geliştirme mock'udur. Gerçek OAuth/e-posta, sosyal/oylama/oyun API'leri, avatar/medya işçisi, abonelik ve bildirim entegrasyonları henüz yazılmadı. [Uygulanan kararlar](implementation-decisions.md), [auth davranışı](auth-development.md), [profil davranışı](users-development.md).
+Bu depoda bugün veritabanı temeli, ortak HTTP/kalıcı idempotency altyapısı, Swagger, health, auth, users, social, yerel media ve polls oluşturma modülü çalışır. E-posta/şifre ve yerel opaque oturumlar, profil/stil/özel bilgiler/izin/ayarlar, arkadaşlık/engel/arama, yerel fotoğraf/manuel blur/önizleme/avatar ve manuel ürün etiketleriyle taslak/yayın/iptal/silme/detay/kendi liste uygulanmıştır; e-posta yerel dosyaya teslim edilir, Google/Apple geliştirme mock'udur. Gerçek OAuth/e-posta, tercih oyu/sonuç/akış/etkileşim, katalog eşleştirme/abonelik/bildirim, Faz 2 oyun, otomatik yüz tespiti/bulut medya/ayrı işçi henüz yoktur. [Uygulanan kararlar](implementation-decisions.md), [auth davranışı](auth-development.md), [profil davranışı](users-development.md), [sosyal davranış](social-development.md), [medya davranışı](media-development.md), [oylama davranışı](polls-development.md).
 
 ## 2. Sistemin şekli
 
@@ -116,6 +116,8 @@ Birden fazla API örneğine geçildiğinde adapter kurulur. İlk tercih WebSocke
 ## 9. Fotoğraf hattı
 
 `upload intent → özel staging alanına yükleme → complete → doğrulama/işleme → önizleme kabulü → yayınlanabilir medya`.
+
+Yerel uygulama: 15 dakikalık tek kullanımlık izin + Bearer ile multipart yükleme, özel dosya deposu, Sharp ile senkron işleme, EXIF'siz WebP/thumbnail, manuel blur bölgeleri ve açık önizleme onayı. Otomatik yüz tespiti henüz bağlı değildir. Ayrı işçi/bulut sağlayıcı ve zamanlanmış temizlik gerçek entegrasyon işidir. [Çalışan sözleşme](media-development.md).
 
 İmzalı yükleme URL'si tek kullanımlık varsayılmaz; süre içinde tekrar kullanılıp aynı anahtarın içeriği değiştirilebilir. Bu yüzden işlenecek kaynak sürümü/checksum sabitlenir ve gösterilecek dosya istemcinin yazamadığı ayrı, değişmez bir anahtara üretilir. [S3 presigned URLs](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html)
 

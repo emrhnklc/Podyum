@@ -46,9 +46,15 @@ Arkadaşlık ve engelleme User'a iki taraftan bağlanan ayrı ilişkilerdir. Oyl
 | Ödül | PointsLedger | Kaynağı belli puan hareketleri; ödül dağıtımı kapalı |
 | Güvenilirlik | OutboxEvent, IdempotencyRecord | Transaction sonrası işler ve komut tekrarları |
 
-Toplam 32 model vardır. Health, auth ve temel users API'leri çalışır; diğer model API'leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
+Toplam 32 model vardır. Health, auth, users, social, yerel media/avatar ve polls taslak/yayın/detay/kendi liste API'leri çalışır. PollVote/sonuç/akış/etkileşim ve diğer model API'leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
 
 Altıncı migration UserSettings ve UserPrivate.analyticsRevision alanını ekler. Analiz izni/demografi değişikliği ve outbox olayı aynı transaction'a yazılır; ham demografik değerler olay gövdesinde yer almaz. İşçi/trend tüketimi henüz yoktur. Özel alanlar, ayar varsayılanları ve sayaç görünürlüğü: [users rehberi](users-development.md).
+
+Yedinci migration User.socialRevision ekler. İlişki/engel değişikliği, iki kullanıcının sosyal sürümü ve hedefli iç outbox olayları tek transaction'dadır. Bildirim işçisi henüz yok; engel olayının payload'u istemciye açılmaz. [Sosyal kurallar ve erişim servisi](social-development.md).
+
+Sekizinci migration MediaPurpose (POLL/AVATAR), uploadTokenHash/son süre/beyan alanları, thumbnailKey, processingRevision/processingRequestHash/rejectionCode/filesPurgedAt ve User.avatarMediaId ilişkisini ekler. ByteSize beyanı 1–10 MiB, işlem sürümü negatif olamaz. FK avatar sahipliği/amacı/onayını tek başına doğrulamaz; bunlar kilit altında MediaService tarafından kontrol edilir. Kaynak/çıktı anahtarları kamusal yanıta girmez. [Medya yaşam döngüsü](media-development.md).
+
+Dokuzuncu migration ProductTag.priceRecordedAt ekler. Fiyatın doğrulandığı/güncellendiği tarih değil, kullanıcı beyanının sunucuda kaydedildiği zamandır; eski kayıtlarda null kalır. ProductTag hâlâ seçenek sahibinin kullanıcı beyanıdır, ortak katalog değildir; productId henüz yoktur. Var olan IdempotencyRecord modeli 24 saatlik oylama makbuzları için kullanılmaya başladı. [Oylama ve tekrar sözleşmesi](polls-development.md).
 
 ## 3. Veritabanının bugün koruduğu kurallar
 
@@ -88,7 +94,7 @@ PostgreSQL CHECK başka satırın güncel durumunu güvenilir biçimde doğrulam
 - Ödülün yalnızca uygun ve kesinleşmiş oyundan, Rewards modülü tarafından yazılması.
 - Olayların ve idempotency yanıtının asıl işlemle aynı transaction'a yazılması.
 
-DB bütünlük testlerinde taslak bir oylamaya kayıt yazılabilmesi, gerçek API'nin buna izin vereceği anlamına gelmez. API bu kurallarla henüz uygulanmadı.
+Taslak/yayın servisinde sahiplik/onay, 2–4 seçenek, sabit yayın içeriği, sürüm, makbuz ve outbox atomikliği uygulanır. Oy/kapanış/oyun kuralları henüz servis olarak yoktur. DB bütünlük testlerinde taslak bir oylamaya oy yazılabilmesi, ilerideki oy API'sinin buna izin vereceği anlamına gelmez.
 
 ## 5. Oy yazma transaction'ı
 

@@ -2,11 +2,11 @@
 
 Kombin tercihi oylamaları ve fotoğraflarla oynanan canlı tema yarışması için mimari taslak ve çalışan yerel veritabanı temeli.
 
-**Hazır:** Ortak API doğrulama/hata/request ID/Swagger altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; health endpoint'leri; Prisma şeması (32 model), altı migration, demo seed ve DB hedef koruması. **Planlanan:** Sosyal/oylama/oyun API'leri, avatar/medya işleme, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
+**Hazır:** Ortak API doğrulama/hata/request ID/Swagger ve kalıcı işlem tekrarı altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; kullanıcı arama, arkadaşlık/engel ve ortak erişim servisi; yerel özel fotoğraf yükleme/işleme/önizleme, manuel bölge bulanıklaştırma ve avatar; oylama taslağı/düzenleme/yayın/iptal/silme, elle ürün etiketleri, detay ve kendi liste uçları; health endpoint'leri; Prisma şeması (32 model), dokuz migration, demo seed ve DB hedef koruması. **Planlanan:** Tercih oyu/sonuç/akış/yorum/kaydetme, katalog eşleştirme, ticari modüller, Faz 2 oyun API'leri, otomatik yüz tespiti/bulut medya deposu, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
 
 E-posta teslimi şimdilik yerel dosyadır. Gerçek Google/Apple girişi tamamlanmadı. Çalışan akış: [Auth geliştirme rehberi](docs/auth-development.md).
 
-Çalışan profil/ayar uçları ve kalan medya/sekme bağlantıları: [Profil geliştirme rehberi](docs/users-development.md), [örnek HTTP istekleri](examples/users.http). Sonraki bizim işimiz sosyal modül; arkadaş katalogla paralel ilerleyebilir.
+Çalışan profil/ayar uçları: [Profil rehberi](docs/users-development.md), [HTTP örnekleri](examples/users.http). Sosyal API: [Sosyal rehber](docs/social-development.md), [HTTP örnekleri](examples/social.http). Fotoğraf/avatar: [Medya rehberi](docs/media-development.md), [HTTP örnekleri](examples/media.http). Oylama oluşturma: [Oylama rehberi](docs/polls-development.md), [HTTP örnekleri](examples/polls.http). Sonraki bizim işimiz tercih oyu/kapanış/sonuç; arkadaş katalogla paralel ilerleyebilir. Otomatik yüz tespiti henüz bağlı değildir.
 
 ## Belgeleri okuma sırası
 
@@ -90,7 +90,9 @@ npm run test:api
 npm run db:check
 ```
 
-NestJS uygulamasını başlatmak için `npm start` kullanın; önce Prisma istemcisini üretir ve TypeScript'i derler. Varsayılan adres `http://127.0.0.1:3000`; port doluysa `PORT=3100 npm start` ile ayrı port seçin. Health, `/v1/auth/*` ve profil/ayar endpoint'leri çalışır. Açılışta ortam ve hedef DB doğrulanır; kapanışta Prisma bağlantısı bırakılır.
+NestJS uygulamasını başlatmak için `npm start` kullanın; önce Prisma istemcisini üretir ve TypeScript'i derler. Varsayılan adres `http://127.0.0.1:3000`; port doluysa `PORT=3100 npm start` ile ayrı port seçin. Health, `/v1/auth/*`, profil/ayar, sosyal, medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Açılışta ortam ve hedef DB doğrulanır; kapanışta Prisma bağlantısı bırakılır.
+
+Yerel fotoğraflar `.local/media` altında, HTTP'den doğrudan açılmayan özel dosyalardır; `LOCAL_MEDIA_DIR` ile ayrı dizin seçilebilir. `npm run test:media` fotoğraf hattını kontrol eder; `npm run media:cleanup` süresi dolan/boşta dosyaları temizler. Otomatik cron henüz yoktur.
 
 Swagger `http://127.0.0.1:3000/v1/docs`, OpenAPI `/v1/openapi.json` adresindedir. [Örnek HTTP istekleri](examples/auth.http) ile kayıt/giriş denenebilir. Doğrulama/reset mesajları `.local/mailbox` altında oluşur. Google/Apple mock için `.env` dosyasında `AUTH_MOCK_ENABLED="true"` gerekir; varsayılan kapalıdır.
 
@@ -138,5 +140,7 @@ DATABASE_URL="postgresql://kombin:local_kombin_only@127.0.0.1:54329/kombin?sslmo
 Prisma validation/client üretimi, TypeScript kontrolü, migration uygulaması, tekrar çalışabilen seed, 13 DB testi ve auth/ortak API HTTP testleri yerelde kontrol edilir. DB testleri rollback kullanır; HTTP testleri yalnızca kendi benzersiz test hesaplarını ve geçici posta kutularını temizler. Demo verileri silinmez.
 
 DB testleri tek oy, doğru seçenek FK'sı, arkadaşlık çifti, süre alanı, seçenek sınırı, kendine yıldız, yıldız aralığı, oda üyeliği, tur sahibi, tek aktif oyun ve ödül tekilliğini kapsar. Auth HTTP testleri kayıt/doğrulama/giriş, token dönüşümü/tekrar kullanımı, çıkış, reset, hesap durumu, mock kapatma, hata/limit ve Swagger davranışlarını kapsar. Profil testleri özel alan ayrımı, kurulum, atomik stil/isim güncellemesi, izin/olay kaydı, ayarlar, görünür sayaçlar ve iki yönlü engeli kapsar; yalnız bunlar için `npm run test:users`. Oylama/oyun yetkileri ve çok bağlantılı yarış testleri ilgili adımlarda yapılacak.
+
+Sosyal testler kullanıcı arama, çift/ters istek, alıcı/gönderen yetkisi, kabul/red/iptal tekrarı, arkadaşlıktan çıkarma, iki yönlü engel, özel yayın erişimi, cursor ve olay hatasında rollback'i kapsar; yalnız bunlar için `npm run test:social`. Medya testleri gerçek dosya işleme/blur/erişim/temizliği, `npm run test:polls` ise 18 taslak/yayın/tekrar/sürüm/erişim/kota/rollback testini çalıştırır. `test:api` auth, profil, sosyal, medya ve oylama oluşturmayı birlikte çalıştırır (64 HTTP testi). Medya ve oylama detay uçları ortak sosyal erişim servisine bağlıdır.
 
 Bağımlılıklarda `deepmerge-ts` ve `mysql2` overrides, Prisma araç zincirindeki bildirilen açıkların düzeltilmiş sürümlerini kullanır; kurulum/config/migration/generate kontrolleriyle doğrulanır. Sürüm yükseltirken bu pin'leri ve `npm audit` sonucunu birlikte gözden geçirin.
