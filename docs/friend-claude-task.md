@@ -14,7 +14,12 @@ docs/auth-development.md, docs/users-development.md ve prisma/schema.prisma dosy
 Bu belgelerde onaylı kararlar ve henüz seçilmemiş kurallar ayrılıyor.
 
 Mevcut proje NestJS + TypeScript, PostgreSQL + Prisma. Health, ortak
-API altyapısı, auth, temel profil/ayarlar ve sosyal modül çalışıyor. E-posta/şifre ve opaque oturumlar
+API altyapısı, auth, temel profil/ayarlar, sosyal ve yerel medya/avatar çalışıyor.
+Oylama taslak/düzenleme/yayın/iptal/silme/detay/kendi liste ve kalıcı işlem tekrarı da hazır;
+oy/sonuç/akış henüz yok. Ürün etiketleri USER_ENTERED, productId henüz yok.
+Dokuzuncu migration ProductTag.priceRecordedAt ekler (fiyat beyanının sunucu zamanı,
+eski veride null); ortak şema önerisinde alanı ve özgün linki koru.
+docs/polls-development.md sözleşmesini incele. E-posta/şifre ve opaque oturumlar
 gerçek yerel akış; e-posta teslimi dosya, Google/Apple mock.
 Yeni ürün/trend/billing/ads servisleri henüz uygulanmış değil.
 

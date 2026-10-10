@@ -93,3 +93,13 @@ Trendler ekranının veya demografik/fiyat filtrelerinin ücretli olacağı hen�
 - [ ] Faz 2: podyum → canlı olaylar → eşleşme → oyun puanı/lig → haftalık/sponsorlu yarışmalar.
 
 Bu not ürün planına eklendi. Uygulama kodu, şema ve migration bu görüşme kaydı nedeniyle değiştirilmedi.
+
+## Ek ürün fikirleri — kullanıcının sonraki notları
+
+Kaynak: kullanıcının 10 Ekim 2026 tarihli ek fikirleri. Aşağıdakiler geliştirme için kaydedilmiş adaylardır; teslim aşamaları henüz seçilmedi. Mevcut backend geliştirme sırası korunur.
+
+- [ ] **Profilde beğenilen kombinler:** Kullanıcının beğendiği kombinlere profilinden tekrar ulaşabileceği bir bölüm. Beğenmenin ayrı bir eylem mi, tercih verilen seçenek mi olacağı; kaydedilenlerden farkı ve listenin kimlere görüneceği netleştirilecek. Listelenen kombinler güncel arkadaşlık/engel ve paylaşım görünürlüğüne uymalı.
+- [ ] **Giyilenler / highlights:** Kullanıcının gerçekten giydiğini belirttiği kombinleri profilinde öne çıkarabileceği, seçilmiş kombinlerden oluşan bir highlights alanı. Ekleme/kaldırma, koleksiyon başlıkları ve görünürlük daha sonra tasarlanacak. Bir oylamada kazanan kombin otomatik olarak giyilmiş sayılmayacak.
+- [ ] **Halloween:** Halloween temalı kombin içeriği ve özel gün deneyimi fikri. Tema/keşif alanı mı, dönemsel etkinlik mi olacağı ayrıca netleştirilecek; yarışma seçilirse ertelenmiş oyun/etkinlik planıyla birlikte ele alınacak.
+- [ ] **Moda toplulukları:** Kullanıcıların ortak moda ilgileri, stilleri veya temaları etrafında topluluklar oluşturup kombin paylaşabileceği alanlar. Topluluk üyeliği, açık/kapalı görünürlük, yönetici/moderasyon ve topluluk akışının kapsamı belirlenecek. İlk kullanıcıları kazanmak için dışarıdaki moda kulüpleriyle iş birliği, uygulama içi topluluk özelliğinden ayrı takip edilecek.
+- [ ] **İleride AI ile ürün pazarlama ve talep testi:** Ürün pazarlamak isteyen üretici/satıcıların AI ile hazırladıkları ürün fikirlerini, tasarımları veya ürün görsellerini uygulamada karşılaştırmaya sunması; en çok ilgi görenleri belirleyip satışa çıkarması. AI üretiminin uygulamada mı yapılacağı yoksa dışarıda hazırlanan içeriklerin mi yükleneceği, üretici araçları, karşılaştırma ölçütü ve satış kanalına yönlendirme daha sonra kararlaştırılacak. Tercih/ilgi verisi ile gerçek satın alma sonuçları ayrı ölçülecek; AI görsellerinin henüz üretilmemiş bir ürünü temsil etmesi açıkça belirtilmeli.

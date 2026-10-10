@@ -5,6 +5,7 @@ export interface Environment {
   docsEnabled: boolean;
   authMockEnabled: boolean;
   localMailboxDir: string;
+  localMediaDir: string;
   corsOrigins: string[];
 }
 
@@ -51,6 +52,7 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
     docsEnabled: flag(env.API_DOCS_ENABLED, true, "API_DOCS_ENABLED"),
     authMockEnabled,
     localMailboxDir: env.LOCAL_MAILBOX_DIR ?? ".local/mailbox",
+    localMediaDir: env.LOCAL_MEDIA_DIR ?? ".local/media",
     corsOrigins,
   };
 }

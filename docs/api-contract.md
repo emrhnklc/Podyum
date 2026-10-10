@@ -2,7 +2,7 @@
 
 **Kapsam güncellemesi:** Oyun ve Socket.IO bölümleri Faz 2 taslağıdır. Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
-Health, `/v1/auth/*`, temel profil/ayar ve sosyal endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md). Aşağıdaki medya/oylama/oyun endpoint'leri henüz uygulanmamış taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
+Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Oy/sonuç/akış/yorum/kaydetme ve oyun endpoint'leri henüz taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
 
 ## 1. Ortak kurallar
 
@@ -13,7 +13,7 @@ Health, `/v1/auth/*`, temel profil/ayar ve sosyal endpoint'leri çalışır. Con
 - Zamanlar UTC ISO-8601. Canlı yanıtlar `serverNow`, `version`, `phaseEndsAt` içerir.
 - Görülemeyen özel kaynaklar `404 RESOURCE_NOT_FOUND`; erişim hakkı olmayan kişiye varlığı açıklanmaz.
 - Sunucu kodları kararlıdır; kullanıcıya gösterilen metin mobilde yerelleştirilebilir.
-- Planlanan paylaşım/oyun POST komutlarında `Idempotency-Key` gerekecek; kalıcı servis henüz uygulanmadı. Auth endpoint'leri bu anahtarı istemez; kayıt doğal e-posta tekilliğini kullanır, refresh tek kullanımlıdır. PUT oy/değerlendirme/kaydet işlemlerinin kendi doğal tekil anahtarı olacaktır.
+- Oylama oluşturma/düzenleme/yayınlama/iptal/silme/yorum ayarı komutlarında `Idempotency-Key` zorunlu; kalıcı servis ve 24 saatlik makbuz çalışır. Oyun Faz 2'de bağlanacak. Auth endpoint'leri bu anahtarı istemez; kayıt doğal e-posta tekilliğini kullanır, refresh tek kullanımlıdır. PUT oy/değerlendirme/kaydet işlemlerinin kendi doğal tekil anahtarı olacaktır.
 - Taslak güncelleme/yayınlama ve oda başlatma için `expectedVersion` alınır. Oy ve değerlendirme için istemcinin tüm aggregate sürümünü eşleştirmesi istenmez; ilgili poll/round ve mevcut sunucu aşaması yeterlidir.
 
 ```json
@@ -64,17 +64,22 @@ Health, `/v1/auth/*`, temel profil/ayar ve sosyal endpoint'leri çalışır. Con
 
 Hesap silme, şikâyet ve yönetim endpoint'leri ilk dış kullanıcı testinden önce eklenecek; normal kullanıcıya admin endpoint'i açılmayacak.
 
-Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil tarafından kullanılır; paylaşım/yorum/medya uçları kendi adımlarında bağlanır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
+Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil, medya ve oylama detay tarafından kullanılır; yorum uçları kendi adımında bağlanır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
 
 ## 3. Medya
 
 | Metot | Yol | Davranış |
 | --- | --- | --- |
 | POST | `/media/uploads` | Dosya türü/boyutu ve blur tercihiyle yükleme izni |
+| POST | `/media/:id/upload` | Çalışır: Bearer + X-Upload-Token ile tek multipart file, en fazla 10 MiB |
 | POST | `/media/:id/complete` | Yüklemeyi doğrula, sabit sürüm/checksum ile işleme al |
 | GET | `/media/:id` | Sahibi için işleme/önizleme durumu |
 | POST | `/media/:id/accept-preview` | Kullanıcı gösterilecek görüntüyü kabul eder |
 | GET | `/media/:id/content` | Yetkili işlenmiş görsel; private cache/no-store politikası |
+| DELETE | `/media/:id` | Çalışır: kendi kullanılmayan medyanı kapat/sil |
+| PUT / DELETE | `/me/avatar` | Çalışır: kendi onaylı AVATAR medyanı bağla / bağlantıyı kaldır |
+
+Bu bölümün yerel endpoint'leri çalışır. Complete manuel blur bölgelerini veya açık yüz-yok doğrulamasını tüketir; otomatik yüz tespiti henüz yok. `content?variant=thumbnail` küçük sürümdür; orijinal sürüm açılmaz. Durum/tekrar/erişim/limit sözleşmesi: [medya rehberi](media-development.md), [HTTP örnekleri](../examples/media.http).
 
 Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına gelmez. Body'deki ownerId/storageKey kullanılmaz; sunucu üretir. Sahibi taslak önizlemesine erişebilir; başkaları sadece erişebildikleri yayınlanmış içeriğin işlenmiş görseline erişir. Oyun sırasında başka oyuncunun dosya kaydı/metadata endpoint'i açılmaz.
 
@@ -82,13 +87,15 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 
 | Metot | Yol | Davranış |
 | --- | --- | --- |
-| POST | `/polls` | DRAFT oluştur; seçenekler ve ürün bilgileri |
-| PATCH | `/polls/:id` | Yalnızca kendi taslağını sürümle güncelle |
-| POST | `/polls/:id/publish` | 2–4 hazır seçenek + süre/erişim doğrulaması; atomik yayın |
-| POST | `/polls/:id/cancel` | Kendi oylamasını iptal |
-| PATCH | `/polls/:id/comment-settings` | Yayın sonrası yorum kabulünü yönet |
+| POST | `/polls` | Çalışır: eksik DRAFT oluştur; 0–4 seçenek ve manuel ürün bilgileri |
+| PATCH | `/polls/:id` | Çalışır: yalnızca kendi taslağını expectedVersion ile güncelle |
+| POST | `/polls/:id/publish` | Çalışır: soru + 2–4 onaylı seçenek; atomik yayın/süre başlatma |
+| POST | `/polls/:id/cancel` | Çalışır: kendi taslağını/süresi dolmamış yayınını iptal |
+| DELETE | `/polls/:id?expectedVersion=0` | Çalışır: kendi taslağını ve seçenek/etiket bağlarını sil; medyayı koru |
+| PATCH | `/polls/:id/comment-settings` | Çalışır: yayın sonrası yorum kabulünü sürümle yönet |
+| GET | `/me/polls` | Çalışır: kendi taslak/yayın/iptal özetleri; status/limit/cursor |
 | GET | `/feed?scope=everyone\|friends&category=...` | Görünür ve oy verilebilir adaylar; uygunluk ayrıca döner |
-| GET | `/polls/:id` | Detay, seçenekler, ürünler, kullanıcının mevcut tercihi |
+| GET | `/polls/:id` | Çalışır: yetkili detay, seçenekler, manuel ürünler; oy/sonuç henüz yok |
 | PUT | `/polls/:id/vote` | Tek tercih; aynı oy tekrarında aynı kabul |
 | GET | `/polls/:id/results` | Yetkili toplu sonuç; anlık/kesin ayrımı |
 | PUT / DELETE | `/polls/:id/save` | Kişisel kaydet/kaldır |
@@ -96,7 +103,9 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 | GET / POST | `/polls/:id/comments` | Yetkili yorum listesi / yorum ekleme |
 | DELETE | `/comments/:id` | Kendi yorumunu kaldırma |
 
-Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar vardır; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil/kaydedilenler üzerinden görülebilir. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez.
+Çalışan yazma uçları Idempotency-Key ister; oluşturma dışındaki komutlarda expectedVersion gerekir (DELETE query, diğerleri body). options gönderilirse bütün liste ve ürünler değiştirilir, yeni kimlikler üretilir; yayın sonrası bu alanlar sabittir. Süre 1800/7200/86400 saniye; yayın anında başlar. Ürünler USER_ENTERED beyanıdır, ortak katalog eşleşmesi henüz yoktur. Detay status yanında serverNow/closesAt/effectiveStatus/remainingSeconds içerir; süresi dolan OPEN okuma sırasında CLOSED görünür, kalıcı kapanış işçisi 9. adımdır. [Çalışan sözleşme](polls-development.md), [HTTP örnekleri](../examples/polls.http).
+
+Aşağıdaki akış/tercih/sonuç/etkileşim davranışları henüz planlanan sözleşmedir. Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar olacak; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil/kaydedilenler üzerinden görülebilecek. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez.
 
 ```json
 {
@@ -217,8 +226,10 @@ Lig, Plus, demografik sonuç, haftalık yarışma ve sponsor API'leri ilk sözle
 
 ## 8. Idempotency ayrıntısı
 
-Anahtar kapsamı `(userId, HTTP method + route template + resourceId, key)`; body normalize edilip hash'lenir. Aynı anahtar farklı body ile kullanılırsa `409`. Saklama önerisi 24 saat; süre sonra kaynak oluşturma komutlarında aynı anahtarın yeni işlem olabileceği istemciye belgelenir.
+Kalıcı servis oylama yazma uçlarında çalışır. Anahtar kapsamı `(userId, command scope + resourceId, key)`; DTO sonrası normalize JSON sıralanıp hash'lenir. Aynı anahtar farklı payload ile kullanılırsa `409 IDEMPOTENCY_KEY_REUSED`. Başarılı yanıt 24 saat saklanır; süre sonra kaynak oluşturma komutlarında aynı anahtar yeni işlem olabilir. Her yeni işlemde yeni UUID, yalnız aynı ağ isteği tekrarında aynı anahtar/body kullanılmalıdır.
 
-Eşzamanlı aynı komutları tekilleştirmek için kapsam anahtarına transaction advisory lock alınır; sonra kayıt okunur. İş, başarılı yanıt makbuzu ve outbox aynı DB transaction'ında yazılır. Başarısız transaction anahtar tüketmez. Saklanan yanıt hassas fotoğraf/yorum verisi içermez; tekrar döndürmeden aktif hesap ve kaynak erişimi kontrol edilir.
+Eşzamanlı aynı komutları tekilleştirmek için kapsam anahtarına transaction advisory lock alınır; sonra kayıt okunur. İş, başarılı yanıt makbuzu ve outbox aynı DB transaction'ında yazılır. Başarısız transaction anahtar tüketmez. Bearer/aktif hesap kontrolü her HTTP tekrarında uygulanır.
+
+Saklanan yanıt yalnız sahibinin kendi komut snapshot'ıdır; ilk soruyu, kullanıcı beyanı ürün bilgisini ve yetki denetimli medya yollarını içerebilir. Fotoğraf byte'ı/upload token/depolama anahtarı/özel profil içermez. Başkasına açık bir kaynak okuması veya güncel GET yerine kullanılamaz. Kaynak silinmiş/durum değişmiş olsa da ilk makbuz dönebilir; yeni kayıt oluşmaz. Başkasının kaynağına bağlı gelecekteki komutlar tekrar öncesi güncel erişim kontrolü eklemelidir. Süresi dolan aynı anahtar tekrarında eski kayıt kaldırılır; toplu makbuz retention işi henüz yoktur. [Ayrıntılı tekrar sözleşmesi](polls-development.md).
 
 Komut tekrarlarının tam bir kez işlenmiş etkisi domain tekilliği ve transaction ile sağlanır; ağdan yanıtın tam bir kez ulaşacağı garanti edilmez.

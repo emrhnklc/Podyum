@@ -63,7 +63,7 @@ Askıya alınmış hesap `403 ACCOUNT_SUSPENDED`, silinmiş hesap/geçersiz veya
 ## Sınırlar
 
 - Auth controller'ında IP başına dakikada 30 istek sınırı vardır; aşımda 429 ve `Retry-After`. Sayaç tek API sürecinin belleğindedir; çok instance/üretim öncesinde ortak limiter ve hesap bazlı deneme kontrolü gerekir. İstemciden gelen forwarded IP'ler otomatik güvenilir sayılmaz.
-- İstek JSON boyutu en fazla 64 KiB'dir; DTO alanları dışında değerler reddedilir. Medya dosya sınırları sonraki medya adımındadır.
+- İstek JSON boyutu en fazla 64 KiB'dir; DTO alanları dışında değerler reddedilir. Medya multipart dosyası için ayrı 10 MiB sınırı uygulanır; [medya rehberi](media-development.md).
 - Minimum yaş/izin politikası, gerçek OAuth, güvenli hesap bağlama, gerçek e-posta teslimi ve oturum/veri saklama temizliği dış kullanıcı sürümünden önce tamamlanacak.
 - Bu auth endpoint'leri `Idempotency-Key` istemez. Paylaşım/oyun komutlarının kalıcı idempotency servisi ilgili adımda eklenecek.
 - Yerel PostgreSQL tek bağlantılıdır. Testler sıralı HTTP davranışını doğrular; çok bağlantılı refresh/reset/kayıt yarışları gerçek PostgreSQL'de ayrıca test edilecek.

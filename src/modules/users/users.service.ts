@@ -19,6 +19,7 @@ const settingsDefaults = {
 const profileSelect = {
   id: true, username: true, displayName: true, bio: true, createdAt: true, updatedAt: true,
   profileCompletedAt: true,
+  avatarMediaId: true,
   styles: { select: { style: { select: { id: true, label: true } } }, orderBy: { styleId: "asc" as const } },
 } satisfies Prisma.UserSelect;
 
@@ -74,7 +75,7 @@ export class UsersService {
     const ledger = await tx.pointsLedger.aggregate({ where: { userId: targetId }, _sum: { delta: true } });
     const { profileCompletedAt, styles, ...publicFields } = user;
     return {
-      profile: { ...publicFields, styles: styles.map(({ style }) => style), counts: { polls, friends, stars: ledger._sum.delta ?? 0 } },
+      profile: { ...publicFields, avatarPath: user.avatarMediaId ? `/v1/media/${user.avatarMediaId}/content` : null, styles: styles.map(({ style }) => style), counts: { polls, friends, stars: ledger._sum.delta ?? 0 } },
       profileSetupRequired: profileCompletedAt === null,
     };
   }

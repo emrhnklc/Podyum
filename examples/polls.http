@@ -1,0 +1,81 @@
+@origin = http://127.0.0.1:3000
+@accessToken = REPLACE_ACCESS_TOKEN
+@pollId = REPLACE_POLL_UUID
+@mediaA = REPLACE_OWN_POLL_MEDIA_UUID_A
+@mediaB = REPLACE_OWN_POLL_MEDIA_UUID_B
+@version = 0
+
+### Önce media.http ile iki POLL fotoğrafı yükle/işle/önizlemeyi onayla.
+# Her yeni işlem için yeni anahtar; aynı ağ isteği tekrarında aynı anahtar/body.
+# Aşağıdaki örnek anahtarları ikinci bir bağımsız denemede değiştir.
+
+### Eksik taslak oluşturmak için {} de geçerli. Yanıttan id ve version al.
+POST {{origin}}/v1/polls
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: example-create-20261010-001
+Content-Type: application/json
+
+{
+  "question": "Cuma akşamı ilk buluşma. Hangisi?",
+  "category": "OUTFIT",
+  "occasion": "İlk buluşma",
+  "visibility": "FRIENDS",
+  "durationSeconds": 1800,
+  "commentsEnabled": true,
+  "options": [
+    {
+      "position": 1,
+      "mediaId": "{{mediaA}}",
+      "products": [{ "title": "Siyah saten gömlek", "brand": "Örnek marka", "priceMinor": 129900, "currency": "TRY", "externalUrl": "https://example.com/products/black-shirt?ref=original" }]
+    },
+    { "position": 2, "mediaId": "{{mediaB}}", "products": [] }
+  ]
+}
+
+### Kendi taslağını veya erişebildiğin yayını oku
+GET {{origin}}/v1/polls/{{pollId}}
+Authorization: Bearer {{accessToken}}
+
+### Düzenleme. version değişkenini her yeni işlem öncesi son yanıttan güncelle.
+# options gönderirsen bütün seçenek/ürün listesi değiştirilir; yeni kimlikler üretilir.
+PATCH {{origin}}/v1/polls/{{pollId}}
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: example-update-20261010-001
+Content-Type: application/json
+
+{ "expectedVersion": {{version}}, "question": "İlk buluşma için hangisi daha iyi?" }
+
+### Yayınla: süre bu anda başlar. Son sürümü kullan.
+POST {{origin}}/v1/polls/{{pollId}}/publish
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: example-publish-20261010-001
+Content-Type: application/json
+
+{ "expectedVersion": {{version}} }
+
+### Kendi durum listesi; filtresiz /me/polls bütün durumları verir
+GET {{origin}}/v1/me/polls?status=OPEN&limit=20
+Authorization: Bearer {{accessToken}}
+
+### Yayın sonrası yalnız yorum kabulünü değiştirme
+# Yorum ekleme/okuma uçları henüz yok.
+PATCH {{origin}}/v1/polls/{{pollId}}/comment-settings
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: example-comments-20261010-001
+Content-Type: application/json
+
+{ "expectedVersion": {{version}}, "commentsEnabled": false }
+
+### Kendi açık yayınını veya taslağını iptal et
+POST {{origin}}/v1/polls/{{pollId}}/cancel
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: example-cancel-20261010-001
+Content-Type: application/json
+
+{ "expectedVersion": {{version}} }
+
+### Alternatif: yalnız DRAFT silinebilir; iptal edilmiş/yayınlanmış kaydı silmez.
+# Bunun için ayrı taslak id ve son sürüm kullan. DELETE gövdesi yok.
+DELETE {{origin}}/v1/polls/{{pollId}}?expectedVersion={{version}}
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: example-delete-20261010-001

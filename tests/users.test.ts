@@ -156,7 +156,7 @@ test("özel profil yalnızca sahibine açılır; izin açıkça alınır ve geri
   assert.deepEqual(again.body, grant.body);
   assert.equal(await db.outboxEvent.count({ where: { aggregateId: a.id } }), 2);
   for (const response of [(await call(`/users/${a.id}`, b.token)).body, (await call("/me", a.token)).body.profile]) {
-    assert.deepEqual(Object.keys(response).sort(), ["id", "username", "displayName", "bio", "styles", "createdAt", "updatedAt", "counts"].sort());
+    assert.deepEqual(Object.keys(response).sort(), ["id", "username", "displayName", "bio", "avatarMediaId", "avatarPath", "styles", "createdAt", "updatedAt", "counts"].sort());
   }
   assert.equal((await call(`/users/${a.id}/private`, b.token)).status, 404);
   assert.equal((await call("/me/private", b.token)).body.gender, null);

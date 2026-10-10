@@ -108,7 +108,7 @@ export class UpdateSettingsDto {
   @IsBoolean()
   defaultCommentsEnabled?: boolean;
 
-  @ApiPropertyOptional({ default: true, description: "Gelecekteki medya akışı için tercih; tek başına görseli işlemez." })
+  @ApiPropertyOptional({ default: true, description: "Yeni medya izninin varsayılan blur tercihi; manuel bölge seçimi/önizleme gerekir, otomatik yüz tespiti değildir." })
   @ValidateIf(supplied)
   @IsBoolean()
   defaultBlurFace?: boolean;

@@ -26,6 +26,10 @@ export class PublicProfileResponseDto {
   displayName!: string;
   @ApiProperty({ type: String, nullable: true })
   bio!: string | null;
+  @ApiProperty({ type: String, format: "uuid", nullable: true })
+  avatarMediaId!: string | null;
+  @ApiProperty({ type: String, nullable: true, description: "Bearer oturumu ile açılan işlenmiş avatar." })
+  avatarPath!: string | null;
   @ApiProperty({ type: [StyleTagResponseDto] })
   styles!: StyleTagResponseDto[];
   @ApiProperty({ type: String, format: "date-time" })

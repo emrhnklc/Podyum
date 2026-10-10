@@ -51,7 +51,7 @@ SocialModule, SocialAccessService'i export eder; UsersModule onu kullanır. Baş
 - `visiblePublishedPollWhere(viewerId)`: VISIBLE, OPEN/CLOSED; aktif/engelsiz yazar; PUBLIC veya kendi/kabul edilmiş arkadaşının FRIENDS yayını.
 - `requirePublishedPollAccess(tx, viewerId, pollId)`: bu kurala göre minimal yayın okuma izni; gizli içerik varlığını açmayan 404.
 
-Servis güvenilir, normalize edilmiş **kimliği doğrulanmış aktif izleyici** bağlamıyla çağrılır; AuthGuard yerine geçmez. Yayın okuma filtresi oy verme/kitle/süre kontrolü değildir ve taslak erişimi sağlamaz. Oylama komutları bu kuralları ayrıca uygulayacak. Profil sayaçları bugün ortak filtreyi kullanır. Paylaşım, yorum ve medya endpoint'leri henüz yok; ilgili adımlarda aynı erişim servisine bağlanacaklar. Özel yayın erişimi servis düzeyinde ve profil sayaçları üzerinden gerçek arkadaşlık/engel HTTP komutları öncesi/sonrası test edildi.
+Servis güvenilir, normalize edilmiş **kimliği doğrulanmış aktif izleyici** bağlamıyla çağrılır; AuthGuard yerine geçmez. Yayın okuma filtresi oy verme/kitle/süre kontrolü değildir ve taslak erişimi sağlamaz. Profil sayaçları, medya içerik ve oylama detay uçları bugün ortak filtreyi kullanır; taslak/iptal erişimini PollsService yalnız sahibine verir. Yorum endpoint'leri henüz yok; aynı servise bağlanacak. Özel yayın erişimi gerçek oluşturma/yayın, profil ve fotoğraf HTTP uçlarında arkadaşlık/engel komutları öncesi/sonrası test edildi. [Medya davranışı](media-development.md), [oylama davranışı](polls-development.md).
 
 ## Transaction ve olay sözleşmesi
 
@@ -78,4 +78,4 @@ Yedinci migration yalnız User.socialRevision ekler. Diğer bilgisayarda güncel
 
 `npm run test:social` 11 sosyal testi, `npm run test:api` mevcut auth/profil/sosyal testlerini çalıştırır. Yetkiler, ters/çift istek, iptal/red/kabul tekrarı, engel/unblock, özel yayın erişimi, eşit tarihli cursor'lar ve outbox hatasında rollback doğrulanır. Testler kendi benzersiz hesap/ilişki/olay/yayın fixture'larını temizler.
 
-Yerel Prisma Postgres tek bağlantılıdır; kilit sırası uygulanmıştır fakat gerçek çok bağlantılı yarış testi yapılmış sayılmaz. Dağıtık yazma limiti/istek kötüye kullanım politikası ve gerçek PostgreSQL yarış kontrolleri dış kullanıcı öncesi ortak altyapı işlerinde kalır. Sonraki bizim adımımız medya yükleme/işleme ve önizlemedir.
+Yerel Prisma Postgres tek bağlantılıdır; kilit sırası uygulanmıştır fakat gerçek çok bağlantılı yarış testi yapılmış sayılmaz. Dağıtık yazma limiti/istek kötüye kullanım politikası ve gerçek PostgreSQL yarış kontrolleri dış kullanıcı öncesi ortak altyapı işlerinde kalır. Yerel medya/önizleme ve oylama oluşturma artık hazırdır; sonraki bizim adımımız tercih/kapanış/sonuçtur.
