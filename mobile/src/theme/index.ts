@@ -12,6 +12,15 @@ export const blush = {
   wine: "#8E1E48",
   lilac: "#B07AA1",
 };
+// Giriş ekranının kahve/krem görünümü.
+export const sand = {
+  background: "#FBF4EA",
+  card: "#FFFDF9",
+  line: "#EAD9C4",
+  brown: "#A86A35",
+  brownDark: "#7A4A22",
+  muted: "#6E6257",
+};
 export const serif = Platform.select({
   ios: "Georgia",
   android: "serif",

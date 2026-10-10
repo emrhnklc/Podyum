@@ -11,13 +11,15 @@
 | `/paylas` | polls/CreatePollScreen | Form tasarımı (2–4 seçenek, kitle seçimi); fotoğraf/yayın henüz yok |
 | `/bildirimler` | notifications/NotificationsScreen | Boş durum (sekme çubuğunda gizli) |
 | `/defile` | games/GamesScreen | Defile: lig, canlı Podyum, haftalık tema, arkadaş sıralaması, Podyum Turu (demo) |
-| `/profil` | profile/ProfileScreen | Demo kendi profili; lig, rozetler, paylaşım/kaydedilenler/yarışmalar |
-| `/u/:username` | profile/ProfileScreen | Demo hedef profil; bilinmeyen kullanıcı için boş durum |
+| `/profil` | profile/ProfileScreen | "Profilim": konum, takipçi/takip, Profili Düzenle, öne çıkanlar, Gönderiler/Kombinler/Oylamalar/Kaydedilenler (demo) |
+| `/u/:username` | profile/ProfileScreen | "Profil": lig rozeti, Takip Et/Mesaj, öne çıkanlar; bilinmeyen kullanıcı için boş durum |
 | `/polls/:id` | polls/PollDetailScreen | Demo kombin detayı; aynı tercih state'i |
+| `/profile/edit` | profile/EditProfileScreen | Profili Düzenle: kapak/avatar seçimi, ad, bio, konum, stil etiketleri, sosyal hesaplar; Kaydet bellekte tutar |
+| `/settings` | settings/SettingsScreen | Ayarlar: Bildirimler ekranına gider, Çıkış karşılama ekranına döner; diğer satırlar henüz bağlı değil |
 | `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
 | `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |
 | `/games` | → `/defile` | Eski bağlantılar Defile sekmesine yönlenir |
-| `/auth` | auth/AuthScreen | Giriş entegrasyonuna kadar açıklama/Keşfet'e dönüş |
+| `/auth` | auth/AuthScreen | Karşılama/giriş: açılışta bir kez gösterilir, Başla ile Keşfet'e geçer; Apple/Google/e-posta girişi bağlı değil |
 | bilinmeyen route | +not-found | Güvenli Keşfet'e dönüş |
 
 Alt menü Keşfet, Trendler, Paylaş, Defile, Profil içerir. Günlük podyum ve oyunlar Defile sekmesindedir; `/bildirimler` rotası durur ama sekmede gizlidir. `src/app/` dosyaları route/layout/parametreyle sınırlı, UI ve davranış feature'ların içindedir.

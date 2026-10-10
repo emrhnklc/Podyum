@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
+import { BrandTitle } from "@/components/ui/BrandTitle";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PillChip } from "@/components/ui/PillChip";
 import {
@@ -14,9 +15,9 @@ import {
 import { DEMO_FRIENDS } from "@/constants/demo";
 import { feed } from "@/features/polls/data/demo-polls";
 import { PollCard } from "@/features/polls/components/PollCard";
-import { OptionProducts } from "@/features/polls/components/OptionProducts";
+import { OutfitDetailsBar, OutfitDetailsSheet } from "../components/OutfitDetails";
 import { useDemoPolls } from "@/features/polls/hooks/use-demo-polls";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { blush, colors, common, fonts } from "@/theme";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -34,6 +35,7 @@ export function FeedScreen() {
   const [audience, setAudience] = useState<"ALL" | "FRIENDS">("ALL");
   const [category, setCategory] = useState<"ALL" | PollCategory>("ALL");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const { votes, saved, toggleSave } = useDemoPolls();
   const message = usePreviewMessage();
@@ -50,15 +52,7 @@ export function FeedScreen() {
         contentContainerStyle={styles.content}
       >
         <View style={common.spread}>
-          <View style={{ flexDirection: "row" }}>
-            <Text style={styles.logo}>Podyum</Text>
-            <Ionicons
-              name="sparkles"
-              size={16}
-              color={blush.pink}
-              style={{ marginTop: 2 }}
-            />
-          </View>
+          <BrandTitle title="Podyum" />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Filtreleri aç"
@@ -141,7 +135,6 @@ export function FeedScreen() {
         )}
 
         {post ? (
-          <>
           <PollCard
             post={post}
             footer={
@@ -178,29 +171,27 @@ export function FeedScreen() {
                     }
                   />
                 </View>
-                <View style={{ flexDirection: "row", gap: 8 }}>
-                  <Action
-                    label={votes[post.id] ? "Sonuç detayları" : "Kombin detayları"}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/polls/[id]",
-                        params: { id: post.id },
-                      })
-                    }
-                  />
-                  {votes[post.id] && (
+                {votes[post.id] && (
+                  <View style={{ flexDirection: "row", gap: 8 }}>
+                    <Action
+                      label="Sonuç detayları"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/polls/[id]",
+                          params: { id: post.id },
+                        })
+                      }
+                    />
                     <Action
                       label="Sıradaki"
                       filled
                       onPress={() => setIndex((value) => value + 1)}
                     />
-                  )}
-                </View>
+                  </View>
+                )}
               </>
             }
           />
-          <OptionProducts post={post} />
-          </>
         ) : (
           <EmptyState
             title="Henüz oylama yok"
@@ -208,6 +199,17 @@ export function FeedScreen() {
           />
         )}
       </ScrollView>
+      {post && (
+        <>
+          <OutfitDetailsBar post={post} onOpen={() => setDetailsOpen(true)} />
+          <OutfitDetailsSheet
+            key={post.id}
+            post={post}
+            visible={detailsOpen}
+            onClose={() => setDetailsOpen(false)}
+          />
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -252,15 +254,8 @@ function Action({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: blush.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
-  content: { padding: 16, paddingBottom: 28, gap: 14 },
-  logo: {
-    fontFamily: serif,
-    fontStyle: "italic",
-    fontWeight: "700",
-    fontSize: 40,
-    letterSpacing: -1,
-    color: colors.text,
-  },
+  // Alttaki sabit kombin çubuğu son içeriği örtmesin diye ekstra boşluk.
+  content: { padding: 16, paddingBottom: 100, gap: 14 },
   round: {
     width: 52,
     height: 52,
