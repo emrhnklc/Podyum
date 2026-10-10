@@ -5,6 +5,7 @@ import { ApiError } from "../../common/errors/api-error.js";
 import { PrismaService } from "../../database/prisma.service.js";
 import type { MediaAsset, Prisma } from "../../generated/prisma/client.js";
 import { SocialAccessService } from "../social/social-access.service.js";
+import { GameAccessService } from "../games/game-access.service.js";
 import type { CompleteMediaDto, CreateUploadDto } from "./dto/media.dto.js";
 import { ImageProcessor } from "./image-processor.service.js";
 import { LocalMediaStorage } from "./local-media-storage.service.js";
@@ -18,7 +19,8 @@ type Tx = Prisma.TransactionClient;
 @Injectable()
 export class MediaService {
   constructor(private readonly prisma: PrismaService, private readonly storage: LocalMediaStorage,
-    private readonly images: ImageProcessor, private readonly access: SocialAccessService) {}
+    private readonly images: ImageProcessor, private readonly access: SocialAccessService,
+    private readonly games: GameAccessService) {}
 
   private response(asset: MediaAsset) {
     return {
@@ -180,13 +182,13 @@ export class MediaService {
   }
 
   // Taslak bağlantısı aynı transaction içinde sahiplik/amaç kontrolüyle kurulur.
-  async requireAttachableAsset(tx: Tx, userId: string, id: string, purpose: "POLL" | "AVATAR" = "POLL") {
+  async requireAttachableAsset(tx: Tx, userId: string, id: string, purpose: "POLL" | "AVATAR" | "GAME" = "POLL") {
     const row = await this.owned(tx, userId, id, true);
     if (row.purpose !== purpose) throw conflict("MEDIA_PURPOSE_MISMATCH", "Fotoğrafın kullanım amacı uygun değil.");
     return row;
   }
 
-  async requirePublishableAsset(tx: Tx, userId: string, id: string, purpose: "POLL" | "AVATAR" = "POLL") {
+  async requirePublishableAsset(tx: Tx, userId: string, id: string, purpose: "POLL" | "AVATAR" | "GAME" = "POLL") {
     const row = await this.requireAttachableAsset(tx, userId, id, purpose);
     if (row.status !== "READY" || !row.previewAcceptedAt || !row.displayKey || !row.thumbnailKey) {
       throw conflict("MEDIA_NOT_APPROVED", "İşlenmiş fotoğrafın önizlemesini onayla.");
@@ -204,6 +206,8 @@ export class MediaService {
         if (asset.purpose === "AVATAR") {
           const linked = await tx.user.count({ where: { id: asset.ownerId, avatarMediaId: id } });
           if (!linked) throw missing();
+        } else if (asset.purpose === "GAME") {
+          if (!await this.games.mayReadMedia(tx, viewerId, id)) throw missing();
         } else {
           const linked = await tx.pollOption.count({ where: { mediaId: id, poll: this.access.visiblePublishedPollWhere(viewerId) } });
           if (!linked) throw missing();
@@ -233,6 +237,7 @@ export class MediaService {
   private async referenced(tx: Tx, id: string) {
     return (await tx.pollOption.count({ where: { mediaId: id } })) > 0
       || (await tx.gameEntry.count({ where: { mediaId: id } })) > 0
+      || (await tx.gameSubmission.count({ where: { mediaId: id } })) > 0
       || (await tx.user.count({ where: { avatarMediaId: id } })) > 0;
   }
 
@@ -256,7 +261,7 @@ export class MediaService {
     const timedOut = await this.prisma.mediaAsset.updateMany({ where: { status: "PROCESSING", updatedAt: { lt: stuck } }, data: {
       status: "REJECTED", rejectionCode: "PROCESSING_TIMEOUT", processingRevision: { increment: 1 },
     } });
-    const candidates = await this.prisma.mediaAsset.findMany({ where: { pollOptions: { none: {} }, gameEntries: { none: {} }, avatarFor: { is: null }, OR: [
+    const candidates = await this.prisma.mediaAsset.findMany({ where: { pollOptions: { none: {} }, gameEntries: { none: {} }, gameSubmissions: { none: {} }, avatarFor: { is: null }, OR: [
       { status: "DELETED", filesPurgedAt: null }, { status: { in: ["PENDING_UPLOAD", "REJECTED", "READY"] }, createdAt: { lt: old } },
       { status: "PENDING_UPLOAD", sourceVersion: null, uploadExpiresAt: { lte: now } },
     ] }, select: { id: true }, take: 200, orderBy: { updatedAt: "asc" } });

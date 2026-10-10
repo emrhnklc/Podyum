@@ -1,3 +1,5 @@
+import { readDailyGameSchedule, type DailyGameSchedule } from "../../modules/games/game-schedule.js";
+
 export interface Environment {
   nodeEnv: "development" | "test" | "production";
   host: string;
@@ -9,6 +11,9 @@ export interface Environment {
   corsOrigins: string[];
   pollCloseWorkerEnabled: boolean;
   pollCloseIntervalMs: number;
+  gameWorkerEnabled: boolean;
+  gameIntervalMs: number;
+  dailyGameSchedule: DailyGameSchedule | null;
 }
 
 function flag(value: string | undefined, fallback: boolean, name: string): boolean {
@@ -38,6 +43,8 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
   if (!/^\d+$/.test(pollCloseInterval) || Number(pollCloseInterval) < 1000 || Number(pollCloseInterval) > 300000) {
     throw new Error("POLL_CLOSE_INTERVAL_MS 1000–300000 aralığında olmalı.");
   }
+  const gameInterval = env.GAME_INTERVAL_MS ?? "5000";
+  if (!/^\d+$/.test(gameInterval) || Number(gameInterval) < 1000 || Number(gameInterval) > 300000) throw new Error("GAME_INTERVAL_MS 1000–300000 aralığında olmalı.");
   // Gerçek e-posta/OAuth taşıyıcıları bağlanana kadar canlı ortamda sessizce yerel akış çalıştırılmaz.
   if (nodeEnv === "production") {
     throw new Error("Üretim açılışı kapalı: gerçek e-posta ve OAuth entegrasyonları henüz tamamlanmadı.");
@@ -62,5 +69,8 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
     corsOrigins,
     pollCloseWorkerEnabled: flag(env.POLL_CLOSE_WORKER_ENABLED, true, "POLL_CLOSE_WORKER_ENABLED"),
     pollCloseIntervalMs: Number(pollCloseInterval),
+    gameWorkerEnabled: flag(env.GAME_WORKER_ENABLED, true, "GAME_WORKER_ENABLED"),
+    gameIntervalMs: Number(gameInterval),
+    dailyGameSchedule: readDailyGameSchedule(env),
   };
 }
