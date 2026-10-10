@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { errorMessage } from "@/lib/api/client";
-import { blush, colors, fonts } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 import type { ApiComment, CommentPage } from "../api/types";
 
 export function CommentsScreen({ pollId }: { pollId: string }) {
@@ -58,11 +58,11 @@ export function CommentsScreen({ pollId }: { pollId: string }) {
   return <Screen>
     <BackButton /><Text style={{ fontFamily: fonts.bold, fontSize: 24 }}>Yorumlar</Text>
     {!me ? <><Text>Yorumları görmek için giriş yap.</Text><Button title="Giriş yap" onPress={() => router.push("/auth/login")} /></> : <>
-      {canComment ? <View style={{ gap: 10 }}><TextInput accessibilityLabel="Yorumun" placeholder="Kombin hakkında ne düşünüyorsun?" multiline maxLength={1000} value={body} onChangeText={setBody} editable={!busy} style={{ minHeight: 90, borderRadius: 16, padding: 16, backgroundColor: blush.surface, color: colors.text }} /><Button title="Gönder" disabled={busy || !body.trim()} onPress={() => void send()} /></View> : <Text style={{ color: colors.muted }}>{commentsEnabled ? "Yorum yazmak için önce bir kombin seçmelisin." : "Yeni yorumlara kapalı."}</Text>}
-      {busy && <ActivityIndicator color={blush.pink} />}
+      {canComment ? <View style={{ gap: 10 }}><TextInput accessibilityLabel="Yorumun" placeholder="Kombin hakkında ne düşünüyorsun?" multiline maxLength={1000} value={body} onChangeText={setBody} editable={!busy} style={{ minHeight: 90, borderRadius: 16, padding: 16, backgroundColor: brand.surface, color: colors.text }} /><Button title="Gönder" disabled={busy || !body.trim()} onPress={() => void send()} /></View> : <Text style={{ color: colors.muted }}>{commentsEnabled ? "Yorum yazmak için önce bir kombin seçmelisin." : "Yeni yorumlara kapalı."}</Text>}
+      {busy && <ActivityIndicator color={brand.accent} />}
       {error && <><Text accessibilityRole="alert" style={{ color: colors.accent }}>{error}</Text><Button title="Yorumları yenile" disabled={busy} onPress={() => void run(() => load())} /></>}
       {!busy && !error && !rows.length && <EmptyState title="İlk yorumu sen yaz" message="Henüz yorum yok." />}
-      {rows.map((row) => <View key={row.id} style={{ padding: 16, borderRadius: 20, gap: 8, backgroundColor: blush.surface }}><Text style={{ fontFamily: fonts.bold }}>{row.author.username}</Text><Text>{row.body}</Text><Text style={{ color: colors.muted, fontSize: 12 }}>{new Date(row.createdAt).toLocaleString("tr-TR")}</Text>{row.canRemove && <Button title="Yorumu sil" variant="outline" disabled={busy} onPress={() => void run(async () => { await client.request(`/comments/${row.id}`, { method: "DELETE" }); await load(); })} />}</View>)}
+      {rows.map((row) => <View key={row.id} style={{ padding: 16, borderRadius: 20, gap: 8, backgroundColor: brand.surface }}><Text style={{ fontFamily: fonts.bold }}>{row.author.username}</Text><Text>{row.body}</Text><Text style={{ color: colors.muted, fontSize: 12 }}>{new Date(row.createdAt).toLocaleString("tr-TR")}</Text>{row.canRemove && <Button title="Yorumu sil" variant="outline" disabled={busy} onPress={() => void run(async () => { await client.request(`/comments/${row.id}`, { method: "DELETE" }); await load(); })} />}</View>)}
       {cursor && <Button title="Daha fazla yorum" disabled={busy} variant="outline" onPress={() => void run(() => load(cursor))} />}
     </>}
   </Screen>;

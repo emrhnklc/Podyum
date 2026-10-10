@@ -22,7 +22,7 @@ export const posts: DemoPost[] = [
       {
         label: "B",
         image: "/demo/luis/4.jpg",
-        tone: "#E8D3D6",
+        tone: "#E8D8CC",
         products: ["baskili-tisort", "siyah-bol-pantolon", "parmak-arasi", "gunes-gozlugu"],
         percent: 36,
       },
@@ -44,7 +44,7 @@ export const posts: DemoPost[] = [
       {
         label: "A",
         image: "/demo/louno/3.jpg",
-        tone: "#D2DCE8",
+        tone: "#D9D6CF",
         products: ["cizgili-gomlek", "koyu-bol-jean", "siyah-omuz-cantasi", "kravat-kemer"],
         percent: 57,
       },
@@ -73,7 +73,7 @@ export const posts: DemoPost[] = [
       {
         label: "A",
         image: "/demo/hannas/1.jpg",
-        tone: "#E8D3D6",
+        tone: "#E8D8CC",
         products: ["bordo-bluz", "beyaz-bol-pantolon", "krem-canta", "gunes-gozlugu"],
         percent: 48,
       },
@@ -138,7 +138,7 @@ export const posts: DemoPost[] = [
       {
         label: "B",
         image: "/demo/louno/1.jpg",
-        tone: "#CBD8D1",
+        tone: "#D8D3C6",
         products: ["kot-ceket", "kamuflaj-bermuda", "topuklu-bot", "kamuflaj-sapka", "siyah-omuz-cantasi"],
         percent: 55,
       },
@@ -160,14 +160,14 @@ export const posts: DemoPost[] = [
       {
         label: "A",
         image: "/demo/luis/2.jpg",
-        tone: "#E8D3D6",
+        tone: "#E8D8CC",
         products: ["siyah-tisort", "ekose-sort", "beyaz-sneaker"],
         percent: 38,
       },
       {
         label: "B",
         image: "/demo/luis/3.jpg",
-        tone: "#D9D3E6",
+        tone: "#DDD5CC",
         products: ["mor-tisort", "bol-mavi-jean", "kirmizi-sneaker", "zincir-kolye"],
         percent: 62,
       },
@@ -186,8 +186,8 @@ export const posts: DemoPost[] = [
     photoLabel: "Kombin fotoğrafı",
     question: "Yeni işte ilk gün. Hangisi daha iyi?",
     options: [
-      { label: "A", tone: "#E8D3D6", products: [], percent: 58 },
-      { label: "B", tone: "#D2DCE8", products: [], percent: 42 },
+      { label: "A", tone: "#E8D8CC", products: [], percent: 58 },
+      { label: "B", tone: "#D9D6CF", products: [], percent: 42 },
     ],
     totalVotes: 12,
     commentCount: 2,
@@ -204,7 +204,7 @@ export const posts: DemoPost[] = [
     question: "Hafta sonu için hangi çanta?",
     options: [
       { label: "A", tone: "#E9E2C6", products: [], percent: 29 },
-      { label: "B", tone: "#D9D3E6", products: [], percent: 71 },
+      { label: "B", tone: "#DDD5CC", products: [], percent: 71 },
     ],
     totalVotes: 134,
     commentCount: 17,

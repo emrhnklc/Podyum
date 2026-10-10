@@ -1,12 +1,12 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Image,
   ImageBackground,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
   type ImageSourcePropType,
+  type LayoutChangeEvent,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
@@ -32,169 +32,229 @@ const STICKERS = {
 };
 
 const GOLD = "#F2B627";
+// Çerçeve en/boy oranı ve alttaki "More Style Together" yazısına ayrılan pay.
+const FRAME_RATIO = 0.86;
+const SCRIPT_SPACE = 46;
 
-// Karşılama ekranı. E-posta girişi bağlı; Apple/Google sonraki adımda.
-// "Başla" hesap açmadan Keşfet'e geçirir.
+// Karşılama ekranı kaydırmadan tek ekrana sığar. E-posta girişi bağlı;
+// Apple/Google sonraki adımda. Kayıt ekranı ve "Başla" önizlemeyi açar.
 export function AuthScreen() {
   const message = usePreviewMessage();
+  const [area, setArea] = useState({ width: 0, height: 0 });
   const start = () => {
     markWelcomed();
     router.replace("/");
   };
   const soon = (what: string) =>
     message(`${what} sunucu bağlantısı eklendiğinde açılacak.`);
+
+  // Kolaj kalan alana göre ölçeklenir: çerçeve hem genişliğe hem yüksekliğe sığar.
+  const onCollageLayout = (event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    setArea({ width, height });
+  };
+  const frameWidth = Math.max(
+    0,
+    Math.min(area.width * 0.54, (area.height - SCRIPT_SPACE) * FRAME_RATIO),
+  );
+  const frameHeight = frameWidth / FRAME_RATIO;
+  const leftX = (area.width - frameWidth * 1.9) / 2;
+  const rightOffset = Math.max(
+    0,
+    Math.min(40, area.height - SCRIPT_SPACE - frameHeight),
+  );
+  // Genişlik sınırlıysa artan dikey boşluk kolajın üstüne ve altına bölünür.
+  const used = frameHeight + Math.max(rightOffset, SCRIPT_SPACE);
+  const topY = Math.max(0, (area.height - used) / 2);
+  const rightTop = topY + rightOffset;
+
   return (
     <ImageBackground
       source={BACKGROUND}
       resizeMode="cover"
       style={styles.background}
     >
-      <SafeAreaView edges={["top", "left", "right", "bottom"]} style={{ flex: 1 }}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={styles.page}
-          contentContainerStyle={styles.content}
-        >
-          <View style={styles.logoRow}>
-            <View>
-              <Text style={styles.logo} accessibilityRole="header">
-                Podyum
-              </Text>
-              <Sticker
-                source={STICKERS.sparkleBrown}
-                style={{ top: -2, right: -22, width: 28, height: 28 }}
-              />
-            </View>
-          </View>
+      <SafeAreaView
+        edges={["top", "left", "right", "bottom"]}
+        style={styles.page}
+      >
+        <View style={styles.logoRow}>
           <View>
-            <Text style={styles.title}>Tarzını paylaş, ilhamını keşfet</Text>
-            <Text style={styles.subtitle}>
-              Kombinlerini oylat, yeni stiller keşfet,{"\n"}modayı birlikte
-              yaşa.
+            <Text style={styles.logo} accessibilityRole="header">
+              Podyum
             </Text>
+            <Sticker
+              source={STICKERS.sparkleBrown}
+              style={{ top: -2, right: -20, width: 26, height: 26 }}
+            />
           </View>
+        </View>
+        <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
+          Tarzını paylaş, ilhamını keşfet
+        </Text>
 
-          <View style={styles.collage}>
-            <View style={[styles.frame, styles.frameLeft]}>
-              <Image source={WOMAN} resizeMode="cover" style={styles.photo} />
-              <View style={styles.likes}>
-                <Ionicons name="heart" size={14} color={sand.brown} />
-                <Text style={{ fontSize: 13, fontFamily: fonts.bold }}>
-                  2,4K
-                </Text>
+        <View style={styles.collage} onLayout={onCollageLayout}>
+          {frameWidth > 0 && (
+            <>
+              <View
+                style={[
+                  styles.frame,
+                  styles.frameLeft,
+                  { width: frameWidth, height: frameHeight, left: leftX, top: topY },
+                ]}
+              >
+                <Image source={WOMAN} resizeMode="cover" style={styles.photo} />
+                <View style={styles.likes}>
+                  <Ionicons name="heart" size={14} color={sand.brown} />
+                  <Text style={{ fontSize: 13, fontFamily: fonts.bold }}>
+                    2,4K
+                  </Text>
+                </View>
               </View>
-            </View>
-            <View style={[styles.frame, styles.frameRight]}>
-              <View style={styles.tape} />
-              <Image source={MAN} resizeMode="cover" style={styles.photo} />
-              <View style={styles.rating}>
-                {[0, 1, 2, 3].map((index) => (
-                  <Ionicons key={index} name="star" size={13} color={GOLD} />
-                ))}
-                <Ionicons name="star" size={13} color="#8C8C8C" />
+              <View
+                style={[
+                  styles.frame,
+                  styles.frameRight,
+                  {
+                    width: frameWidth,
+                    height: frameHeight,
+                    left: leftX + frameWidth * 0.9,
+                    top: rightTop,
+                  },
+                ]}
+              >
+                <View style={styles.tape} />
+                <Image source={MAN} resizeMode="cover" style={styles.photo} />
+                <View style={styles.rating}>
+                  {[0, 1, 2, 3].map((index) => (
+                    <Ionicons key={index} name="star" size={13} color={GOLD} />
+                  ))}
+                  <Ionicons name="star" size={13} color="#8C8C8C" />
+                </View>
               </View>
-            </View>
-            <Sticker
-              source={STICKERS.sparkleCream}
-              style={{ top: -6, left: "8%", width: 30, height: 38 }}
-            />
-            <Sticker
-              source={STICKERS.heartBig}
-              style={{ top: "38%", left: -6, width: 46, height: 48 }}
-            />
-            <Sticker
-              source={STICKERS.crown}
-              style={{ top: "10%", right: 6, width: 46, height: 30 }}
-            />
-            <Sticker
-              source={STICKERS.heartSmall}
-              style={{ top: "30%", right: -4, width: 32, height: 34 }}
-            />
-            <Sticker
-              source={STICKERS.star}
-              style={{ bottom: "20%", left: "44%", width: 30, height: 30 }}
-            />
-            <Text style={styles.script}>
-              More Style{"\n"}  Together ♡
-            </Text>
-          </View>
-
-          <View style={{ gap: 10 }}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Başla"
-              onPress={start}
-              style={({ pressed }) => [
-                styles.primary,
-                { opacity: pressed ? 0.85 : 1 },
-              ]}
-            >
-              <Ionicons name="sparkles" size={22} color={colors.onAccent} />
-              <Text style={styles.primaryText}>Başla</Text>
-              <Ionicons
-                name="arrow-forward"
-                size={22}
-                color={colors.onAccent}
-                style={styles.primaryArrow}
+              <Sticker
+                source={STICKERS.sparkleCream}
+                style={{ top: topY - 6, left: leftX + 6, width: 28, height: 36 }}
               />
-            </Pressable>
-            <Provider
-              label="Apple ile devam et"
-              icon={<Ionicons name="logo-apple" size={24} color={colors.text} />}
-              onPress={() => soon("Apple ile giriş")}
-            />
-            <Provider
-              label="Google ile devam et"
-              icon={
-                <Image
-                  source={GOOGLE_G}
-                  resizeMode="contain"
-                  style={{ width: 22, height: 22 }}
-                />
-              }
-              onPress={() => soon("Google ile giriş")}
-            />
-          </View>
+              <Sticker
+                source={STICKERS.heartBig}
+                style={{
+                  top: topY + frameHeight * 0.4,
+                  left: leftX - 18,
+                  width: 44,
+                  height: 46,
+                }}
+              />
+              <Sticker
+                source={STICKERS.crown}
+                style={{
+                  top: rightTop - 18,
+                  left: leftX + frameWidth * 1.9 - 50,
+                  width: 46,
+                  height: 30,
+                }}
+              />
+              <Sticker
+                source={STICKERS.heartSmall}
+                style={{
+                  top: rightTop + frameHeight * 0.3,
+                  left: leftX + frameWidth * 1.9 - 18,
+                  width: 30,
+                  height: 32,
+                }}
+              />
+              <Text
+                style={[
+                  styles.script,
+                  { top: topY + frameHeight + 4, left: Math.max(4, leftX) },
+                ]}
+              >
+                More Style{"\n"}  Together ♡
+              </Text>
+            </>
+          )}
+        </View>
 
-          <View style={styles.divider}>
-            <View style={styles.rule} />
-            <Text style={{ fontSize: 13, color: sand.muted }}>veya</Text>
-            <View style={styles.rule} />
-          </View>
+        <View style={{ gap: 10 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Başla"
+            onPress={start}
+            style={({ pressed }) => [
+              styles.primary,
+              { opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <Ionicons name="sparkles" size={22} color={colors.onAccent} />
+            <Text style={styles.primaryText}>Başla</Text>
+            <Ionicons
+              name="arrow-forward"
+              size={22}
+              color={colors.onAccent}
+              style={styles.primaryArrow}
+            />
+          </Pressable>
+          <Provider
+            label="Apple ile devam et"
+            icon={<Ionicons name="logo-apple" size={24} color={colors.text} />}
+            onPress={() => soon("Apple ile giriş")}
+          />
+          <Provider
+            label="Google ile devam et"
+            icon={
+              <Image
+                source={GOOGLE_G}
+                resizeMode="contain"
+                style={{ width: 22, height: 22 }}
+              />
+            }
+            onPress={() => soon("Google ile giriş")}
+          />
+        </View>
 
+        <View style={styles.accountRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Hesabın yok mu? Kayıt ol"
+            onPress={() => router.push("/auth/register")}
+            hitSlop={6}
+            style={styles.accountLink}
+          >
+            <Text style={styles.accountText}>Hesabın yok mu?</Text>
+            <Text style={styles.accountAction}>Kayıt ol</Text>
+          </Pressable>
+          <View style={styles.accountDivider} />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Zaten hesabın var mı? Giriş yap"
             onPress={() => router.push("/auth/login")}
-            style={styles.signIn}
+            hitSlop={6}
+            style={styles.accountLink}
           >
-            <Text>Zaten hesabın var mı?</Text>
-            <Text style={{ fontFamily: fonts.bold, color: sand.brown }}>
-              Giriş yap
-            </Text>
-            <Ionicons name="arrow-forward" size={18} color={sand.brown} />
+            <Text style={styles.accountText}>Hesabın var mı?</Text>
+            <Text style={styles.accountAction}>Giriş yap</Text>
           </Pressable>
+        </View>
 
-          <Text style={styles.terms}>
-            Devam ederek{" "}
-            <Text
-              style={styles.link}
-              accessibilityRole="link"
-              onPress={() => soon("Kullanım Koşulları")}
-            >
-              Kullanım Koşulları
-            </Text>{" "}
-            ve{" "}
-            <Text
-              style={styles.link}
-              accessibilityRole="link"
-              onPress={() => soon("Gizlilik Politikası")}
-            >
-              Gizlilik Politikası
-            </Text>
-            {"'nı kabul etmiş olursun."}
+        <Text style={styles.terms}>
+          Devam ederek{" "}
+          <Text
+            style={styles.link}
+            accessibilityRole="link"
+            onPress={() => soon("Kullanım Koşulları")}
+          >
+            Kullanım Koşulları
+          </Text>{" "}
+          ve{" "}
+          <Text
+            style={styles.link}
+            accessibilityRole="link"
+            onPress={() => soon("Gizlilik Politikası")}
+          >
+            Gizlilik Politikası
           </Text>
-        </ScrollView>
+          {"'nı kabul etmiş olursun."}
+        </Text>
       </SafeAreaView>
     </ImageBackground>
   );
@@ -250,38 +310,38 @@ function Provider({
 
 const styles = StyleSheet.create({
   background: { flex: 1, backgroundColor: sand.background },
-  page: { width: "100%", maxWidth: 520, alignSelf: "center" },
-  content: { padding: 20, paddingBottom: 24, gap: 18 },
-  logoRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
+  page: {
+    flex: 1,
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
+    gap: 12,
+  },
+  logoRow: { flexDirection: "row", justifyContent: "center" },
   logo: {
     fontFamily: serif,
     fontStyle: "italic",
     fontWeight: "700",
-    fontSize: 60,
+    fontSize: 52,
     letterSpacing: -2,
     color: colors.text,
   },
   title: {
+    marginTop: -6,
     fontFamily: serif,
     fontWeight: "700",
-    fontSize: 25,
+    fontSize: 21,
     letterSpacing: -0.6,
     textAlign: "center",
     color: colors.text,
   },
-  subtitle: {
-    marginTop: 6,
-    fontSize: 15,
-    lineHeight: 21,
-    textAlign: "center",
-    color: sand.muted,
-  },
-  // Yükseklik genişliğe oranlı; çerçeveler her ekran boyunda aynı yerde kalır.
-  collage: { aspectRatio: 1.15, marginHorizontal: -4 },
+  // Kalan dikey alanın tamamını kolaj kullanır; içerik bu alana göre ölçeklenir.
+  collage: { flex: 1, minHeight: 160, marginTop: 6 },
   frame: {
     position: "absolute",
-    width: "54%",
-    aspectRatio: 0.86,
     padding: 6,
     borderRadius: 8,
     backgroundColor: sand.card,
@@ -291,8 +351,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 4,
   },
-  frameLeft: { left: "3%", top: 10, transform: [{ rotate: "-4deg" }] },
-  frameRight: { right: "3%", top: 50, transform: [{ rotate: "5deg" }] },
+  frameLeft: { transform: [{ rotate: "-4deg" }] },
+  frameRight: { transform: [{ rotate: "5deg" }] },
   photo: { width: "100%", height: "100%", borderRadius: 4 },
   tape: {
     position: "absolute",
@@ -329,18 +389,16 @@ const styles = StyleSheet.create({
   },
   script: {
     position: "absolute",
-    left: 10,
-    top: "77%",
     fontFamily: serif,
     fontStyle: "italic",
-    fontSize: 20,
-    lineHeight: 22,
+    fontSize: 18,
+    lineHeight: 20,
     color: sand.brownDark,
     transform: [{ rotate: "-8deg" }],
   },
   primary: {
-    minHeight: 58,
-    borderRadius: 29,
+    minHeight: 56,
+    borderRadius: 28,
     backgroundColor: sand.brown,
     flexDirection: "row",
     alignItems: "center",
@@ -359,8 +417,8 @@ const styles = StyleSheet.create({
   },
   primaryArrow: { position: "absolute", right: 22 },
   provider: {
-    minHeight: 54,
-    borderRadius: 27,
+    minHeight: 52,
+    borderRadius: 26,
     backgroundColor: sand.card,
     borderWidth: 1,
     borderColor: sand.line,
@@ -369,28 +427,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 12,
   },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingHorizontal: 30,
-  },
-  rule: { flex: 1, height: 1, backgroundColor: sand.line },
-  signIn: {
+  accountRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    minHeight: 44,
+    gap: 14,
   },
+  accountLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    minHeight: 36,
+  },
+  accountText: { fontSize: 14, color: colors.text },
+  accountAction: { fontSize: 14, fontFamily: fonts.bold, color: sand.brown },
+  accountDivider: { width: 1, height: 18, backgroundColor: sand.line },
   terms: {
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 11,
+    lineHeight: 16,
     textAlign: "center",
     color: sand.muted,
   },
   link: {
-    fontSize: 12,
+    fontSize: 11,
     color: sand.muted,
     textDecorationLine: "underline",
   },

@@ -6,7 +6,7 @@ import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
 import { errorMessage } from "@/lib/api/client";
-import { blush, colors, common, fonts } from "@/theme";
+import { brand, colors, common, fonts } from "@/theme";
 import { useAuth } from "../hooks/use-auth";
 import { markWelcomed } from "../welcome";
 
@@ -33,12 +33,12 @@ export function LoginScreen() {
       <Text style={common.subtitle}>Hesabına giriş yap, kombinleri keşfet.</Text>
       <View style={{ gap: 8 }}>
         <Text style={{ fontFamily: fonts.semibold }}>E-posta</Text>
-        <TextInput accessibilityLabel="E-posta" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" textContentType="emailAddress" value={email} onChangeText={setEmail} editable={!busy} style={{ padding: 16, borderRadius: 16, backgroundColor: blush.surface, color: colors.text }} />
+        <TextInput accessibilityLabel="E-posta" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" textContentType="emailAddress" value={email} onChangeText={setEmail} editable={!busy} style={{ padding: 16, borderRadius: 16, backgroundColor: brand.surface, color: colors.text }} />
         <Text style={{ fontFamily: fonts.semibold }}>Şifre</Text>
-        <TextInput accessibilityLabel="Şifre" secureTextEntry autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" value={password} onChangeText={setPassword} editable={!busy} onSubmitEditing={() => void submit()} style={{ padding: 16, borderRadius: 16, backgroundColor: blush.surface, color: colors.text }} />
+        <TextInput accessibilityLabel="Şifre" secureTextEntry autoCapitalize="none" autoCorrect={false} autoComplete="current-password" textContentType="password" value={password} onChangeText={setPassword} editable={!busy} onSubmitEditing={() => void submit()} style={{ padding: 16, borderRadius: 16, backgroundColor: brand.surface, color: colors.text }} />
       </View>
       {error && <Text accessibilityRole="alert" style={{ color: colors.accent }}>{error}</Text>}
-      {busy && <ActivityIndicator color={blush.pink} />}
+      {busy && <ActivityIndicator color={brand.accent} />}
       <Button title={busy ? "Giriş yapılıyor…" : "Giriş yap"} disabled={busy || !email.trim() || !password} onPress={() => void submit()} />
     </KeyboardAvoidingView>
   </Screen>;

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { ApiImage } from "@/components/media/ApiImage";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApiError, errorMessage } from "@/lib/api/client";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { brand, colors, common, fonts, serif } from "@/theme";
 import type { ApiPoll, PollResults, ProductTag } from "../api/types";
 
 export function ApiPollCard({ initial, onSkip, detail = false }: { initial: ApiPoll; onSkip?: () => void; detail?: boolean }) {
@@ -82,13 +82,13 @@ export function ApiPollCard({ initial, onSkip, detail = false }: { initial: ApiP
       </View>
       {(results || poll.totalVotes !== undefined) && <Text>{results?.totalVotes ?? poll.totalVotes} oy</Text>}
     </View>
-    <Text style={styles.question}>{poll.question} <Text style={{ color: blush.pink }}>♡</Text></Text>
+    <Text style={styles.question}>{poll.question} <Text style={{ color: brand.accent }}>♡</Text></Text>
     <View style={styles.options}>
       {poll.options.map((option) => {
         const result = results?.options.find((row) => row.id === option.id);
         const selected = poll.myOptionId === option.id;
         const enabled = poll.canVote && !expired && !busy;
-        return <Pressable key={option.id} accessibilityRole="button" accessibilityLabel={`Seçenek ${option.label}${result ? `, yüzde ${result.percentage}` : ""}`} accessibilityState={{ selected, disabled: !enabled }} disabled={!enabled} onPress={() => void vote(option.id)} style={[styles.option, { borderColor: selected ? blush.pink : "transparent" }]}>
+        return <Pressable key={option.id} accessibilityRole="button" accessibilityLabel={`Seçenek ${option.label}${result ? `, yüzde ${result.percentage}` : ""}`} accessibilityState={{ selected, disabled: !enabled }} disabled={!enabled} onPress={() => void vote(option.id)} style={[styles.option, { borderColor: selected ? brand.accent : "transparent" }]}>
           <ApiImage path={option.media.displayPath} />
           <View style={styles.badge}><Text style={{ fontFamily: fonts.bold }}>{option.label}</Text></View>
           {result && <Text style={styles.percentage}>%{result.percentage}</Text>}
@@ -97,7 +97,7 @@ export function ApiPollCard({ initial, onSkip, detail = false }: { initial: ApiP
         </Pressable>;
       })}
     </View>
-    {busy && <ActivityIndicator color={blush.pink} />}
+    {busy && <ActivityIndicator color={brand.accent} />}
     {error && <Text accessibilityRole="alert" style={{ color: colors.accent }}>{error}</Text>}
     <Text style={{ color: colors.muted, textAlign: "center", fontSize: 13 }}>{poll.myOptionId ? "Tercihin kaydedildi" : poll.isOwner ? "Kendi paylaşımına oy veremezsin" : expired ? "Oylama sona erdi" : "Seçmek için kombine dokun"}</Text>
     <View style={common.row}>
@@ -132,25 +132,25 @@ function ProductRow({ product }: { product: ProductTag }) {
       await Linking.openURL(product.externalUrl); setError(false);
     } catch { setError(true); }
   }
-  return <Pressable accessibilityRole="link" onPress={() => void open()} style={{ padding: 14, borderRadius: 16, backgroundColor: blush.chip, gap: 4 }}>
+  return <Pressable accessibilityRole="link" onPress={() => void open()} style={{ padding: 14, borderRadius: 16, backgroundColor: brand.chip, gap: 4 }}>
     <Text style={{ fontFamily: fonts.semibold }}>{product.title} ↗</Text>
     <Text style={{ color: colors.muted }}>{[product.brand, price].filter(Boolean).join(" · ")}</Text>
     {error && <Text style={{ color: colors.accent }}>Bağlantı açılamadı. Tekrar dene.</Text>}
   </Pressable>;
 }
 export function CardAction({ children, onPress, disabled = false }: { children: ReactNode; onPress: () => void; disabled?: boolean }) {
-  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={{ flex: 1, minHeight: 46, justifyContent: "center", alignItems: "center", padding: 10, borderRadius: 24, backgroundColor: blush.card, borderWidth: 1, borderColor: blush.line, opacity: disabled ? 0.5 : 1 }}><Text style={{ fontFamily: fonts.semibold }}>{children}</Text></Pressable>;
+  return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={{ flex: 1, minHeight: 46, justifyContent: "center", alignItems: "center", padding: 10, borderRadius: 24, backgroundColor: brand.card, borderWidth: 1, borderColor: brand.line, opacity: disabled ? 0.5 : 1 }}><Text style={{ fontFamily: fonts.semibold }}>{children}</Text></Pressable>;
 }
 const styles = StyleSheet.create({
-  card: { padding: 16, borderRadius: 28, backgroundColor: blush.surface, borderWidth: 1, borderColor: blush.line, gap: 14 },
-  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: blush.pinkSoft, overflow: "hidden", justifyContent: "center", alignItems: "center" },
+  card: { padding: 16, borderRadius: 28, backgroundColor: brand.surface, borderWidth: 1, borderColor: brand.line, gap: 14 },
+  avatar: { width: 46, height: 46, borderRadius: 23, backgroundColor: brand.accentSoft, overflow: "hidden", justifyContent: "center", alignItems: "center" },
   question: { fontFamily: serif, fontSize: 28, fontWeight: "700", color: colors.text },
   options: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   option: { width: "48.5%", aspectRatio: 9 / 16, borderWidth: 3, borderRadius: 20, overflow: "hidden" },
-  badge: { position: "absolute", top: 10, left: 10, backgroundColor: blush.card, borderRadius: 20, padding: 10 },
-  choice: { position: "absolute", top: 12, right: 6, backgroundColor: blush.card, borderRadius: 14, padding: 6 },
-  choiceBottom: { position: "absolute", bottom: 10, left: 10, backgroundColor: blush.card, borderRadius: 14, padding: 6 },
+  badge: { position: "absolute", top: 10, left: 10, backgroundColor: brand.card, borderRadius: 20, padding: 10 },
+  choice: { position: "absolute", top: 12, right: 6, backgroundColor: brand.card, borderRadius: 14, padding: 6 },
+  choiceBottom: { position: "absolute", bottom: 10, left: 10, backgroundColor: brand.card, borderRadius: 14, padding: 6 },
   percentage: { position: "absolute", bottom: 8, left: 8, fontSize: 34, color: "white", fontFamily: fonts.extraBold, textShadowColor: "#000", textShadowRadius: 4 },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" },
-  sheet: { maxHeight: "80%", padding: 24, paddingBottom: 40, backgroundColor: blush.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, gap: 20 },
+  sheet: { maxHeight: "80%", padding: 24, paddingBottom: 40, backgroundColor: brand.background, borderTopLeftRadius: 24, borderTopRightRadius: 24, gap: 20 },
 });

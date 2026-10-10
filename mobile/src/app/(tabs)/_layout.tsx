@@ -1,7 +1,7 @@
 import { Redirect, Tabs, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, type ColorValue } from "react-native";
-import { blush, colors, fonts } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -31,15 +31,15 @@ export default function TabsLayout() {
   if (!me && !hasWelcomed()) return <Redirect href="/auth" />;
   return (
     <View style={{ flex: 1 }}>
-    {me && segments.length > 1 && <View style={{ backgroundColor: blush.chip, paddingTop: insets.top, paddingBottom: 8, alignItems: "center" }}><Text style={{ color: colors.muted, fontSize: 12 }}>Bu ekran tasarım önizlemesidir.</Text></View>}
+    {me && segments.length > 1 && <View style={{ backgroundColor: brand.chip, paddingTop: insets.top, paddingBottom: 8, alignItems: "center" }}><Text style={{ color: colors.muted, fontSize: 12 }}>Bu ekran tasarım önizlemesidir.</Text></View>}
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: blush.pink,
+        tabBarActiveTintColor: brand.accent,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: blush.surface,
-          borderTopColor: blush.line,
+          backgroundColor: brand.surface,
+          borderTopColor: brand.line,
           height: 76,
           paddingTop: 8,
         },
@@ -72,10 +72,10 @@ export default function TabsLayout() {
                 height: 52,
                 borderRadius: 26,
                 marginTop: -22,
-                backgroundColor: blush.pink,
+                backgroundColor: brand.accent,
                 alignItems: "center",
                 justifyContent: "center",
-                shadowColor: blush.pink,
+                shadowColor: brand.accent,
                 shadowOpacity: 0.35,
                 shadowRadius: 10,
                 shadowOffset: { width: 0, height: 4 },

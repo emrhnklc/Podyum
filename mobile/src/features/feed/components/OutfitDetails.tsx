@@ -20,9 +20,9 @@ import {
 import { useDemoPolls } from "@/features/polls/hooks/use-demo-polls";
 import type { DemoOption, DemoPost } from "@/features/polls/types";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
-import { blush, colors, fonts } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 
-const BADGE_TONE = { A: "rgba(204,92,134,0.85)", B: "rgba(160,112,160,0.85)" };
+const BADGE_TONE = { A: "rgba(183,118,74,0.9)", B: "rgba(107,65,40,0.85)" };
 
 function allProducts(post: DemoPost) {
   return getProducts(post.options.flatMap((option) => option.products));
@@ -115,8 +115,8 @@ export function OutfitDetailsSheet({
         <View style={styles.header}>
           <Text style={styles.title}>Kombin detayları</Text>
           <View style={styles.count}>
-            <Ionicons name="bag-handle-outline" size={14} color={blush.wine} />
-            <Text style={{ fontSize: 12, color: blush.wine }}>
+            <Ionicons name="bag-handle-outline" size={14} color={brand.accentDark} />
+            <Text style={{ fontSize: 12, color: brand.accentDark }}>
               {items.length} ürün
             </Text>
           </View>
@@ -141,13 +141,10 @@ export function OutfitDetailsSheet({
                 onPress={() => setLabel(item.label)}
                 style={[styles.segmentItem, active && styles.segmentActive]}
               >
-                <View style={styles.segmentThumb}>
-                  <PreviewImage uri={item.image} tone={item.tone} />
-                </View>
                 <Text
                   style={{
                     fontFamily: active ? fonts.bold : fonts.medium,
-                    color: active ? blush.wine : colors.text,
+                    color: active ? brand.accentDark : colors.text,
                   }}
                 >
                   {item.label} Kombini
@@ -178,7 +175,7 @@ export function OutfitDetailsSheet({
               <Ionicons
                 name={isSaved ? "bookmark" : "bookmark-outline"}
                 size={14}
-                color={blush.wine}
+                color={brand.accentDark}
               />
               <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
                 {isSaved ? "Kaydedildi" : "Bu kombini kaydet"}
@@ -264,11 +261,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderTopLeftRadius: 26,
     borderTopRightRadius: 26,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
     borderBottomWidth: 0,
-    borderColor: blush.line,
-    shadowColor: blush.wine,
+    borderColor: brand.line,
+    shadowColor: brand.accentDark,
     shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: -4 },
@@ -279,7 +276,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: blush.line,
+    backgroundColor: brand.line,
     marginBottom: 8,
   },
   barRow: { flexDirection: "row", alignItems: "center", gap: 10 },
@@ -288,13 +285,13 @@ const styles = StyleSheet.create({
     gap: 2,
     padding: 4,
     borderRadius: 14,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
   barThumb: { width: 28, height: 36, borderRadius: 7, overflow: "hidden" },
   more: {
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -302,13 +299,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     alignItems: "center",
     justifyContent: "center",
   },
-  backdrop: { flex: 1, backgroundColor: "rgba(40,20,30,0.35)" },
+  backdrop: { flex: 1, backgroundColor: "rgba(37,33,42,0.35)" },
   sheet: {
     maxHeight: "82%",
     width: "100%",
@@ -319,7 +316,7 @@ const styles = StyleSheet.create({
     gap: 12,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    backgroundColor: blush.background,
+    backgroundColor: brand.background,
   },
   header: { flexDirection: "row", alignItems: "center", gap: 10 },
   title: { flex: 1, fontFamily: fonts.bold, fontSize: 20 },
@@ -330,15 +327,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 14,
-    backgroundColor: blush.chip,
+    backgroundColor: brand.chip,
   },
   segment: {
     flexDirection: "row",
     padding: 4,
     borderRadius: 26,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
   segmentItem: {
     flex: 1,
@@ -349,8 +346,7 @@ const styles = StyleSheet.create({
     gap: 8,
     borderRadius: 22,
   },
-  segmentActive: { backgroundColor: blush.pinkSoft },
-  segmentThumb: { width: 28, height: 28, borderRadius: 14, overflow: "hidden" },
+  segmentActive: { backgroundColor: brand.accentSoft },
   body: { flexDirection: "row", gap: 10, height: 300 },
   photo: { width: "44%", borderRadius: 18, overflow: "hidden" },
   badge: {
@@ -374,7 +370,7 @@ const styles = StyleSheet.create({
     gap: 5,
     paddingVertical: 7,
     borderRadius: 14,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
   },
   item: {
     flexDirection: "row",
@@ -382,9 +378,9 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 8,
     borderRadius: 14,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
   itemThumb: { width: 48, height: 48, borderRadius: 10, overflow: "hidden" },
   itemName: { fontFamily: fonts.semibold, fontSize: 13, lineHeight: 17 },
@@ -400,9 +396,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   actionOutline: {
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
-  actionFilled: { flex: 1, backgroundColor: blush.pink },
+  actionFilled: { flex: 1, backgroundColor: brand.accent },
 });

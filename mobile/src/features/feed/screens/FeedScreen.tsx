@@ -20,7 +20,7 @@ import { feed } from "@/features/polls/data/demo-polls";
 import { PollCard } from "@/features/polls/components/PollCard";
 import { OutfitDetailsBar, OutfitDetailsSheet } from "../components/OutfitDetails";
 import { useDemoPolls } from "@/features/polls/hooks/use-demo-polls";
-import { blush, colors, common, fonts } from "@/theme";
+import { brand, colors, common, fonts } from "@/theme";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -36,7 +36,7 @@ const categories: { value: "ALL" | PollCategory; label: string; icon: IconName }
 
 export function FeedScreen() {
   const { ready, me, session, error } = useAuth();
-  if (!ready) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={blush.pink} /></View>;
+  if (!ready) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={brand.accent} /></View>;
   if (me && session) return <ApiFeedScreen key={session.sessionId} />;
   return <DemoFeedScreen sessionError={error} />;
 }
@@ -68,7 +68,7 @@ function DemoFeedScreen({ sessionError }: { sessionError: string | null }) {
             accessibilityLabel="Filtreleri aç"
             accessibilityState={{ expanded: filtersOpen }}
             onPress={() => setFiltersOpen((open) => !open)}
-            style={[styles.round, filtersOpen && { borderColor: blush.pink }]}
+            style={[styles.round, filtersOpen && { borderColor: brand.accent }]}
           >
             <Ionicons name="options-outline" size={24} color={colors.text} />
             {category !== "ALL" && <View style={styles.dot} />}
@@ -113,12 +113,12 @@ function DemoFeedScreen({ sessionError }: { sessionError: string | null }) {
                 <Ionicons
                   name={active ? "people" : "people-outline"}
                   size={20}
-                  color={active ? blush.wine : colors.muted}
+                  color={active ? brand.accentDark : colors.muted}
                 />
                 <Text
                   style={{
                     fontFamily: active ? fonts.bold : fonts.medium,
-                    color: active ? blush.wine : colors.muted,
+                    color: active ? brand.accentDark : colors.muted,
                   }}
                 >
                   {option.label}
@@ -166,7 +166,7 @@ function DemoFeedScreen({ sessionError }: { sessionError: string | null }) {
                       <Ionicons
                         name={isSaved ? "bookmark" : "bookmark-outline"}
                         size={19}
-                        color={blush.wine}
+                        color={brand.accentDark}
                       />
                     }
                     onPress={() => toggleSave(post.id)}
@@ -249,7 +249,7 @@ function Action({
       onPress={onPress}
       style={({ pressed }) => [
         styles.action,
-        filled && { backgroundColor: blush.pink, borderColor: blush.pink },
+        filled && { backgroundColor: brand.accent, borderColor: brand.accent },
         { opacity: pressed ? 0.75 : 1 },
       ]}
     >
@@ -267,7 +267,7 @@ function Action({
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: blush.background },
+  safe: { flex: 1, backgroundColor: brand.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   // Alttaki sabit kombin çubuğu son içeriği örtmesin diye ekstra boşluk.
   content: { padding: 16, paddingBottom: 100, gap: 14 },
@@ -275,9 +275,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -288,14 +288,14 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: blush.pink,
+    backgroundColor: brand.accent,
   },
   pill: {
     minHeight: 54,
     borderRadius: 27,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
   },
   search: {
     flexDirection: "row",
@@ -312,14 +312,14 @@ const styles = StyleSheet.create({
     gap: 10,
     borderRadius: 24,
   },
-  segmentActive: { backgroundColor: blush.pinkSoft },
+  segmentActive: { backgroundColor: brand.accentSoft },
   action: {
     flex: 1,
     minHeight: 52,
     borderRadius: 26,
     borderWidth: 1,
-    borderColor: blush.line,
-    backgroundColor: blush.card,
+    borderColor: brand.line,
+    backgroundColor: brand.card,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

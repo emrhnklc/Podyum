@@ -1,6 +1,6 @@
 # Ana ekranın ilk gerçek API bağlantısı
 
-10 Ekim 2026. Kapsam: doğrulanmış mevcut e-posta hesabıyla giriş, Keşfet, tercih/sonuç/detay, ürün linkleri ve yorumlar. Kayıt, e-posta doğrulama arayüzü, şifre sıfırlama, gerçek Google/Apple girişi ve diğer sekmelerin entegrasyonu sonraki işlerdir.
+10 Ekim 2026. Kapsam: doğrulanmış mevcut e-posta hesabıyla giriş, Keşfet, tercih/sonuç/detay, ürün linkleri ve yorumlar. Üç adımlı kayıt tasarımının API bağlantısı, e-posta doğrulama arayüzü, şifre sıfırlama, gerçek Google/Apple girişi ve diğer sekmelerin entegrasyonu sonraki işlerdir.
 
 ## Kullanıcı akışı
 
@@ -61,4 +61,4 @@ npm run build
 
 9 oturum testi: giriş/restore, eşzamanlı refresh, geç 401, çıkış/refresh yarışı, belirsiz yenilemede token tekrarını önleme, geç eski hesap yanıtı, geç JSON gövdesi, hesap değişiminde eski tokenı kapatma ve 403/409 ayrımı. API smoke normal e-posta girişini, arkadaş/kategori listesini, yetkili/yetkisiz görseli, kaydet/kaldır, tek oy/replay/değiştirme reddi, detay/sonuç, akıştan çıkarma, yorum/replay/silme ve çıkışı gerçek mobil istemciyle doğrular. Yalnız önizleme hesaplarının bir oylamasına oy verir ve kendi test yorumunu kaldırır; eski demo verisini değiştirmez. Sonrasında yeniden preview:mobile ile üç oylanmamış kart hazırlanabilir.
 
-Android/iOS/web export gerçek cihaz kabulü değildir. Galeriden paylaşma, gerçek profil/arkadaş araması, bildirim ve oyun ekranı entegrasyonu, kayıt/doğrulama arayüzü ve demografik sonuçlar henüz bağlanmadı. Giriş sonrası bağlantısı olmayan sekmeler önizleme etiketi gösterir.
+Android/iOS/web export gerçek cihaz kabulü değildir. Galeriden paylaşma, gerçek profil/arkadaş araması, bildirim ve oyun ekranı entegrasyonu, kayıt tasarımının API bağlantısı, doğrulama arayüzü ve demografik sonuçlar henüz bağlanmadı. Giriş sonrası bağlantısı olmayan sekmeler önizleme etiketi gösterir.

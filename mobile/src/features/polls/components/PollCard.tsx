@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
-import { blush, colors, common, fonts, serif } from "@/theme";
+import { brand, colors, common, fonts, serif } from "@/theme";
 import { ME } from "@/constants/demo";
 import { compactCount } from "@/lib/format";
 import { getUser } from "@/features/profile/data/demo-users";
@@ -11,7 +11,7 @@ import { demoResults, useDemoPolls } from "../hooks/use-demo-polls";
 import { PollOptions } from "./PollOptions";
 import type { DemoPost } from "../types";
 
-// Pembe oylama kartı: yazar, soru, seçenekler ve durum satırı. Keşfet eylemleri
+// Oylama kartı: yazar, soru, seçenekler ve durum satırı. Keşfet eylemleri
 // `footer` ile kartın içine eklenir; detay ekranı kartı footer'sız kullanır.
 export function PollCard({
   post,
@@ -41,7 +41,7 @@ export function PollCard({
           style={[common.row, { flex: 1 }]}
         >
           <View style={styles.avatar}>
-            <Text style={{ fontFamily: fonts.bold, color: blush.wine }}>
+            <Text style={{ fontFamily: fonts.bold, color: brand.accentDark }}>
               {user?.initials ?? "?"}
             </Text>
           </View>
@@ -63,7 +63,7 @@ export function PollCard({
           </View>
         </Pressable>
         <View style={styles.votes}>
-          <Ionicons name="flame" size={16} color={blush.pink} />
+          <Ionicons name="flame" size={16} color={brand.accent} />
           <Text style={{ fontFamily: fonts.bold, fontSize: 13 }}>
             {compactCount(results.total)}{" "}
             <Text style={{ fontSize: 13, color: colors.muted }}>oy</Text>
@@ -77,7 +77,7 @@ export function PollCard({
       <PollOptions post={post} />
       {picked && !closed ? (
         <View style={[common.row, styles.accepted]}>
-          <Ionicons name="checkmark-circle" size={20} color={blush.pink} />
+          <Ionicons name="checkmark-circle" size={20} color={brand.accent} />
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: fonts.bold }}>Tercihin kaydedildi</Text>
             <Text style={{ fontSize: 12, color: colors.muted }}>
@@ -107,11 +107,11 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     borderRadius: 28,
-    backgroundColor: blush.surface,
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     gap: 14,
-    shadowColor: blush.wine,
+    shadowColor: brand.accentDark,
     shadowOpacity: 0.06,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 6 },
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: blush.pinkSoft,
+    backgroundColor: brand.accentSoft,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -129,9 +129,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: blush.card,
+    backgroundColor: brand.card,
     borderWidth: 1,
-    borderColor: blush.line,
+    borderColor: brand.line,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 20,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
     color: colors.text,
   },
-  heart: { fontSize: 26, color: blush.pink },
-  rule: { flex: 1, height: 1, backgroundColor: blush.line },
-  accepted: { backgroundColor: blush.chip, padding: 12, borderRadius: 14 },
+  heart: { fontSize: 26, color: brand.accent },
+  rule: { flex: 1, height: 1, backgroundColor: brand.line },
+  accepted: { backgroundColor: brand.chip, padding: 12, borderRadius: 14 },
 });

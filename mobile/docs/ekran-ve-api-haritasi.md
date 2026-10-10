@@ -15,7 +15,8 @@
 | `/u/:username` | profile/ProfileScreen | "Profil": lig rozeti, Takip Et/Mesaj, öne çıkanlar; bilinmeyen kullanıcı için boş durum |
 | `/polls/:id` | polls/PollDetailScreen | UUID için gerçek detay/sonuç; demo kimliği için demo detay |
 | `/profile/edit` | profile/EditProfileScreen | Profili Düzenle: kapak/avatar seçimi, ad, bio, konum, stil etiketleri, sosyal hesaplar; Kaydet bellekte tutar |
-| `/settings` | settings/SettingsScreen | Gerçek çıkış ve yerel oturum temizliği; diğer ayarlar/bildirim ekranı henüz bağlı değil |
+| `/auth/register` | auth/RegisterScreen | 3 adımlı kayıt (hesap, profil, stil); sunucu yok, tamamlanınca önizleme profiline yazar ve Keşfet'i açar |
+| `/settings` | settings/SettingsScreen | Gerçek çıkış ve yerel oturum temizliği; bildirim rotası açılır, diğer ayarlar henüz bağlı değil |
 | `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
 | `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |
 | `/games` | → `/defile` | Eski bağlantılar Defile sekmesine yönlenir |
@@ -30,7 +31,7 @@ Alt menü Keşfet, Trendler, Paylaş, Defile, Profil içerir. Günlük podyum ve
 
 | Kullanım | Backend karşılığı | Durum |
 | --- | --- | --- |
-| Oturum | `/auth/login`, `/auth/me`, `/auth/refresh`, `/auth/logout` | E-posta girişi/yenileme/çıkış bağlı; kayıt ve OAuth arayüzü bekliyor |
+| Oturum | `/auth/login`, `/auth/me`, `/auth/refresh`, `/auth/logout` | E-posta girişi/yenileme/çıkış bağlı; kayıt arayüzü önizleme; doğrulama ve OAuth bağlantısı bekliyor |
 | Kendi/başka profil | Users API | Backend hazır; frontend bağlanmadı |
 | Arkadaş/engel | Social API | Backend hazır; frontend bağlanmadı |
 | Keşfet listesi | `GET /v1/feed` | Bağlı: scope/category/cursor/yenileme |
@@ -57,7 +58,7 @@ Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı 
 
 **Kombindeki parçalar ve trendler:** Her seçenek, parça kimliklerinin listesini taşır (`products: string[]`); parça adı, kategori, örnek fiyat, küçük görsel ve arama sorgusu `features/polls/data/demo-products.ts` içindedir. Gerçek bağlantıda bunların karşılığı seçenek başına ProductTag ve katalogdaki ortak ürün kimliğidir; "Benzerlerini gör" yerine etiketin `externalUrl` adresi açılır. Demo trend listesi aynı parçalardan hesaplanır: parçanın etiketlendiği seçeneklere verilen oyların toplamı. Bu, mentör notundaki "seçilen kombinlerde yer alan ürünler" ölçümüdür; ürün oyu ya da satış değildir.
 
-**Keşfet düzeni:** Pembe tasarımda oylama tek bir kart içindedir: yazar, serif soru, yan yana 9:16 seçenekler ve kartın içinde Geç/Kaydet/yorum eylemleri. Kartın altında parçalar listelenir. Kategori filtreleri sağ üstteki filtre tuşuyla açılır; arama çubuğu Kişiler ekranına gider. "Senin oylaman" şeridi Keşfet'te yoktur; kendi oylamalarına Profil'den ulaşılır.
+**Keşfet düzeni:** Kahve/krem tasarımda oylama tek bir kart içindedir: yazar, serif soru, yan yana 9:16 seçenekler ve kartın içinde Geç/Kaydet/yorum eylemleri. Kartın altında parçalar listelenir. Kategori filtreleri sağ üstteki filtre tuşuyla açılır; arama çubuğu Kişiler ekranına gider. "Senin oylaman" şeridi Keşfet'te yoktur; kendi oylamalarına Profil'den ulaşılır.
 
 Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş filtreleri ve gerçek katalog kimliği ayrıca bağlanacak.
 
