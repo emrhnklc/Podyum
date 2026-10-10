@@ -5,11 +5,11 @@ Kombin tercihleri, sosyal paylaşım ve günlük tema oyunları için uygulama.
 ```text
 Podyum/
   backend/       NestJS API, Prisma, migration, test ve backend belgeleri
-  mobile/        Telefonda kullanılan mevcut Next.js arayüzü
+  mobile/        Expo + React Native mobil uygulaması ve web önizlemesi
   package.json   İki uygulamanın kökten çalıştırma komutları
 ```
 
-`backend/` ve `mobile/` kendi `package.json`, `package-lock.json` ve `node_modules` dizinlerine sahiptir. Paket kurulumu ve TypeScript ayarları ayrı yönetilir. `mobile/`, önceki `web/` klasörünün yeni adıdır; mevcut arayüz Next.js ile çalışır ve henüz demo verisi kullanır.
+`backend/` ve `mobile/` kendi `package.json`, `package-lock.json` ve `node_modules` dizinlerine sahiptir. Paket kurulumu ve TypeScript ayarları ayrı yönetilir. Mobile, Expo Router ile `src/app`, `features`, ortak `components/hooks/lib/theme` düzenini kullanır; ekranlar henüz demo verisiyle çalışır.
 
 ## Kurulum
 
@@ -42,9 +42,10 @@ npm run dev:mobile
 ```
 
 - Backend: `http://127.0.0.1:3000`; Swagger: `http://127.0.0.1:3000/v1/docs`.
-- Mobile arayüzü: `http://localhost:3001`.
+- Mobile: Expo terminalindeki QR ile Expo Go; Metro portu `8081`.
+- Tarayıcı önizlemesi: `npm run web:mobile` → `http://localhost:8081`.
 
-Doğrudan ilgili klasörde de çalışılabilir: `cd backend && npm start` veya `cd mobile && npm run dev`. Backend ortam ayarları ve yerel dosyaları `backend/.env` ve `backend/.local/` altındadır. Özel fotoğraflar, posta kutusu, ortam dosyaları ve bağımlılıklar Git'e eklenmez.
+Doğrudan ilgili klasörde de çalışılabilir: `cd backend && npm start` veya `cd mobile && npm run dev`. Expo Go için bilgisayar ve telefon aynı Wi-Fi'da olmalıdır. Backend ortam ayarları ve yerel dosyaları `backend/.env` ve `backend/.local/` altındadır. Özel fotoğraflar, posta kutusu, ortam dosyaları ve bağımlılıklar Git'e eklenmez.
 
 ## Kontroller ve belgeler
 
@@ -67,3 +68,5 @@ DB kullanan test ve bakım komutlarını yerel tek bağlantılı DB üzerinde s�
 - [Ekran ve API haritası](mobile/docs/ekran-ve-api-haritasi.md)
 
 Backend değişiklikleri `backend/`, arayüz değişiklikleri `mobile/` altında yapılır. Prisma'nın ürettiği `backend/src/generated/prisma/` dosyaları elle değiştirilmez.
+
+Mobile `build`, Android/iOS/web JavaScript paketlerini dışa aktarır; APK/IPA üretmez. Detaylı kurulum ve feature sınırları [mobile rehberindedir](mobile/README.md).
