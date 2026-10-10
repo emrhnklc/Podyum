@@ -1,7 +1,8 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, type ColorValue } from "react-native";
 import { blush, colors, fonts } from "@/theme";
+import { hasWelcomed } from "@/features/auth/welcome";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -18,6 +19,8 @@ function tabIcon(active: IconName, idle: IconName) {
 }
 
 export default function TabsLayout() {
+  // Açılışta önce karşılama ekranı; "Başla" sonrası sekmeler açılır.
+  if (!hasWelcomed()) return <Redirect href="/auth" />;
   return (
     <Tabs
       screenOptions={{
@@ -48,6 +51,9 @@ export default function TabsLayout() {
         name="paylas"
         options={{
           title: "Paylaş",
+          // Ortadaki + yalnız ikon; ekran okuyucu yine "Paylaş" der.
+          tabBarShowLabel: false,
+          tabBarAccessibilityLabel: "Paylaş",
           tabBarActiveTintColor: colors.muted,
           tabBarIcon: () => (
             <View

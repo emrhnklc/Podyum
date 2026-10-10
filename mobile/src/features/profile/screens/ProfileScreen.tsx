@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,38 +10,28 @@ import { PreviewImage } from "@/components/media/PreviewImage";
 import { blush, colors, common, fonts, serif } from "@/theme";
 import { ME } from "@/constants/demo";
 import { compactCount } from "@/lib/format";
-import { getUser } from "../data/demo-users";
+import { useProfileUser } from "../hooks/use-profile-edits";
+import {
+  myHighlights,
+  otherHighlights,
+  type DemoHighlight,
+} from "../data/demo-highlights";
+import type { DemoUser } from "../types";
 import { posts, postsOf } from "@/features/polls/data/demo-polls";
 import { useDemoPolls } from "@/features/polls/hooks/use-demo-polls";
 import { leagueFor } from "@/features/games/data/league";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 
 type IconName = keyof typeof Ionicons.glyphMap;
-type Tab = "POSTS" | "SAVED" | "CONTESTS";
+type Tab = "POSTS" | "OUTFITS" | "POLLS" | "SAVED";
 
-const STYLE_ICON: Record<string, IconName> = {
-  Minimal: "body-outline",
-  Vintage: "leaf-outline",
-  "Sokak stili": "footsteps-outline",
-  Oversize: "shirt-outline",
-  Sneaker: "footsteps-outline",
-  Klasik: "ribbon-outline",
-  Retro: "radio-outline",
-  Renkli: "color-palette-outline",
-};
-// Önizleme rozetleri; gerçek başarımlar oyun API'si bağlanınca gelecek.
-const BADGES: { label: string; icon: IconName; color: string }[] = [
-  { label: "Podyum birincisi ×3", icon: "trophy", color: blush.wine },
-  { label: "Stil gurusu", icon: "ribbon", color: "#E0A526" },
-  { label: "30 gün seri", icon: "flame", color: blush.pink },
-];
-
+// Kendi profilin "Profilim", başkasınınki "Profil" düzeninde açılır.
 export function ProfileScreen({ username = ME }: { username?: string }) {
   const [tab, setTab] = useState<Tab>("POSTS");
-  const [requested, setRequested] = useState(false);
+  const [following, setFollowing] = useState(false);
   const { saved } = useDemoPolls();
   const message = usePreviewMessage();
-  const user = getUser(username);
+  const { user, handle } = useProfileUser(username);
   const mine = username === ME;
   const back = () => (router.canGoBack() ? router.back() : router.replace("/"));
 
@@ -58,20 +48,25 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
       </SafeAreaView>
     );
 
-  const league = leagueFor(user.counts.stars);
+  const own = postsOf(username);
   const rows =
-    tab === "SAVED" && mine
+    tab === "SAVED"
       ? posts.filter((post) => saved.includes(post.id))
-      : tab === "POSTS"
-        ? postsOf(username)
-        : [];
+      : tab === "OUTFITS"
+        ? own.filter((post) => post.category === "OUTFIT")
+        : tab === "POLLS"
+          ? own.filter((post) => post.timeLeft !== "bitti")
+          : own;
   const tabs: { value: Tab; label: string; icon: IconName }[] = [
-    { value: "POSTS", label: "Paylaşımlar", icon: "grid" },
+    { value: "POSTS", label: "Gönderiler", icon: "grid-outline" },
+    { value: "OUTFITS", label: "Kombinler", icon: "shirt-outline" },
+    { value: "POLLS", label: "Oylamalar", icon: "stats-chart-outline" },
     ...(mine
       ? [{ value: "SAVED" as const, label: "Kaydedilenler", icon: "bookmark-outline" as const }]
       : []),
-    { value: "CONTESTS", label: "Yarışmalar", icon: "trophy-outline" },
   ];
+  const shareProfile = () =>
+    Share.share({ message: `Podyum'da @${handle} profiline göz at!` });
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -80,206 +75,205 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
         style={styles.page}
         contentContainerStyle={styles.content}
       >
-        <View style={common.spread}>
+        <View style={styles.header}>
           {mine ? (
-            <View style={{ flexDirection: "row" }}>
-              <Text style={styles.logo}>Podyum</Text>
-              <Ionicons name="sparkles" size={16} color={blush.pink} />
-            </View>
+            <IconButton
+              label="Ayarlar"
+              icon="settings-outline"
+              onPress={() => router.push("/settings")}
+            />
           ) : (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Geri"
-              onPress={back}
-              style={styles.round}
-            >
-              <Ionicons name="arrow-back" size={22} color={colors.text} />
-            </Pressable>
+            <IconButton label="Geri" icon="chevron-back" onPress={back} />
           )}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={mine ? "Hesap girişi" : "Daha fazla"}
-            onPress={() =>
-              mine
-                ? router.push("/auth")
-                : message(
+          <Text style={styles.headerTitle} accessibilityRole="header">
+            {mine ? "Profilim" : "Profil"}
+          </Text>
+          <View style={{ flexDirection: "row" }}>
+            {mine ? (
+              <>
+                <IconButton
+                  label="Profili paylaş"
+                  icon="share-outline"
+                  onPress={shareProfile}
+                />
+                <IconButton
+                  label="Menü"
+                  icon="menu-outline"
+                  onPress={() => router.push("/settings")}
+                />
+              </>
+            ) : (
+              <IconButton
+                label="Daha fazla"
+                icon="ellipsis-vertical"
+                onPress={() =>
+                  message(
                     "Şikâyet ve engelleme seçenekleri sıradaki adımlarda açılacak.",
                   )
-            }
-            style={styles.round}
-          >
-            <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
-          </Pressable>
+                }
+              />
+            )}
+          </View>
         </View>
 
-        <View style={[common.row, { gap: 16, alignItems: "flex-start" }]}>
+        <View style={styles.identity}>
           <View>
-            <View style={styles.avatar}>
-              <PreviewImage uri={user.avatar} tone={blush.pinkSoft} icon="person-outline" />
-              {!user.avatar && (
-                <Text style={styles.initials}>{user.initials}</Text>
-              )}
-            </View>
+            <Avatar user={user} />
             {mine && (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Profil fotoğrafı ekle"
-                onPress={() =>
-                  message("Fotoğraf seçimi bir sonraki adımda açılacak.")
-                }
-                style={styles.avatarPlus}
+                accessibilityLabel="Profil fotoğrafını düzenle"
+                onPress={() => router.push("/profile/edit")}
+                style={styles.avatarEdit}
               >
-                <Ionicons name="add" size={20} color={colors.onAccent} />
+                <Ionicons name="pencil" size={16} color={colors.text} />
               </Pressable>
             )}
           </View>
           <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.name}>{user.displayName}</Text>
-            <Text style={{ color: colors.muted }}>{user.username}</Text>
-            {user.bio && (
-              <Text style={{ fontSize: 15 }}>
-                {user.bio} <Text style={{ color: blush.pink }}>♡</Text>
+            <View style={[common.row, { gap: 6 }]}>
+              <Text style={styles.username} numberOfLines={1}>
+                {handle}
               </Text>
-            )}
-          </View>
-        </View>
-        <View style={[common.row, { flexWrap: "wrap", gap: 8 }]}>
-          {user.styles.map((style) => (
-            <View key={style} style={styles.style}>
-              <Ionicons
-                name={STYLE_ICON[style] ?? "pricetag-outline"}
-                size={15}
-                color={colors.text}
-              />
-              <Text style={{ fontSize: 13 }}>{style}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={[styles.box, styles.stats]}>
-          {[
-            { label: "Paylaşım", value: user.counts.polls },
-            { label: "Arkadaş", value: user.counts.friends },
-            { label: "Yıldız", value: user.counts.stars },
-          ].map((count, index) => (
-            <Pressable
-              key={count.label}
-              accessibilityRole="button"
-              accessibilityLabel={`${count.value} ${count.label}`}
-              disabled={count.label !== "Arkadaş" || !mine}
-              onPress={() => router.push("/friends")}
-              style={[styles.stat, index > 0 && styles.statDivider]}
-            >
-              <Text style={styles.statValue}>{compactCount(count.value)}</Text>
-              <View style={[common.row, { gap: 4 }]}>
-                {count.label === "Yıldız" && (
-                  <Ionicons name="star" size={13} color={blush.pink} />
-                )}
-                <Text style={{ fontSize: 13, color: colors.muted }}>
-                  {count.label}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
-        </View>
-
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          {mine ? (
-            <>
-              <Action
-                label="Profili düzenle"
-                icon="pencil-outline"
-                filled
-                onPress={() =>
-                  message("Profil düzenleme ekranı sıradaki adımlarda açılacak.")
-                }
-              />
-              <Action
-                label="Arkadaş ekle"
-                icon="person-add-outline"
-                onPress={() => router.push("/people")}
-              />
-            </>
-          ) : (
-            <>
-              <Action
-                label={requested ? "İstek gitti" : "Arkadaş ekle"}
-                icon={requested ? "checkmark" : "person-add-outline"}
-                filled
-                onPress={() => setRequested((value) => !value)}
-              />
-              <Action
-                label="Mesaj"
-                icon="chatbubble-outline"
-                onPress={() => message("Mesajlar sıradaki adımlarda açılacak.")}
-              />
-            </>
-          )}
-        </View>
-
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={league.name}
-          onPress={() => router.push("/defile")}
-          style={[styles.box, common.row, { gap: 14 }]}
-        >
-          <View style={styles.leagueBadge}>
-            <Ionicons name="trophy" size={28} color="#FFF6DA" />
-          </View>
-          <View style={{ flex: 1, gap: 6 }}>
-            <View style={common.spread}>
-              <Text style={styles.leagueName}>{league.name}</Text>
-              <Ionicons name="chevron-forward" size={18} color={colors.text} />
-            </View>
-            {league.next && (
-              <View style={[common.row, { gap: 4 }]}>
-                <Text style={{ color: colors.muted }}>
-                  {league.next} Lig&apos;e {league.remaining}
-                </Text>
-                <Ionicons name="star" size={14} color={blush.pink} />
-              </View>
-            )}
-            <View style={[common.row, { gap: 10 }]}>
-              <View style={styles.track}>
-                <View
-                  style={[styles.fill, { width: `${league.progress * 100}%` }]}
+              {user.verified && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={22}
+                  color={blush.pink}
+                  accessibilityLabel="Onaylı hesap"
                 />
-              </View>
-              {league.next && (
-                <Text style={{ fontSize: 13 }}>
-                  {league.current.toLocaleString("tr-TR")} /{" "}
-                  {league.span.toLocaleString("tr-TR")}
-                </Text>
               )}
             </View>
-          </View>
-        </Pressable>
-
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          {BADGES.map((badge) => (
-            <Pressable
-              key={badge.label}
-              accessibilityRole="button"
-              accessibilityLabel={badge.label}
-              onPress={() =>
-                message("Rozet detayları oyun API'si bağlanınca açılacak.")
-              }
-              style={[styles.box, styles.badge]}
-            >
-              <View style={styles.badgeIcon}>
-                <Ionicons name={badge.icon} size={22} color={badge.color} />
+            <Text style={{ color: colors.muted }}>@{handle}</Text>
+            {user.location && (
+              <View style={[common.row, { gap: 4 }]}>
+                <Ionicons name="location-outline" size={15} color={colors.muted} />
+                <Text style={{ fontSize: 14, color: colors.muted }}>
+                  {user.location}
+                </Text>
               </View>
-              <Text
-                style={{ flex: 1, fontSize: 12, fontFamily: fonts.semibold }}
-                numberOfLines={3}
-              >
-                {badge.label}
-              </Text>
-            </Pressable>
-          ))}
+            )}
+            {!mine && <LeaguePill stars={user.counts.stars} />}
+            <View style={styles.stats}>
+              {[
+                { label: "Gönderi", value: user.counts.polls },
+                { label: "Takipçi", value: user.counts.followers },
+                { label: "Takip", value: user.counts.following },
+              ].map((count, index) => (
+                <View
+                  key={count.label}
+                  accessible
+                  accessibilityLabel={`${count.value} ${count.label}`}
+                  style={[styles.stat, index > 0 && styles.statDivider]}
+                >
+                  <Text style={styles.statValue}>
+                    {compactCount(count.value)}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: colors.muted }}>
+                    {count.label}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
         </View>
 
-        <View style={[styles.box, styles.tabs]}>
+        <Text style={styles.bio}>{user.bio ?? user.styles.join(" · ")}</Text>
+
+        {mine ? (
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Profili Düzenle"
+              onPress={() => router.push("/profile/edit")}
+              style={({ pressed }) => [
+                styles.primary,
+                { opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
+              <Text style={styles.primaryText}>Profili Düzenle</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Kişi ekle"
+              onPress={() => router.push("/people")}
+              style={styles.squareButton}
+            >
+              <Ionicons name="person-add-outline" size={22} color={colors.text} />
+            </Pressable>
+          </View>
+        ) : (
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={following ? "Takibi bırak" : "Takip et"}
+              onPress={() => setFollowing((value) => !value)}
+              style={({ pressed }) => [
+                styles.primary,
+                following && styles.primaryMuted,
+                { opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
+              <Text
+                style={[styles.primaryText, following && { color: blush.wine }]}
+              >
+                {following ? "Takip ediliyor" : "Takip Et"}
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Mesaj"
+              onPress={() => message("Mesajlar sıradaki adımlarda açılacak.")}
+              style={({ pressed }) => [
+                styles.secondary,
+                { opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
+              <Ionicons name="paper-plane-outline" size={20} color={blush.wine} />
+              <Text style={{ fontFamily: fonts.bold, color: blush.wine }}>
+                Mesaj
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: 14, paddingVertical: 2 }}
+        >
+          {(mine ? myHighlights : otherHighlights).map((item) => (
+            <Highlight
+              key={item.label}
+              item={item}
+              onPress={() =>
+                message("Öne çıkanlar sıradaki adımlarda açılacak.")
+              }
+            />
+          ))}
+          {mine && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Yeni öne çıkan ekle"
+              onPress={() =>
+                message("Öne çıkanlar sıradaki adımlarda açılacak.")
+              }
+              style={styles.highlight}
+            >
+              <View style={[styles.highlightRing, styles.highlightNew]}>
+                <Ionicons name="add" size={28} color={colors.text} />
+              </View>
+              <Text style={styles.highlightLabel}>Yeni</Text>
+            </Pressable>
+          )}
+        </ScrollView>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabs}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
           {tabs.map((option) => {
             const active = tab === option.value;
             return (
@@ -293,13 +287,13 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 <Ionicons
                   name={option.icon}
                   size={18}
-                  color={active ? blush.wine : colors.text}
+                  color={active ? blush.wine : colors.muted}
                 />
                 <Text
                   style={{
                     fontSize: 13,
                     fontFamily: active ? fonts.bold : fonts.medium,
-                    color: active ? blush.wine : colors.text,
+                    color: active ? blush.wine : colors.muted,
                   }}
                   numberOfLines={1}
                 >
@@ -308,7 +302,7 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
 
         {rows.length ? (
           <View style={styles.grid}>
@@ -332,8 +326,8 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 >
                   <PreviewImage uri={leading.image} tone={leading.tone} />
                   <View style={styles.likes}>
-                    <Ionicons name="heart" size={14} color={blush.pink} />
-                    <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
+                    <Ionicons name="heart" size={12} color={blush.pink} />
+                    <Text style={{ fontSize: 11, fontFamily: fonts.semibold }}>
                       {compactCount(post.totalVotes)}
                     </Text>
                   </View>
@@ -343,20 +337,22 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
           </View>
         ) : (
           <EmptyState
-            icon={tab === "CONTESTS" ? "trophy-outline" : "albums-outline"}
+            icon={tab === "SAVED" ? "bookmark-outline" : "albums-outline"}
             title={
               tab === "SAVED"
                 ? "Henüz kaydedilen yok"
-                : tab === "CONTESTS"
-                  ? "Henüz yarışma yok"
-                  : "Henüz paylaşım yok"
+                : tab === "POLLS"
+                  ? "Açık oylama yok"
+                  : "Henüz gönderi yok"
             }
             message={
               tab === "SAVED"
                 ? "Keşfet'te kaydettiğin kombinler burada görünür."
-                : tab === "CONTESTS"
-                  ? "Defile'da katıldığın yarışmalar burada görünür."
-                  : "İlk kombinini paylaştığında burada görünür."
+                : tab === "POLLS"
+                  ? "Şu an oylamaya açık paylaşım yok."
+                  : mine
+                    ? "İlk kombinini paylaştığında burada görünür."
+                    : "Henüz bir kombin paylaşmadı."
             }
           />
         )}
@@ -365,32 +361,78 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
   );
 }
 
-function Action({
+function IconButton({
   label,
   icon,
-  filled = false,
   onPress,
 }: {
   label: string;
   icon: IconName;
-  filled?: boolean;
   onPress: () => void;
 }) {
-  const tint = filled ? blush.wine : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={({ pressed }) => [
-        styles.action,
-        filled && styles.actionFilled,
-        { opacity: pressed ? 0.8 : 1 },
-      ]}
+      hitSlop={6}
+      style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.5 : 1 }]}
     >
-      <Ionicons name={icon} size={19} color={tint} />
-      <Text style={{ fontFamily: fonts.bold, color: tint }} numberOfLines={1}>
-        {label}
+      <Ionicons name={icon} size={26} color={colors.text} />
+    </Pressable>
+  );
+}
+
+function Avatar({ user }: { user: DemoUser }) {
+  return (
+    <View style={styles.avatar}>
+      {user.avatar ? (
+        <PreviewImage uri={user.avatar} tone={blush.pinkSoft} icon="person-outline" />
+      ) : (
+        <Text style={styles.initials}>{user.initials}</Text>
+      )}
+    </View>
+  );
+}
+
+function LeaguePill({ stars }: { stars: number }) {
+  const league = leagueFor(stars);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={league.name}
+      onPress={() => router.push("/defile")}
+      style={styles.league}
+    >
+      <Ionicons name="trophy-outline" size={16} color="#5B3E8C" />
+      <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: "#5B3E8C" }}>
+        {league.name}
+      </Text>
+    </Pressable>
+  );
+}
+
+function Highlight({
+  item,
+  onPress,
+}: {
+  item: DemoHighlight;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={item.label}
+      onPress={onPress}
+      style={styles.highlight}
+    >
+      <View style={styles.highlightRing}>
+        <View style={[styles.highlightInner, { backgroundColor: item.tone }]}>
+          <Ionicons name={item.icon} size={26} color={colors.text} />
+        </View>
+      </View>
+      <Text style={styles.highlightLabel} numberOfLines={1}>
+        {item.label}
       </Text>
     </Pressable>
   );
@@ -399,164 +441,172 @@ function Action({
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: blush.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
-  content: { padding: 16, paddingBottom: 28, gap: 14 },
-  logo: {
-    fontFamily: serif,
-    fontStyle: "italic",
-    fontWeight: "700",
-    fontSize: 40,
-    letterSpacing: -1,
-    color: colors.text,
+  content: { padding: 16, paddingBottom: 28, gap: 16 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    minHeight: 48,
   },
-  round: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: blush.surface,
-    borderWidth: 1,
-    borderColor: blush.line,
+  headerTitle: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    textAlign: "center",
+    fontFamily: serif,
+    fontWeight: "700",
+    fontSize: 24,
+    color: colors.text,
+    pointerEvents: "none",
+  },
+  iconButton: {
+    width: 44,
+    height: 44,
     alignItems: "center",
     justifyContent: "center",
   },
+  identity: { flexDirection: "row", alignItems: "flex-start", gap: 16 },
   avatar: {
-    width: 104,
-    height: 104,
-    borderRadius: 52,
+    width: 116,
+    height: 116,
+    borderRadius: 58,
     overflow: "hidden",
     borderWidth: 4,
     borderColor: blush.card,
+    backgroundColor: blush.pinkSoft,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: blush.wine,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
   },
-  initials: {
-    fontFamily: fonts.extraBold,
-    fontSize: 36,
-    color: blush.wine,
-  },
-  avatarPlus: {
+  initials: { fontFamily: fonts.extraBold, fontSize: 36, color: blush.wine },
+  avatarEdit: {
     position: "absolute",
-    right: -2,
-    bottom: 2,
+    right: 0,
+    bottom: 6,
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: blush.pink,
-    borderWidth: 3,
-    borderColor: blush.background,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  name: {
-    fontFamily: serif,
-    fontWeight: "700",
-    fontSize: 28,
-    letterSpacing: -0.6,
-    color: colors.text,
-  },
-  style: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 18,
-    backgroundColor: blush.surface,
-    borderWidth: 1,
-    borderColor: blush.line,
-  },
-  box: {
-    borderRadius: 24,
-    backgroundColor: blush.surface,
-    borderWidth: 1,
-    borderColor: blush.line,
-    padding: 14,
-  },
-  stats: { flexDirection: "row", paddingHorizontal: 0 },
-  stat: { flex: 1, alignItems: "center", gap: 2 },
-  statDivider: { borderLeftWidth: 1, borderLeftColor: blush.line },
-  statValue: { fontFamily: fonts.bold, fontSize: 22, color: blush.wine },
-  action: {
-    flex: 1,
-    minHeight: 52,
-    borderRadius: 26,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 12,
     backgroundColor: blush.card,
     borderWidth: 1,
     borderColor: blush.line,
-  },
-  actionFilled: { backgroundColor: blush.pinkSoft, borderColor: blush.pinkSoft },
-  leagueBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
-    backgroundColor: "#E7B23A",
-    borderWidth: 3,
-    borderColor: "#F6D57A",
     alignItems: "center",
     justifyContent: "center",
   },
-  leagueName: {
-    fontFamily: serif,
-    fontWeight: "700",
-    fontSize: 22,
+  username: {
+    flexShrink: 1,
+    fontFamily: fonts.bold,
+    fontSize: 24,
     color: colors.text,
   },
-  track: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: blush.chip,
-    overflow: "hidden",
-  },
-  fill: { height: "100%", borderRadius: 4, backgroundColor: blush.pink },
-  badge: {
-    flex: 1,
+  league: {
+    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    padding: 10,
-  },
-  badgeIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: blush.chip,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  tabs: { flexDirection: "row", padding: 4, borderRadius: 26 },
-  tab: {
-    flex: 1,
-    minHeight: 46,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
     gap: 6,
-    borderRadius: 22,
-    paddingHorizontal: 6,
+    marginTop: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "#ECE3F7",
   },
-  tabActive: { backgroundColor: blush.pinkSoft },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  stats: { flexDirection: "row", marginTop: 6 },
+  stat: { flex: 1, gap: 1 },
+  statDivider: {
+    borderLeftWidth: 1,
+    borderLeftColor: blush.line,
+    paddingLeft: 10,
+  },
+  statValue: { fontFamily: fonts.bold, fontSize: 18, color: colors.text },
+  bio: { fontSize: 15, lineHeight: 21, color: colors.text },
+  primary: {
+    flex: 1,
+    minHeight: 50,
+    borderRadius: 25,
+    backgroundColor: blush.pink,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  primaryMuted: { backgroundColor: blush.pinkSoft },
+  primaryText: { fontFamily: fonts.bold, fontSize: 16, color: colors.onAccent },
+  squareButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: blush.chip,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  secondary: {
+    flex: 1,
+    minHeight: 50,
+    borderRadius: 25,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: blush.chip,
+    borderWidth: 1,
+    borderColor: blush.line,
+  },
+  highlight: { width: 66, alignItems: "center", gap: 6 },
+  highlightRing: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    padding: 3,
+    borderWidth: 1.5,
+    borderColor: blush.pinkSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  highlightInner: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  highlightNew: { backgroundColor: blush.card, borderColor: blush.line },
+  highlightLabel: { fontSize: 12, color: colors.text },
+  tabs: {
+    flexGrow: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: blush.line,
+  },
+  // Sekmeler sığarsa eşit yayılır, sığmazsa yana kaydırılır.
+  tab: {
+    flexGrow: 1,
+    paddingHorizontal: 10,
+    minHeight: 44,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
+    marginBottom: -1,
+  },
+  tabActive: { borderBottomColor: blush.wine },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   tile: {
-    width: "48.5%",
+    width: "32%",
     aspectRatio: 3 / 4,
-    borderRadius: 18,
+    borderRadius: 12,
     overflow: "hidden",
     justifyContent: "flex-end",
   },
   likes: {
-    margin: 8,
+    margin: 6,
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 3,
     backgroundColor: blush.card,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 14,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 10,
   },
 });

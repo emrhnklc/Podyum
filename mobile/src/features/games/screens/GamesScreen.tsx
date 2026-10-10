@@ -1,8 +1,9 @@
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
+import { BrandTitle } from "@/components/ui/BrandTitle";
 import { ME } from "@/constants/demo";
 import { getUser } from "@/features/profile/data/demo-users";
 import { compactCount } from "@/lib/format";
@@ -18,6 +19,8 @@ import {
 
 const GOLD = "#F2B627";
 const MEDALS = ["#F2B627", "#B9BCC6", "#D08A55"];
+const LIVE_PHOTO = require("../../../../assets/images/defile/podyum-live.jpg");
+const THEME_PHOTO = require("../../../../assets/images/defile/autumn-layers.jpg");
 
 export function GamesScreen() {
   const message = usePreviewMessage();
@@ -33,10 +36,7 @@ export function GamesScreen() {
         contentContainerStyle={styles.content}
       >
         <View style={common.spread}>
-          <View style={{ flexDirection: "row" }}>
-            <Text style={styles.logo}>Defile</Text>
-            <Ionicons name="sparkles" size={16} color={blush.pink} />
-          </View>
+          <BrandTitle title="Defile" />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Defile filtreleri"
@@ -361,12 +361,12 @@ function Avatar({
   );
 }
 
-// Fotoğraf yerine çıkartma tarzı süsleme; gerçek görseller asset'ler eklenince gelir.
+// Canlı oyun görseli: eğik polaroid, yıldız puanı ve çıkartmalar.
 function HeroArt() {
   return (
     <View pointerEvents="none" style={styles.heroArt}>
       <View style={styles.polaroid}>
-        <Ionicons name="person" size={54} color={blush.lilac} />
+        <Image source={LIVE_PHOTO} resizeMode="cover" style={styles.photo} />
         <View style={styles.rating}>
           {[0, 1, 2, 3].map((index) => (
             <Ionicons key={index} name="star" size={11} color={GOLD} />
@@ -375,13 +375,6 @@ function HeroArt() {
         </View>
       </View>
       <Sticker name="star" color={blush.pink} size={30} top={-4} left={-8} />
-      <Sticker
-        name="heart-outline"
-        color={colors.text}
-        size={20}
-        top={56}
-        right={-6}
-      />
       <Sticker
         name="sparkles"
         color={blush.pink}
@@ -396,28 +389,7 @@ function HeroArt() {
 function ThemeArt() {
   return (
     <View pointerEvents="none" style={styles.themeArt}>
-      <View
-        style={[
-          styles.swatch,
-          { backgroundColor: "#7A4E3A", transform: [{ rotate: "-8deg" }] },
-        ]}
-      >
-        <Ionicons name="shirt" size={34} color="#F3E6D8" />
-      </View>
-      <View
-        style={[
-          styles.swatch,
-          {
-            backgroundColor: "#EADBC8",
-            left: 38,
-            top: 22,
-            transform: [{ rotate: "6deg" }],
-          },
-        ]}
-      >
-        <Ionicons name="bag-handle" size={28} color="#5B3A2C" />
-      </View>
-      <Sticker name="leaf" color="#C9772F" size={22} top={-4} right={-2} />
+      <Image source={THEME_PHOTO} resizeMode="cover" style={styles.photo} />
     </View>
   );
 }
@@ -449,14 +421,6 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: blush.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 14 },
-  logo: {
-    fontFamily: serif,
-    fontStyle: "italic",
-    fontWeight: "700",
-    fontSize: 40,
-    letterSpacing: -1,
-    color: colors.text,
-  },
   round: {
     width: 52,
     height: 52,
@@ -523,25 +487,27 @@ const styles = StyleSheet.create({
   },
   heroArt: {
     position: "absolute",
-    top: 18,
-    right: 14,
-    width: 112,
-    height: 150,
+    top: 14,
+    right: 12,
+    width: 120,
+    height: 160,
   },
   polaroid: {
     position: "absolute",
     top: 8,
     right: 0,
-    width: 104,
-    height: 132,
+    width: 112,
+    height: 144,
     borderRadius: 10,
-    backgroundColor: "#E7DCE6",
+    overflow: "hidden",
+    backgroundColor: "#F3E3D3",
     borderWidth: 5,
     borderColor: blush.card,
     alignItems: "center",
     justifyContent: "center",
     transform: [{ rotate: "6deg" }],
   },
+  photo: { width: "100%", height: "100%" },
   rating: {
     position: "absolute",
     bottom: 8,
@@ -585,18 +551,15 @@ const styles = StyleSheet.create({
   },
   themeArt: {
     position: "absolute",
-    top: 44,
-    right: 14,
-    width: 100,
-    height: 110,
-  },
-  swatch: {
-    position: "absolute",
-    width: 62,
-    height: 76,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
+    top: 40,
+    right: 12,
+    width: 112,
+    height: 112,
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 4,
+    borderColor: blush.card,
+    transform: [{ rotate: "-4deg" }],
   },
   timer: {
     flexDirection: "row",
