@@ -143,7 +143,7 @@ Sonuç yanıtında ayrıca version/serverNow/closesAt/storedStatus ve seçenek p
 
 ## 5. Günlük oyun ve QR lobi — yeni API taslağı
 
-Bu bölüm planlanan uçları gösterir; oyun kodu/OpenAPI henüz yoktur. Eski per-round matchmaking sözleşmesi yerine [güncel oyun tasarımı](game-design.md) uygulanacak.
+**Bu uçlar artık çalışır.** Güncel yollar, gövdeler, hata kodları ve sınırlar [oyun rehberinde](games-development.md) ve OpenAPI'dedir; aşağıdaki tablo ilk taslağın özetidir. Uygulanan değerlendirme yalnız 1–5 yıldızdır. Eski per-round matchmaking sözleşmesi yerine [güncel oyun tasarımı](game-design.md) uygulandı.
 
 | Alan | Planlanan uç / davranış |
 | --- | --- |

@@ -22,7 +22,7 @@ Dosya sahipliği, servis sözleşmeleri ve önceki katalog görevi: [iki kişili
 ## Mevcut durum
 
 - [x] NestJS başlangıcı, health endpoint'leri ve özellik klasörleri.
-- [x] Prisma şeması, yerel veritabanı, on migration ve demo kayıtları.
+- [x] Prisma şeması, yerel veritabanı, on iki migration ve demo kayıtları.
 - [x] Veritabanı hedef kontrolü, 14 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
 - [x] Yerel e-posta/şifre ve oturum akışları; Google/Apple mock.
 - [x] Auth/ortak API, profil/ayar ve sosyal HTTP testleri; mevcut 14 DB testi ve bootstrap kontrolü.
@@ -32,9 +32,9 @@ Dosya sahipliği, servis sözleşmeleri ve önceki katalog görevi: [iki kişili
 - [x] Organik herkes/arkadaşlar ana akışı, kategori, erişim/oy/süre filtreleri ve publishedAt/id cursor; mobil ekran henüz demo veri kullanır.
 - [ ] Faz 1 sosyal kombin, ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
-- [ ] Aktif kapsam: günlük 30+30 etkinlik ve süreli QR lobileri; tasarlandı, API/şema henüz uygulanmadı.
+- [x] Günlük 30+30 etkinlik ve süreli QR lobileri: şema, API, aşama zamanlayıcısı ve oyun fotoğrafı erişimi; 24 HTTP testi. Socket.IO bildirimleri, günlük saatin ürün kararı ve mobil ekran bekliyor.
 
-**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/tercih/sonuç API’leri, kapanış tarayıcısı ve izinli oy snapshot/geri alma çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. 10. adım organik ana akış da hazır: herkes/arkadaşlar, kategori, açık/oy verilmemiş adaylar ve cursor. Sonraki bizim işimiz 19–20 günlük oyun/QR lobileri; arkadaş şu an mobil tema üzerinde çalışır. [Akış sözleşmesi](feed-development.md). [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
+**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/tercih/sonuç API’leri, kapanış tarayıcısı ve izinli oy snapshot/geri alma çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. 10. adım organik ana akış da hazır: herkes/arkadaşlar, kategori, açık/oy verilmemiş adaylar ve cursor. 19. adım günlük oyun/QR lobileri ve 20. adımın zamanlayıcı/state kısmı da hazır: [oyun rehberi](games-development.md). Sonraki bizim işimiz 20. adımın kalan canlı bildirim/abonelik kısmı, ardından 11 yorum/kaydetme; arkadaş şu an mobil tema üzerinde çalışır. [Akış sözleşmesi](feed-development.md). [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
 
 Hazır şema başlangıçtır; şikâyet, lig, haftalık etkinlik, abonelik gibi alanlar ilgili adımda yeni migration'larla eklenecek. Generated dosyalar elle düzenlenmeyecek.
 
@@ -337,28 +337,28 @@ Günlük etkinlik/lobi, sunucu geri sayımı, QR katılımı ve yeniden bağlanm
 **Sorumlu:** Biz. [Yeni oyun sözleşmesi](game-design.md); eski 10 dakika/ortak 20 saniyelik tur önerisi geçersizdir.
 
 - [x] İki mod, genel 30+30 dakika, yalnız etkinlik katılımcısına oy ve QR lobi/host erken geçişi kapsamını kaydet.
-- [ ] Günlük kesin saat/saat dilimi, tema yönetimi, oy için teslim koşulu ve kapasite/süre sınırlarını seç.
-- [ ] Günlük etkinlik takvimi/tekil oluşturma, katılım ve yalnız kendi etkinliğinde değerlendirme yetkisi.
-- [ ] Eski oyun şemasını gözden geçir; günlük ve özel mod, ayrı teslim/oy süreleri, davet hash'i ve GAME medya erişimi migration'ı.
-- [ ] Özel lobi oluştur/düzenle/başlat; QR davet bağlantısı üret/yenile/iptal, girişle katıl/ayrıl.
-- [ ] Fotoğraf penceresinde tek değiştirilebilir hazır/onaylı teslim; kapanınca teslimleri sabitle.
-- [ ] Genel otomatik geçiş; özel süresi dolunca veya hostun erken bitirmesiyle tek atomik oylama başlangıcı.
-- [ ] Ortak 20 saniyelik tur yerine süreli pencerede sayfalı/dengeli oy adayları; kimlikleri sonuç öncesi gizle.
-- [ ] Seçilen değerlendirme yöntemi, tek değerlendirme/kendine oy yasağı ve DB saatinden geç oy reddi.
-- [ ] Hiç oy/eşitlik/yetersiz örneklem, sonuç/geçmiş ve aktif üyelikleri bırakma; profil ödülü seçilene kadar kapalı.
+- [ ] Günlük kesin saat/saat dilimi ve tema yönetimini seç. Oy için teslim koşulu seçildi (gerekmez); kapasite/süre sınırları geliştirme varsayımıyla uygulandı. Saat ve tema şimdilik ortam ayarından okunur.
+- [x] Günlük etkinlik takvimi/tekil oluşturma, katılım ve yalnız kendi etkinliğinde değerlendirme yetkisi.
+- [x] Eski oyun şemasını gözden geçir; günlük ve özel mod, ayrı teslim/oy süreleri, davet hash'i ve GAME medya erişimi migration'ı.
+- [x] Özel lobi oluştur/düzenle/başlat; QR davet bağlantısı üret/yenile/iptal, girişle katıl/ayrıl.
+- [x] Fotoğraf penceresinde tek değiştirilebilir hazır/onaylı teslim; kapanınca teslimleri sabitle.
+- [x] Genel otomatik geçiş; özel süresi dolunca veya hostun erken bitirmesiyle tek atomik oylama başlangıcı.
+- [x] Ortak 20 saniyelik tur yerine süreli pencerede sayfalı/dengeli oy adayları; kimlikleri sonuç öncesi gizle.
+- [x] Seçilen değerlendirme yöntemi, tek değerlendirme/kendine oy yasağı ve DB saatinden geç oy reddi.
+- [x] Hiç oy/eşitlik/yetersiz örneklem, sonuç/geçmiş ve aktif üyelikleri bırakma; profil ödülü seçilene kadar kapalı. Sunucu kazanan ilan etmez (`official: false`); minimum oy eşiği ödül politikasıyla birlikte seçilecek.
 
-**Bittiğinde:** günlük takvim ve QR lobisi baştan sona API üzerinden tamamlanır; host erken geçişi/zamanlayıcı yarışı çift oylama süresi veya çift sonuç üretmez.
+**Yerel teslim hazır:** günlük takvim ve QR lobisi baştan sona API üzerinden tamamlanır; host erken geçişi/zamanlayıcı yarışı çift oylama süresi veya çift sonuç üretmez. [Rehber](games-development.md), [örnekler](../examples/games.http), `npm run test:games`.
 
 ## 20. Oyun zamanlayıcısı, canlı durum ve dönüşü bitir — aktif ilk teslim
 
 **Sorumlu:** Biz.
 
-- [ ] DB'den günlük etkinlik/faz tarayıcısı; başlangıç ve 30+30 sınırları, kesintiden toparlanma.
-- [ ] Host kopunca süreyi devam ettirme; geç işçi genel takvimi uzatmaz, geçmişe oy almaz.
-- [ ] Yetkili oda/etkinlik aboneliği ve kişiye özel state/medya yanıtları.
+- [x] DB'den günlük etkinlik/faz tarayıcısı; başlangıç ve 30+30 sınırları, kesintiden toparlanma.
+- [x] Host kopunca süreyi devam ettirme; geç işçi genel takvimi uzatmaz, geçmişe oy almaz.
+- [ ] Yetkili oda/etkinlik aboneliği ve kişiye özel state/medya yanıtları. REST state ve medya erişimi hazır; canlı abonelik yok.
 - [ ] Fotoğraf/oy/sonuç değişiklikleri; ham katılımcı/oy verisini açmayan Socket.IO bildirimleri.
-- [ ] serverNow, submissionEndsAt/votingEndsAt ve sürüm; reconnect/foreground/periyodik REST ile düzeltme.
-- [ ] Yinelenen/sırasız olaylar, iki işçi, host erken geçişi, geç teslim/oy, moderasyon/engel ve QR sızıntısı testleri.
+- [x] serverNow, submissionEndsAt/votingEndsAt ve sürüm; reconnect/foreground/periyodik REST ile düzeltme. Backend alanları hazır; mobil tarafı bağlanmadı.
+- [ ] Yinelenen/sırasız olaylar, iki işçi, host erken geçişi, geç teslim/oy, moderasyon/engel ve QR sızıntısı testleri. Geç işçi, erken geçiş yarışı, geç teslim/oy, engel ve QR sızıntısı yerelde test edildi; iki işçi ve gerçek çok bağlantılı PostgreSQL yarışları bekliyor.
 
 **Bittiğinde:** oyun istemci saati, host bağlantısı veya tek socket mesajının ulaşmasına bağlı kalmaz; fotoğraf ve kimlik gizliliği bütün uçlarda korunur.
 
@@ -436,10 +436,10 @@ Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması at
 
 ## Uygulama sırası
 
-**Bizim aktif sıra:** 9 tercih/sonuç ve 10 ana akış tamam → **19 günlük podyum/QR lobileri → 20 oyun zamanlama/canlı durum** → 11 yorum/kaydetme → 12 bildirim → 16 yönetim/hesap yaşam döngüsü → oyun dahil 17 doğrulama → 18 frontend teslimi.
+**Bizim aktif sıra:** 9 tercih/sonuç, 10 ana akış, 19 günlük podyum/QR lobileri ve 20'nin zamanlayıcı/state kısmı tamam → **20'nin kalanı: Socket.IO bildirimleri ve yetkili abonelik → 11 yorum/kaydetme → 12 bildirim** → 16 yönetim/hesap yaşam döngüsü → oyun dahil 17 doğrulama → 18 frontend teslimi.
 
 **Arkadaşın güncel işi:** Mobil tema ve ekran tasarımı; `mobile/` dosyalarının sahibi arkadaş, `backend/` bizim sorumluluğumuzdadır. Katalog → trendler → Plus/affiliate → reklam backend işleri önceki planda arkadaş kolundaydı; aktif işe dönüşlerinde yeniden paylaştırılacak. API sözleşmesi gerektiren ekran ihtiyacı backend belgelerinde koordine edilir.
 
 **Sonraki genişleme adayları:** 21 hızlı eşleşme → 22 puan/lig → 23 haftalık/sponsorlu yarışma. Bunlar günlük etkinlik ve QR lobisini Faz 2'ye ertelemez. Mevcut oyun tabloları yeni akışa doğrudan uygun sayılmaz; aktif oyun adımında migration ile gözden geçirilir.
 
-Bir sonraki ürün işi bizim tarafta **19–20 günlük oyun/QR lobileri**, arkadaş tarafında **mobil tema**. Organik ana akış backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.
+Bir sonraki ürün işi bizim tarafta **20. adımın canlı bildirimleri, ardından 11 yorum/kaydetme**, arkadaş tarafında **mobil tema**. Günlük oyun/QR lobisi backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Organik ana akış backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.

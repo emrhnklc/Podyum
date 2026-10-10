@@ -2,11 +2,11 @@
 
 Kombin tercihi oylamaları ve fotoğraflarla oynanan canlı tema yarışması için mimari taslak ve çalışan yerel veritabanı temeli.
 
-**Hazır:** Ortak API doğrulama/hata/request ID/Swagger ve kalıcı işlem tekrarı altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; kullanıcı arama, arkadaşlık/engel ve ortak erişim servisi; yerel özel fotoğraf yükleme/işleme/önizleme, manuel bölge bulanıklaştırma ve avatar; oylama taslağı/düzenleme/yayın/iptal/silme, elle ürün etiketleri, detay ve kendi liste uçları; tek tercih oyu, yetkili anlık/kesin sonuç, kalıcı kapanış tarayıcısı ve izinli analiz snapshot/geri alma; herkes/arkadaşlar organik akışı, kategori ve cursor; health endpoint'leri; Prisma şeması (32 model), on migration, demo seed ve DB hedef koruması. **Planlanan:** Yorum/kaydetme, katalog eşleştirme, ticari modüller, aktif kapsam günlük oyun/QR lobi API’leri, otomatik yüz tespiti/bulut medya deposu, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
+**Hazır:** Ortak API doğrulama/hata/request ID/Swagger ve kalıcı işlem tekrarı altyapısı; e-posta/şifre kaydı, doğrulama, giriş, yenileme, çıkış ve şifre sıfırlama; Google/Apple geliştirme mock'u; profil/stiller/özel bilgiler/analiz izni ve ayarlar; kullanıcı arama, arkadaşlık/engel ve ortak erişim servisi; yerel özel fotoğraf yükleme/işleme/önizleme, manuel bölge bulanıklaştırma ve avatar; oylama taslağı/düzenleme/yayın/iptal/silme, elle ürün etiketleri, detay ve kendi liste uçları; tek tercih oyu, yetkili anlık/kesin sonuç, kalıcı kapanış tarayıcısı ve izinli analiz snapshot/geri alma; herkes/arkadaşlar organik akışı, kategori ve cursor; günlük 30+30 etkinlik ve özel QR lobisi (davet, fotoğraf teslimi, 1–5 yıldız, aşama zamanlayıcısı, sonuç); health endpoint'leri; Prisma şeması (37 model), on iki migration, demo seed ve DB hedef koruması. **Planlanan:** Yorum/kaydetme, katalog eşleştirme, ticari modüller, oyun için canlı bildirimler ve ödül/lig, otomatik yüz tespiti/bulut medya deposu, gerçek OAuth/e-posta gönderimi, Socket.IO ve push.
 
 E-posta teslimi şimdilik yerel dosyadır. Gerçek Google/Apple girişi tamamlanmadı. Çalışan akış: [Auth geliştirme rehberi](docs/auth-development.md).
 
-Çalışan profil/ayar uçları: [Profil rehberi](docs/users-development.md), [HTTP örnekleri](examples/users.http). Sosyal API: [Sosyal rehber](docs/social-development.md), [HTTP örnekleri](examples/social.http). Fotoğraf/avatar: [Medya rehberi](docs/media-development.md), [HTTP örnekleri](examples/media.http). Oylama oluşturma: [Oylama rehberi](docs/polls-development.md), [HTTP örnekleri](examples/polls.http). Oy/sonuç: [Rehber](docs/poll-votes-development.md), [HTTP örnekleri](examples/poll-votes.http). Ana akış: [Rehber](docs/feed-development.md), [HTTP örnekleri](examples/feed.http). Sonraki bizim işimiz günlük oyun/QR lobi; arkadaş şu an mobile temasını ilerletir. Otomatik yüz tespiti henüz bağlı değildir.
+Çalışan profil/ayar uçları: [Profil rehberi](docs/users-development.md), [HTTP örnekleri](examples/users.http). Sosyal API: [Sosyal rehber](docs/social-development.md), [HTTP örnekleri](examples/social.http). Fotoğraf/avatar: [Medya rehberi](docs/media-development.md), [HTTP örnekleri](examples/media.http). Oylama oluşturma: [Oylama rehberi](docs/polls-development.md), [HTTP örnekleri](examples/polls.http). Oy/sonuç: [Rehber](docs/poll-votes-development.md), [HTTP örnekleri](examples/poll-votes.http). Ana akış: [Rehber](docs/feed-development.md), [HTTP örnekleri](examples/feed.http). Günlük oyun/QR lobi: [Rehber](docs/games-development.md), [HTTP örnekleri](examples/games.http). Sonraki bizim işimiz oyunun canlı bildirimleri ve yorum/kaydetme; arkadaş şu an mobile temasını ilerletir. Otomatik yüz tespiti henüz bağlı değildir.
 
 ## Belgeleri okuma sırası
 
@@ -14,7 +14,7 @@ Adım adım geliştirmede takip edeceğimiz ana iş listesi: [Backend çalışma
 
 İki kişinin görevleri ve entegrasyon sınırları: [İki kişilik çalışma planı](docs/two-developer-plan.md). Güncel aktif iş: biz backend, arkadaş mobile tema. Önceki ürün/trend/gelir backend paylaşımı aynı belgede kayıtlıdır; yeniden başlanınca sahiplik netleştirilir. [Önceki katalog görev kaydı](docs/friend-claude-task.md).
 
-**Son kullanıcı güncellemesi:** Günlük podyum ve QR lobileri aktif backend kapsamına geri alındı. Genel oyun 30 dk fotoğraf + 30 dk oylama ve yalnız etkinlik katılımcılarına oy; özel lobi ayarlanabilir süre/host erken geçişiyle çalışacak. [Oyun tasarımı](docs/game-design.md). Sosyal kombin, trend ve gelir işleri korunur. Yeni fikirler, açık kararlar ve yapılacaklar: [Mentör görüşmesi notu](docs/mentor-notes-2026-10-10.md). Bunlar planlanan özelliklerdir.
+**Son kullanıcı güncellemesi:** Günlük podyum ve QR lobileri aktif backend kapsamına geri alındı. Genel oyun 30 dk fotoğraf + 30 dk oylama ve yalnız etkinlik katılımcılarına oy; özel lobi ayarlanabilir süre/host erken geçişiyle çalışır. [Oyun rehberi](docs/games-development.md), [oyun tasarımı](docs/game-design.md). Sosyal kombin, trend ve gelir işleri korunur. Yeni fikirler, açık kararlar ve yapılacaklar: [Mentör görüşmesi notu](docs/mentor-notes-2026-10-10.md). Bunlar planlanan özelliklerdir.
 
 İlk adımın seçilmiş/varsayılan/açık kararları: [Geliştirme kararları](docs/implementation-decisions.md).
 
@@ -38,7 +38,7 @@ src/
     media/                 fotoğraf hattı
     polls/                 kombin oylaması ve etkileşim
     feed/                  organik ana akış
-    games/                 canlı podyum
+    games/                 günlük podyum ve QR lobileri
     notifications/         bildirimler
     rewards/               profil puanı
     health/                çalışan ilk modül

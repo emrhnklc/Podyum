@@ -1,6 +1,15 @@
 # Günlük podyum ve QR lobileri — güncel oyun tasarımı
 
-10 Ekim 2026, kullanıcının son kapsam değişikliği. **Oyun artık Faz 2'yi beklemiyor; aktif backend planına alındı.** Önceki 10 dakika hazırlık, 3–8 kişi, ortak 20 saniyelik turlar ve zorunlu hızlı eşleşme ilk oyunun temeli değildir. Bu belge yeni tasarım kaynağıdır; henüz oyun endpoint'i uygulanmış değildir.
+10 Ekim 2026, kullanıcının son kapsam değişikliği. **Oyun artık Faz 2'yi beklemiyor; aktif backend planına alındı.** Önceki 10 dakika hazırlık, 3–8 kişi, ortak 20 saniyelik turlar ve zorunlu hızlı eşleşme ilk oyunun temeli değildir. Bu belge tasarım kaynağıdır.
+
+**Uygulama durumu:** Günlük etkinlik ve özel QR lobisi API'si çalışır; uçlar, sınırlar ve kalanlar [oyun rehberinde](games-development.md). Aşağıdaki "öneri" ve "planlanan" ifadeleri tasarım anındaki halidir; uygulanan davranış için rehber esastır. Socket.IO bildirimleri, ödül/lig ve mobil ekran henüz yoktur.
+
+**Uygulamadan önce verilen kullanıcı kararları (10 Ekim):**
+
+- Değerlendirme yalnız 1–5 yıldızdır; "temaya uygun mu?" alanı kullanılmaz.
+- Etkinliğe katılan ama fotoğraf göndermeyen üyeler de oy verebilir; etkinlik dışından kimse oy veremez.
+- Özel lobiye geçerli QR daveti ve giriş yeterlidir; lobi sahibiyle arkadaşlık aranmaz.
+- Günlük başlangıç saati ayarlanabilir bırakıldı; saat belirlenene kadar sunucu kendiliğinden etkinlik başlatmaz.
 
 ## Kullanıcının belirlediği iki mod
 
@@ -61,4 +70,8 @@ Hızlı eşleşme, profil ödülü/lig ve haftalık/sponsorlu yarışma (21–23
 
 ## Açık ürün kararları
 
-Günlük kesin saat/saat dilimi, katılımcının oy hakkı için geçerli fotoğraf gerekip gerekmediği, tema yönetimi, özel QR'da arkadaşlık/host onayı, lobi süre sınırları/kapasite, başlangıç/katılım bitişi, değerlendirme yöntemi, dengeli gösterim/minimum oy, moderasyon/engel, host ayrılması ve oyunlar arası eşzamanlı üyelik. Genel etkinlikte katılımcı olmayanlara oy kapalıdır; bu karar kesinleşti. Diğer kararlar saat veya hak uydurmadan ilgili uygulama adımında seçilecek.
+**Seçildi:** değerlendirme yöntemi (yalnız yıldız), fotoğrafsız üyenin oy hakkı (var), özel QR'da arkadaşlık (aranmaz). **Geliştirme varsayımıyla uygulandı, değiştirilebilir:** lobi süre sınırları/kapasite, katılım bitişi, host ayrılması, engel davranışı; ayrıntı [rehberde](games-development.md).
+
+**Hâlâ açık:** günlük kesin saat/saat dilimi, tema yönetimi, minimum oy eşiği ve resmî kazanan, moderasyonla oyun iptali, oyunlar arası eşzamanlı üyelik sınırı.
+
+Tasarım anındaki tam liste: Günlük kesin saat/saat dilimi, katılımcının oy hakkı için geçerli fotoğraf gerekip gerekmediği, tema yönetimi, özel QR'da arkadaşlık/host onayı, lobi süre sınırları/kapasite, başlangıç/katılım bitişi, değerlendirme yöntemi, dengeli gösterim/minimum oy, moderasyon/engel, host ayrılması ve oyunlar arası eşzamanlı üyelik. Genel etkinlikte katılımcı olmayanlara oy kapalıdır; bu karar kesinleşti. Diğer kararlar saat veya hak uydurmadan ilgili uygulama adımında seçilecek.

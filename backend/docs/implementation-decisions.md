@@ -10,6 +10,7 @@
 - Önce backend'i sırayla geliştireceğiz; ikinci geliştirici katıldığında modülleri böleceğiz.
 - E-posta/şifre, Google ve Apple girişleri bulunacak. Google/Apple için geliştirme mock'u kabul edildi.
 - 10 Ekim mentör görüşmesindeki oyun ertelemesi sonraki kullanıcı talebiyle kaldırıldı: günlük podyum/QR lobileri aktif ilk teslimdir. Eski 600/30/20 saniyelik tur akışı geçerli değildir; [oyun tasarımı](game-design.md). Ödül/lig/haftalık yarışma ayrıca seçilir.
+- Oyun değerlendirmesi yalnız 1–5 yıldızdır. Etkinliğe katılan herkes, fotoğraf göndermese de oy verebilir; etkinlik dışından oy yoktur. Özel lobiye geçerli QR daveti ve giriş yeterlidir, arkadaşlık aranmaz. Günlük saat ayarla verilir; ayar yoksa etkinlik oluşturulmaz. [Çalışan oyun API'si](games-development.md).
 
 ## Mentör görüşmesiyle eklenen ürün işleri
 
