@@ -68,3 +68,7 @@ Askıya alınmış hesap `403 ACCOUNT_SUSPENDED`, silinmiş hesap/geçersiz veya
 - Bu auth endpoint'leri `Idempotency-Key` istemez. Paylaşım/oyun komutlarının kalıcı idempotency servisi ilgili adımda eklenecek.
 - Yerel PostgreSQL tek bağlantılıdır. Testler sıralı HTTP davranışını doğrular; çok bağlantılı refresh/reset/kayıt yarışları gerçek PostgreSQL'de ayrıca test edilecek.
 - Şifreleme uygulaması için [Node scrypt](https://nodejs.org/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback), parametre seçimi için [OWASP Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) esas alındı.
+
+## E-posta onayı ayarı
+
+`AUTH_EMAIL_VERIFICATION_REQUIRED` (varsayılan `false`). Kapalıyken kayıt olan hesap `emailVerifiedAt` dolu açılır, doğrulama postası gönderilmez ve giriş onay istemez; ürün kararı olarak şimdilik kapalıdır. `true` yapılınca önceki davranış döner: kayıtta VERIFY_EMAIL postası, onaysız girişte `403 EMAIL_NOT_VERIFIED`. Ayar her istekte okunur; kapalıyken açılmış hesaplar onaylı kalır.

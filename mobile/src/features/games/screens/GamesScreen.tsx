@@ -8,6 +8,9 @@ import { ME } from "@/constants/demo";
 import { getUser } from "@/features/profile/data/demo-users";
 import { compactCount } from "@/lib/format";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { errorMessage } from "@/lib/api/client";
+import { quickMatch as findMatch } from "../api/games";
 import { brand, colors, common, fonts, serif } from "@/theme";
 import { leagueFor } from "../data/league";
 import {
@@ -26,6 +29,20 @@ export function GamesScreen() {
   const message = usePreviewMessage();
   const soon = (what: string) =>
     message(`${what} oyun API'si bağlanınca açılacak.`);
+  const { client } = useAuth();
+  // Hızlı eşleş: günün defilesine ya da herkese açık bir odaya katılıp odayı açar.
+  async function quickMatch() {
+    try {
+      const game = await findMatch(client);
+      if (!game)
+        return message(
+          "Şu an katılabileceğin açık bir defile yok. Kendi odanı kurabilirsin.",
+        );
+      router.push({ pathname: "/games/[id]", params: { id: game.id } });
+    } catch (failure) {
+      message(errorMessage(failure));
+    }
+  }
   const myStars = getUser(ME)?.counts.stars ?? 0;
   const league = leagueFor(myStars);
   return (
@@ -92,12 +109,12 @@ export function GamesScreen() {
               label="Hızlı eşleş"
               icon="flash"
               filled
-              onPress={() => soon("Hızlı eşleşme")}
+              onPress={() => void quickMatch()}
             />
             <Cta
               label="Arkadaşlarla oda"
               icon="people-outline"
-              onPress={() => soon("Arkadaş odası")}
+              onPress={() => router.push("/games/new")}
             />
           </View>
         </View>

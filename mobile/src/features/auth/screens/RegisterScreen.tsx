@@ -167,9 +167,25 @@ function RegistrationForm({ authenticated }: { authenticated: boolean }) {
           email,
           password,
         });
-        if (alive.current) {
-          setPassword2("");
-          setVerifying(true);
+        if (!alive.current) return;
+        setPassword2("");
+        // E-posta onayı şimdilik kapalı: hesap açılınca doğrudan giriş yapılır,
+        // oturum değişince form profil adımıyla yeniden kurulur. Backend'de onay
+        // yeniden açılırsa onay formu yedek olarak gösterilir.
+        try {
+          await client.login(email, password);
+        } catch (error) {
+          if (error instanceof ApiError && error.code === "EMAIL_NOT_VERIFIED") {
+            if (alive.current) setVerifying(true);
+            return;
+          }
+          if (error instanceof ApiError && error.code === "INVALID_CREDENTIALS")
+            throw new ApiError(
+              error.status,
+              error.code,
+              "Bu e-posta ile kayıtlı bir hesap olabilir. Giriş yapmayı dene.",
+            );
+          throw error;
         }
       } else {
         await client.request("/me", {

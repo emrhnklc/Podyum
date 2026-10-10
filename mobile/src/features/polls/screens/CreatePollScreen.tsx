@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -21,6 +22,14 @@ import {
 } from "@/constants/poll-categories";
 import { brand, colors, common, fonts, serif } from "@/theme";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { errorMessage } from "@/lib/api/client";
+import {
+  newProgress,
+  publishPoll,
+  type PickedPhoto,
+  type PublishProgress,
+} from "../api/publish-poll";
 
 const MAX_OPTIONS = 4;
 const MAX_QUESTION = 100;
@@ -37,21 +46,8 @@ const DURATIONS = [
   { value: 7200, label: "2 saat" },
   { value: 86400, label: "24 saat" },
 ];
-const GENDERS = [
-  { value: "ALL", label: "Herkes", icon: "people" },
-  { value: "WOMEN", label: "Kadınlar", icon: "female-outline" },
-  { value: "MEN", label: "Erkekler", icon: "male-outline" },
-] as const;
-const AGES = [
-  { value: "ALL", label: "Herkes", icon: "people" },
-  { value: "18-24", label: "18–24", icon: "person-outline" },
-  { value: "25-34", label: "25–34", icon: "person-outline" },
-  { value: "35-44", label: "35–44", icon: "person-outline" },
-  { value: "45+", label: "45+", icon: "person-outline" },
-] as const;
 
-type Photo = { uri: string; mimeType?: string; fileSize?: number };
-type Option = { id: number; photo?: Photo };
+type Option = { id: number; photo?: PickedPhoto };
 
 export function CreatePollScreen() {
   const [options, setOptions] = useState<Option[]>([{ id: 1 }, { id: 2 }]);
@@ -59,26 +55,73 @@ export function CreatePollScreen() {
   const [question, setQuestion] = useState("");
   const [category, setCategory] = useState<PollCategory>("OUTFIT");
   const [duration, setDuration] = useState(1800);
-  const [gender, setGender] =
-    useState<(typeof GENDERS)[number]["value"]>("ALL");
-  const [age, setAge] = useState<(typeof AGES)[number]["value"]>("ALL");
-  const [myStyle, setMyStyle] = useState(false);
   const [friendsOnly, setFriendsOnly] = useState(false);
   const [comments, setComments] = useState(true);
-  const [blur, setBlur] = useState(true);
+  const [blur, setBlur] = useState(false);
+  const [noFaces, setNoFaces] = useState(false);
+  const [busyStep, setBusyStep] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const { client } = useAuth();
   const message = usePreviewMessage();
+  // Yarıda kalan yayın; form değişirse sıfırlanır ki eski fotoğraf/taslak
+  // yeni içerikle karışmasın.
+  const progress = useRef<{ signature: string; value: PublishProgress } | null>(
+    null,
+  );
+  const busy = busyStep !== null;
   const canPublish =
+    !busy &&
     options.length >= 2 &&
     options.every((option) => option.photo) &&
-    question.trim().length > 0;
+    question.trim().length > 0 &&
+    (!blur || noFaces);
+
+  async function publish() {
+    if (!canPublish) return;
+    const input = {
+      question,
+      category,
+      durationSeconds: duration,
+      visibility: friendsOnly ? ("FRIENDS" as const) : ("PUBLIC" as const),
+      commentsEnabled: comments,
+      blur,
+      confirmNoFaces: blur && noFaces,
+      photos: options.map((option) => option.photo!),
+    };
+    const signature = JSON.stringify(input);
+    if (progress.current?.signature !== signature)
+      progress.current = { signature, value: newProgress(input.photos.length) };
+    setError(null);
+    setBusyStep("Hazırlanıyor");
+    try {
+      const id = await publishPoll(
+        client,
+        input,
+        progress.current.value,
+        setBusyStep,
+      );
+      progress.current = null;
+      setOptions([{ id: 1 }, { id: 2 }]);
+      setNextId(3);
+      setQuestion("");
+      setNoFaces(false);
+      router.push({ pathname: "/polls/[id]", params: { id } });
+    } catch (failure) {
+      setError(errorMessage(failure));
+    } finally {
+      setBusyStep(null);
+    }
+  }
 
   function addOption() {
+    if (busy) return;
     setOptions((previous) => [...previous, { id: nextId }]);
     setNextId((id) => id + 1);
   }
   // Galeriden tek fotoğraf seçer. quality verildiği için iOS'taki HEIC
   // fotoğraflar JPEG'e çevrilir; backend HEIC kabul etmiyor.
   async function pick(id: number) {
+    if (busy) return;
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: "images",
@@ -90,6 +133,7 @@ export function CreatePollScreen() {
         uri: asset.uri,
         mimeType: asset.mimeType,
         fileSize: asset.fileSize,
+        fileName: asset.fileName,
       };
       setOptions((previous) =>
         previous.map((option) =>
@@ -101,6 +145,7 @@ export function CreatePollScreen() {
     }
   }
   function removeOption(id: number) {
+    if (busy) return;
     setOptions((previous) => previous.filter((option) => option.id !== id));
   }
   function cancel() {
@@ -281,44 +326,22 @@ export function CreatePollScreen() {
                 Kimler oylasın?
               </Text>
               <Text style={{ fontSize: 13, color: colors.muted }}>
-                Daha alakalı sonuçlar için kitle seçebilirsin.
+                Oylamanı kimlerin görüp oy verebileceğini seç.
               </Text>
             </View>
           </View>
-          <ChoiceRow label="Cinsiyet">
-            {GENDERS.map((option) => (
-              <PillChip
-                key={option.value}
-                label={option.label}
-                icon={option.icon}
-                active={gender === option.value}
-                onPress={() => setGender(option.value)}
-              />
-            ))}
-          </ChoiceRow>
-          <ChoiceRow label="Yaş grubu">
-            {AGES.map((option) => (
-              <PillChip
-                key={option.value}
-                label={option.label}
-                icon={option.icon}
-                active={age === option.value}
-                onPress={() => setAge(option.value)}
-              />
-            ))}
-          </ChoiceRow>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <AudienceToggle
-              label="Benim tarzımdakiler"
-              icon="person-outline"
-              active={myStyle}
-              onPress={() => setMyStyle((value) => !value)}
+              label="Herkes"
+              icon="globe-outline"
+              active={!friendsOnly}
+              onPress={() => setFriendsOnly(false)}
             />
             <AudienceToggle
               label="Sadece arkadaşlarım"
               icon="people-outline"
               active={friendsOnly}
-              onPress={() => setFriendsOnly((value) => !value)}
+              onPress={() => setFriendsOnly(true)}
             />
           </View>
         </View>
@@ -335,10 +358,22 @@ export function CreatePollScreen() {
           <SwitchRow
             icon="eye-off-outline"
             title="Yüzümü bulanıklaştır"
-            detail="Fotoğraflarında yüzün otomatik bulanıklaştırılır."
+            detail="Yüz bölgesi seçme ekranı henüz yok."
             value={blur}
-            onChange={setBlur}
+            onChange={(value) => {
+              setBlur(value);
+              setNoFaces(false);
+            }}
           />
+          {blur && (
+            <SwitchRow
+              icon="checkmark-circle-outline"
+              title="Fotoğraflarımda yüz görünmüyor"
+              detail="Yüzün görünüyorsa bulanıklaştırmayı kapat ya da yüzsüz bir fotoğraf seç; bölge seçimi gelince yüzünü işaretleyebileceksin."
+              value={noFaces}
+              onChange={setNoFaces}
+            />
+          )}
         </View>
 
         <Pressable
@@ -346,11 +381,7 @@ export function CreatePollScreen() {
           accessibilityLabel="Yayına al"
           accessibilityState={{ disabled: !canPublish }}
           disabled={!canPublish}
-          onPress={() =>
-            message(
-              "Fotoğrafların ve sorun hazır. Yayınlama, giriş ve sunucu bağlantısı eklendiğinde açılacak.",
-            )
-          }
+          onPress={() => void publish()}
           style={({ pressed }) => [
             styles.publish,
             { opacity: !canPublish ? 0.5 : pressed ? 0.8 : 1 },
@@ -363,15 +394,24 @@ export function CreatePollScreen() {
               color: colors.onAccent,
             }}
           >
-            Yayına al
+            {busyStep ?? "Yayına al"}
           </Text>
-          <Ionicons name="sparkles" size={20} color={colors.onAccent} />
+          {busy ? (
+            <ActivityIndicator color={colors.onAccent} />
+          ) : (
+            <Ionicons name="sparkles" size={20} color={colors.onAccent} />
+          )}
         </Pressable>
+        {error && (
+          <Text accessibilityRole="alert" style={styles.error}>
+            {error}
+          </Text>
+        )}
         <Text
           style={{ fontSize: 12, color: colors.muted, textAlign: "center" }}
         >
-          Seçtiğin fotoğraflar şimdilik yalnızca bu telefonda kalır. Giriş
-          bağlandığında hesabınla birlikte sunucuya yüklenecek.
+          Yayına al&apos;a basarak fotoğraflarının son halini onaylamış olursun.
+          Yayından sonra fotoğraf ve soru değiştirilemez.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -385,27 +425,6 @@ function Label({ children }: { children: string }) {
     >
       {children}
     </Text>
-  );
-}
-
-function ChoiceRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
-  return (
-    <View style={[common.row, { gap: 8 }]}>
-      <Text style={{ width: 78, fontSize: 14 }}>{label}</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: 8 }}
-      >
-        {children}
-      </ScrollView>
-    </View>
   );
 }
 
@@ -642,6 +661,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   divider: { height: 1, backgroundColor: brand.line, marginLeft: 36 },
+  error: { fontSize: 13, color: brand.accentDark, textAlign: "center" },
   publish: {
     minHeight: 58,
     borderRadius: 29,

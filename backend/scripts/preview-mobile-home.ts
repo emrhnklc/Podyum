@@ -26,14 +26,17 @@ async function account(kind: string): Promise<Account> {
   const suffix = randomBytes(4).toString("hex");
   const email = `preview_${kind}_${suffix}@example.test`, password = randomBytes(20).toString("base64url");
   await request("/auth/register", undefined, "POST", { email, password, username: `preview_${kind}_${suffix}`, displayName: kind === "viewer" ? "Önizleme" : "Podyum Stil" });
-  let token: string | null = null;
-  for (const name of await readdir(resolve(env.localMailboxDir))) {
-    if (!name.endsWith(".json")) continue;
-    const mail = JSON.parse(await readFile(resolve(env.localMailboxDir, name), "utf8"));
-    if (mail.email === email && mail.kind === "VERIFY_EMAIL") token = mail.token;
+  // Onay kapalıyken hesap zaten onaylı açılır; posta beklenmez.
+  if (env.emailVerificationRequired) {
+    let token: string | null = null;
+    for (const name of await readdir(resolve(env.localMailboxDir))) {
+      if (!name.endsWith(".json")) continue;
+      const mail = JSON.parse(await readFile(resolve(env.localMailboxDir, name), "utf8"));
+      if (mail.email === email && mail.kind === "VERIFY_EMAIL") token = mail.token;
+    }
+    if (!token) throw new Error("Önizleme doğrulama postası bulunamadı.");
+    await request("/auth/email-verification/confirm", undefined, "POST", { token });
   }
-  if (!token) throw new Error("Önizleme doğrulama postası bulunamadı.");
-  await request("/auth/email-verification/confirm", undefined, "POST", { token });
   const session = await request<Session>("/auth/login", undefined, "POST", { email, password });
   const me = await request("/auth/me", session.accessToken);
   await request("/auth/logout", session.accessToken, "POST");

@@ -85,6 +85,7 @@ afterEach(async () => {
         ...users.map((userId) => ({ type: "notification.created", payload: { path: ["userId"], equals: userId } }))] } });
       await tx.notification.deleteMany({ where: { userId: { in: users } } });
       await tx.idempotencyRecord.deleteMany({ where: { userId: { in: users } } });
+      await tx.gameLeaguePoint.deleteMany({ where: { sessionId: { in: ids } } });
       await tx.gameOutcome.deleteMany({ where: { sessionId: { in: ids } } });
       await tx.gameScore.deleteMany({ where: { sessionId: { in: ids } } });
       await tx.gameSubmission.deleteMany({ where: { sessionId: { in: ids } } });

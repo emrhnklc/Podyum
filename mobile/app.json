@@ -8,7 +8,14 @@
     "userInterfaceStyle": "light",
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Kombin fotoğrafını seçebilmen için galerine erişmemiz gerekiyor.",
+          "cameraPermission": "Defile'de kombinini çekebilmen için kameraya erişmemiz gerekiyor."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

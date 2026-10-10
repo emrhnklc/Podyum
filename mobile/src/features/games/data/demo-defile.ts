@@ -7,7 +7,8 @@ export const liveGame = {
 
 export const weeklyTheme = {
   title: "Sonbahar katmanları",
-  description: "Kazaklar, ceketler, kat kat stiller… Sonbaharın en iyi kombinini yarat! 🍂",
+  description:
+    "Kazaklar, ceketler, kat kat stiller… Sonbaharın en iyi kombinini yarat! 🍂",
   timeLeft: "3g 12sa 45dk",
   participants: 1240,
   sampleUsers: ["melisdgn", "zeynepdemir", "denizktl"],

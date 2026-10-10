@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `/` | feed/FeedScreen | Girişten sonra gerçek akış/tercih/kaydetme; girişsiz açıkça işaretlenmiş demo |
 | `/trendler` | trends/TrendsScreen | Dönem, kategori, tercih yapanlar ve fiyat filtreleri |
-| `/paylas` | polls/CreatePollScreen | Form tasarımı (2–4 seçenek, kitle seçimi); fotoğraf/yayın henüz yok |
+| `/paylas` | polls/CreatePollScreen | API: 2–4 fotoğraf yükle → son hali onayla → taslak → yayın; Herkes/Arkadaşlar görünürlüğü. Ürün etiketi ve yüz bölgesi seçimi henüz yok |
 | `/bildirimler` | notifications/NotificationsScreen | Boş durum (sekme çubuğunda gizli) |
 | `/defile` | games/GamesScreen | Defile: lig, canlı Podyum, haftalık tema, arkadaş sıralaması, Podyum Turu (demo) |
 | `/profil` | profile/ProfileScreen | "Profilim": konum, takipçi/takip, Profili Düzenle, öne çıkanlar, Gönderiler/Kombinler/Oylamalar/Kaydedilenler (demo) |
@@ -19,6 +19,9 @@
 | `/settings` | settings/SettingsScreen | Gerçek çıkış ve yerel oturum temizliği; bildirim rotası açılır, diğer ayarlar henüz bağlı değil |
 | `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
 | `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |
+| `/games/:id` | games/GameRoomScreen | Defile odası: bekleme (QR davet, başlat), kombin yükleme, Podyum Turu (herkes aynı yarışmacıyı 10 sn görür, dokununca oy gider), sonuç (podyum, oy sayısı; herkese açıkta lig kartı ve puan, davetli odada yalnız kazanan) |
+| `/games/new` | games/CreateRoomScreen | Yeni oda kur: tema, 2–50 katılımcı (kaydırmalı), süre, başlangıç saati veya elle başlatma, herkese açık/davetle |
+| `/games/join?token=` | games/JoinRoomScreen | QR/davet linki: oda özeti ve katıl; giriş yoksa girişten sonra geri döner |
 | `/games` | → `/defile` | Eski bağlantılar Defile sekmesine yönlenir |
 | `/auth` | auth/AuthScreen | Karşılama: Başla önizlemeye, Giriş yap gerçek e-posta girişine gider; Apple/Google bekliyor |
 | `/auth/verify-email` | auth/VerifyEmailScreen | Yerel posta anahtarıyla doğrulama, yeniden isteme ve girişe devam |

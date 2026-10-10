@@ -1,6 +1,5 @@
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApiFeedScreen } from "./ApiFeedScreen";
-import { Button } from "@/components/ui/Button";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
@@ -75,11 +74,7 @@ function DemoFeedScreen({ sessionError }: { sessionError: string | null }) {
           </Pressable>
         </View>
 
-        <View style={{ gap: 10 }}>
-          <Text style={{ color: colors.muted }}>Tasarım önizlemesi · Gerçek kombinler için giriş yap.</Text>
-          {sessionError && <Text accessibilityRole="alert" style={{ color: colors.accent }}>{sessionError}</Text>}
-          <Button title="Giriş yap" variant="outline" onPress={() => router.push("/auth/login")} />
-        </View>
+        {sessionError && <Text accessibilityRole="alert" style={{ color: colors.accent }}>{sessionError}</Text>}
         <Pressable
           accessibilityRole="search"
           accessibilityLabel="Ara, kişi keşfet"

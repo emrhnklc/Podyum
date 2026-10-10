@@ -16,15 +16,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 import { colors, fonts, sand, serif } from "@/theme";
-import { markWelcomed } from "../welcome";
 
 const BACKGROUND = require("../../../../assets/images/auth/background.jpg");
 const WOMAN = require("../../../../assets/images/auth/woman.jpg");
 const MAN = require("../../../../assets/images/auth/man.jpg");
 const GOOGLE_G = require("../../../../assets/images/auth/google-g.png");
 const STICKERS = {
-  heartBig: require("../../../../assets/images/auth/sticker-heart-big.png"),
-  heartSmall: require("../../../../assets/images/auth/sticker-heart-small.png"),
   star: require("../../../../assets/images/auth/sticker-star.png"),
   sparkleCream: require("../../../../assets/images/auth/sticker-sparkle-cream.png"),
   sparkleBrown: require("../../../../assets/images/auth/sticker-sparkle-brown.png"),
@@ -41,10 +38,8 @@ const SCRIPT_SPACE = 46;
 export function AuthScreen() {
   const message = usePreviewMessage();
   const [area, setArea] = useState({ width: 0, height: 0 });
-  const start = () => {
-    markWelcomed();
-    router.replace("/");
-  };
+  // Hesapsız giriş yok: Başla e-posta ve şifre isteyen giriş ekranını açar.
+  const start = () => router.push("/auth/login");
   const soon = (what: string) =>
     message(`${what} sunucu bağlantısı eklendiğinde açılacak.`);
 
@@ -137,15 +132,6 @@ export function AuthScreen() {
                 style={{ top: topY - 6, left: leftX + 6, width: 28, height: 36 }}
               />
               <Sticker
-                source={STICKERS.heartBig}
-                style={{
-                  top: topY + frameHeight * 0.4,
-                  left: leftX - 18,
-                  width: 44,
-                  height: 46,
-                }}
-              />
-              <Sticker
                 source={STICKERS.crown}
                 style={{
                   top: rightTop - 18,
@@ -154,22 +140,13 @@ export function AuthScreen() {
                   height: 30,
                 }}
               />
-              <Sticker
-                source={STICKERS.heartSmall}
-                style={{
-                  top: rightTop + frameHeight * 0.3,
-                  left: leftX + frameWidth * 1.9 - 18,
-                  width: 30,
-                  height: 32,
-                }}
-              />
               <Text
                 style={[
                   styles.script,
                   { top: topY + frameHeight + 4, left: Math.max(4, leftX) },
                 ]}
               >
-                More Style{"\n"}  Together ♡
+                More Style{"\n"}  Together
               </Text>
             </>
           )}

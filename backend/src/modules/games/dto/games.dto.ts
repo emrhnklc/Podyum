@@ -1,6 +1,6 @@
 import { Transform } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { IsInt, IsString, IsUUID, Length, Matches, Max, Min } from "class-validator";
+import { IsBoolean, IsInt, IsISO8601, IsString, IsUUID, Length, Matches, Max, Min, ValidateIf } from "class-validator";
 import { PageQueryDto } from "../../../common/pagination/page-query.dto.js";
 import { GameMemberStatus, GamePhase, GameSessionKind } from "../../../generated/prisma/enums.js";
 
@@ -36,6 +36,15 @@ export class CreateGameDto {
   @ApiPropertyOptional({ minimum: 2, maximum: 50, default: 20 })
   @IsInt() @Min(2) @Max(50)
   maxMembers: number = 20;
+
+  @ApiPropertyOptional({ type: String, format: "date-time", nullable: true, description: "Planlı başlangıç; en erken 1 dakika, en geç 24 saat sonrası. Bu anda en az iki üye varsa oda kendiliğinden başlar, yoksa NOT_ENOUGH_PLAYERS ile iptal olur. Boşsa host başlatır." })
+  @ValidateIf((_object, value) => value !== undefined && value !== null)
+  @IsISO8601({ strict: true })
+  startsAt: string | null = null;
+
+  @ApiPropertyOptional({ default: false, description: "true: davet gerekmeden Hızlı eşleş'te bulunur ve katılınır. false: yalnız QR davetiyle." })
+  @IsBoolean()
+  isPublic: boolean = false;
 }
 
 export class GameVersionDto {
@@ -81,6 +90,7 @@ export class GameSummaryDto {
   @ApiProperty() version!: number;
   @ApiProperty({ type: String, nullable: true, format: "uuid" }) hostId!: string | null;
   @ApiProperty({ type: Number, nullable: true }) maxMembers!: number | null;
+  @ApiProperty() isPublic!: boolean;
   @ApiProperty() submissionSeconds!: number;
   @ApiProperty() votingSeconds!: number;
   @ApiProperty({ type: String, nullable: true, format: "date-time" }) startsAt!: Date | null;
@@ -100,6 +110,10 @@ export class OwnGameSubmissionDto {
   @ApiProperty({ format: "uuid" }) mediaId!: string;
   @ApiProperty() status!: string;
   @ApiProperty({ type: String, format: "date-time" }) submittedAt!: Date;
+}
+
+export class OpenGameDto extends GameSummaryDto {
+  @ApiProperty() memberCount!: number;
 }
 
 export class GameStateDto extends GameSummaryDto {
@@ -156,14 +170,48 @@ export class GameBallotDto {
   @ApiProperty({ type: String, format: "date-time" }) votingEndsAt!: Date;
 }
 
+export class GameTurnEntryDto extends GameBallotItemDto {
+  @ApiProperty({ description: "Gösterilen kombin isteyen kullanıcınınsa true; kendine oy veremez." }) mine!: boolean;
+  @ApiProperty({ type: Number, nullable: true }) myStars!: number | null;
+}
+
+export class GameTurnDto {
+  @ApiProperty() index!: number;
+  @ApiProperty() total!: number;
+  @ApiProperty() turnSeconds!: number;
+  @ApiProperty({ type: String, format: "date-time" }) serverNow!: Date;
+  @ApiProperty({ type: String, format: "date-time" }) turnEndsAt!: Date;
+  @ApiProperty({ type: GameTurnEntryDto, nullable: true, description: "Engelli yazarın kombininde null." }) current!: GameTurnEntryDto | null;
+  @ApiProperty() votedCount!: number;
+  @ApiProperty({ description: "Gösterilen kombine oy verebilecek aktif üye sayısı (yazar hariç)." }) voterCount!: number;
+  @ApiProperty({ type: Number, nullable: true, description: "Kendi kombinine kaç tur kaldı; geçtiyse veya yoksa null." }) myTurnIn!: number | null;
+  @ApiProperty({ type: Number, nullable: true }) nextNumber!: number | null;
+}
+
 export class GameResultAuthorDto {
   @ApiProperty({ format: "uuid" }) id!: string;
   @ApiProperty() username!: string;
   @ApiProperty() displayName!: string;
+  @ApiProperty({ type: String, nullable: true }) avatarPath!: string | null;
+}
+
+export class LeagueInfoDto {
+  @ApiProperty() name!: string;
+  @ApiProperty({ type: String, nullable: true }) nextName!: string | null;
+  @ApiProperty() current!: number;
+  @ApiProperty({ type: Number, nullable: true }) span!: number | null;
+  @ApiProperty({ type: Number, nullable: true }) remaining!: number | null;
+}
+
+export class LeagueDto {
+  @ApiProperty() totalPoints!: number;
+  @ApiProperty({ type: LeagueInfoDto }) league!: LeagueInfoDto;
 }
 
 export class GameResultItemDto extends GameBallotItemDto {
   @ApiProperty({ type: GameResultAuthorDto }) author!: GameResultAuthorDto;
+  @ApiProperty({ description: "Ortalama yıldız, oy sayısı, yükleme sırası ile 1'den başlayan sıra." }) rank!: number;
+  @ApiProperty({ description: "Bu kombinin kazandığı lig puanı; davetli odada 0." }) awardedPoints!: number;
   @ApiProperty() ratingCount!: number;
   @ApiProperty() ratingSum!: number;
   @ApiProperty({ type: Number, nullable: true }) averageStars!: number | null;
@@ -172,8 +220,11 @@ export class GameResultItemDto extends GameBallotItemDto {
 export class GameResultsDto extends GameSummaryDto {
   @ApiProperty({ type: [GameResultItemDto] }) items!: GameResultItemDto[];
   @ApiProperty({ type: String, nullable: true }) nextCursor!: string | null;
-  @ApiProperty({ enum: [false], description: "Resmî kazanan/lig/ödül politikası henüz yok." }) official!: false;
-  @ApiProperty({ enum: [0] }) awardedPoints!: 0;
+  @ApiProperty({ description: "true: herkese açık defile; ilk üçe lig puanı verilir. false: davetli oda, yalnız sıralama." }) official!: boolean;
+  @ApiProperty({ description: "İsteyen kullanıcının bu defileden kazandığı lig puanı." }) awardedPoints!: number;
+  @ApiProperty({ type: Number, nullable: true }) myRank!: number | null;
+  @ApiProperty({ type: Number, nullable: true, description: "Davetli odada null." }) totalPoints!: number | null;
+  @ApiProperty({ type: LeagueInfoDto, nullable: true }) league!: LeagueInfoDto | null;
 }
 
 export class GameHistoryItemDto extends GameSummaryDto {

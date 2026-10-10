@@ -6,7 +6,6 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ActivityIndicator } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
-import { hasWelcomed } from "@/features/auth/welcome";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -27,8 +26,8 @@ export default function TabsLayout() {
   const segments = useSegments();
   const insets = useSafeAreaInsets();
   if (!ready) return <ActivityIndicator style={{ flex: 1 }} />;
-  // Açılışta önce karşılama ekranı; "Başla" sonrası sekmeler açılır.
-  if (!me && !hasWelcomed()) return <Redirect href="/auth" />;
+  // Sekmeler yalnız oturum açıkken görünür; değilse karşılama/giriş ekranı.
+  if (!me) return <Redirect href="/auth" />;
   return (
     <View style={{ flex: 1 }}>
     {me && segments.length > 1 && <View style={{ backgroundColor: brand.chip, paddingTop: insets.top, paddingBottom: 8, alignItems: "center" }}><Text style={{ color: colors.muted, fontSize: 12 }}>Bu ekran tasarım önizlemesidir.</Text></View>}
@@ -62,7 +61,10 @@ export default function TabsLayout() {
         options={{
           title: "Paylaş",
           // Ortadaki + yalnız ikon; ekran okuyucu yine "Paylaş" der.
+          // tabBarShowLabel web'in yan yana düzeninde yok sayıldığı için
+          // etiket de boş çizilir.
           tabBarShowLabel: false,
+          tabBarLabel: () => null,
           tabBarAccessibilityLabel: "Paylaş",
           tabBarActiveTintColor: colors.muted,
           tabBarIcon: () => (
