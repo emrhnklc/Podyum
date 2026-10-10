@@ -9,7 +9,7 @@
 3. `POST /v1/media/:id/complete`: yerel kaynak checksum'u, gerçek içerik türü ve decode/piksel sınırları doğrulanır. EXIF yönü uygulanır; EXIF/GPS/ICC taşımayan display ve thumbnail WebP dosyaları üretilir.
 4. `GET /v1/media/:id` ile durum; `displayPath` ve `thumbnailPath` ile önizleme okunur. Bu adreslere de Bearer gönderilir.
 5. Kullanıcı görüntüyü kontrol ettikten sonra `POST /v1/media/:id/accept-preview` ve `{ "confirmed": true }` gönderilir. Bu, sadece ekrandaki onay eyleminde çağrılır.
-6. Avatar için `PUT /v1/me/avatar` ve `{ "mediaId": "..." }`; kombin için ilgili taslak/yayın modülü aynı transaction'da `requirePublishableAsset` çağıracak. Oylama API'si sonraki adımdır.
+6. Avatar için `PUT /v1/me/avatar` ve `{ "mediaId": "..." }`; kombin için [oylama API'si](polls-development.md) çalışır. Taslak aynı transaction'da requireAttachableAsset ile sahiplik/amaç, yayın requirePublishableAsset ile işleme/önizleme onayını da doğrular.
 
 `POST /media/uploads` 201, diğer başarılı komutlar 200 döner. Dosya durum yanıtı depolama anahtarlarını, kaynak checksum'unu veya token hash'ini içermez. Yükleme token'ı yalnız izin oluşturma yanıtında görünür; DB'de SHA-256 hash'i saklanır.
 
@@ -37,7 +37,7 @@ Başarılı dosya yüklemesi sırasında durum PENDING_UPLOAD kalır ve `uploade
 
 Bozuk/yanlış tür/piksel sınırı aşımı `422 INVALID_IMAGE`; checksum değişimi `422 SOURCE_CHECKSUM_MISMATCH`; disk/işleme bağımlılığı hatası `503 MEDIA_PROCESSING_FAILED`. Başarısız iş REJECTED ve kararlı `rejectionCode` bırakır. Orijinale geri dönülmez, kısmi çıktı açılmaz. Geçici hata aynı kaynakla complete tekrarına uygundur; bozuk kaynak için yeni yükleme gerekir. Silinmiş/eski sürümün geç tamamlanması kaydı yeniden READY yapamaz.
 
-`accept-preview` aynı onayı/tarihi tekrar döndürür. Önizleme onayından önce bağlama `409 MEDIA_NOT_APPROVED`, amaç uyumsuzluğu `409 MEDIA_PURPOSE_MISMATCH`, kullanımda medya silme `409 MEDIA_IN_USE` olur.
+`accept-preview` aynı onayı/tarihi tekrar döndürür. Önizleme onayından önce avatar bağlama veya oylama yayınlama `409 MEDIA_NOT_APPROVED`, amaç uyumsuzluğu `409 MEDIA_PURPOSE_MISMATCH`, kullanımda medya silme `409 MEDIA_IN_USE` olur. Taslak kendi silinmemiş POLL medyasını onay/işleme bitmeden bağlayabilir; bu bağ dosyanın yayınlandığı anlamına gelmez ve cleanup kullanımda dosyayı korur.
 
 ## Erişim ve avatar
 
@@ -55,12 +55,12 @@ GET `/me` ve `/users/:id` artık nullable `avatarMediaId` ve `avatarPath` içeri
 
 Komut henüz cron/worker'a bağlı değildir; yerelde ihtiyaç halinde çalıştırılır. Canlıya geçmeden zamanlama, retention, özel bulut deposu, kuyruk/izleme ve çok instance kaynak sınırları gerekir.
 
-Oylama modülü MediaModule import edip **aynı transaction içinde** `requirePublishableAsset(tx, actorId, mediaId, "POLL")` çağırmalı ve sonra PollOption ilişkisini yazmalıdır. Bu servis medya satırını kilitler; cleanup/silme ile aynı kilidi kullanır. Birden fazla medya için UUID sırasıyla çağrılır. Ham Prisma ilişki yazımı tek başına sahiplik veya onay kontrolü sağlamaz. Arkadaşın catalog/trends/billing/ads modüllerine yeni bağımlılık eklenmedi.
+PollsModule, MediaModule import eder. Taslak seçenek ilişkisini yazmadan **aynı transaction içinde** `requireAttachableAsset(tx, actorId, mediaId, "POLL")` çağırır; yayın sırasında `requirePublishableAsset` READY/onay/çıktı koşullarını da denetler. Her iki servis medya satırını kilitler; cleanup/silme ile aynı kilidi kullanır. Birden fazla medya UUID sırasıyla çağrılır. Ham Prisma ilişki yazımı tek başına sahiplik veya onay kontrolü sağlamaz. Arkadaşın catalog/trends/billing/ads modüllerine yeni bağımlılık eklenmedi.
 
 Sekizinci migration MediaPurpose, yükleme/hash/işleme/thumbnail/temizlik alanları ve User.avatarMediaId FK'sini ekler. Model sayısı 32 kalır. Diğer bilgisayarda `npm ci`, `npm run db:deploy`, `npm run db:generate` çalıştırılır; DB resetlenmez.
 
 ## Kontrol
 
-`npm run test:media`: gerçek HTTP upload, tür/piksel/animasyon reddi, EXIF yönü/temizliği, JPEG/WebP decode, manuel maskelerin display/thumbnail'a uygulanması, önizleme onayı, avatar, özel yayın erişimi, hatadan tekrar, kapasite, geç işlem/silme ve dosya temizliği. `npm run test:api` auth/users/social/media testlerini birlikte çalıştırır. Tek bağlantılı yerel PGlite ortamı çok bağlantılı PostgreSQL yarış testi yerine geçmez; HTTP'de birden çok in-flight iş ve geç tamamlanma ayrıca kontrol edilir.
+`npm run test:media`: gerçek HTTP upload, tür/piksel/animasyon reddi, EXIF yönü/temizliği, JPEG/WebP decode, manuel maskelerin display/thumbnail'a uygulanması, önizleme onayı, avatar, özel yayın erişimi, hatadan tekrar, kapasite, geç işlem/silme ve dosya temizliği. `npm run test:api` auth/users/social/media/polls testlerini birlikte çalıştırır. Tek bağlantılı yerel PGlite ortamı çok bağlantılı PostgreSQL yarış testi yerine geçmez; HTTP'de birden çok in-flight iş ve geç tamamlanma ayrıca kontrol edilir.
 
 Uygulama kaynakları: [Nest dosya yükleme](https://docs.nestjs.com/techniques/file-upload), [Sharp giriş sınırları](https://sharp.pixelplumbing.com/api-constructor/), [Sharp metadata/çıktı davranışı](https://sharp.pixelplumbing.com/api-output/).

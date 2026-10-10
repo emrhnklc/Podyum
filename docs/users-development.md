@@ -30,7 +30,7 @@ Kamusal profil: `id`, `username`, `displayName`, `bio`, `styles`, nullable `avat
 
 `counts.polls`, VISIBLE ve OPEN/CLOSED yayınları sayar. Kendi profili ve kabul edilmiş arkadaş hem PUBLIC hem FRIENDS yayınlarını sayar; diğer izleyici yalnız PUBLIC sayar. Taslak, iptal, gizlenmiş ve kaldırılmış içerik hariçtir. GET snapshot'ı aynı transaction'da okunur.
 
-`counts.friends`, kabul edilmiş, aktif ve profil sahibiyle engel ilişkisi olmayan arkadaşları sayar. `counts.stars`, mevcut PointsLedger toplamıdır; veri yoksa sıfır. Profil API'si puan üretmez. Oyun ödülleri/ligler Faz 2'dir. Sayaçlar henüz paylaşım/arkadaşlık oluşturma API'lerinin hazır olduğu anlamına gelmez; testler bu okumaları kendi DB fixture'larıyla doğrular.
+`counts.friends`, kabul edilmiş, aktif ve profil sahibiyle engel ilişkisi olmayan arkadaşları sayar. `counts.stars`, mevcut PointsLedger toplamıdır; veri yoksa sıfır. Profil API'si puan üretmez. Oyun ödülleri/ligler Faz 2'dir. Sosyal ve paylaşım oluşturma API'leri hazır; sayaç görünürlüğü ayrıca DB fixture'ları ve gerçek yayın akışıyla doğrulanır.
 
 ## Özel bilgiler ve analiz izni
 
@@ -64,7 +64,7 @@ Olayın `id` alanı DB tarafından üretilir; tüketici eventId ve kullanıcı b
 
 `pushEnabled`, `friendRequestNotifications`, `pollResultNotifications`, `commentNotifications`, `defaultCommentsEnabled` ve `defaultBlurFace` true; `defaultPollVisibility` PUBLIC. Bunlar değiştirilebilir geliştirme varsayımlarıdır. İlk GET, satır oluşturmadan varsayılanı döndürür. PATCH sadece gönderilen alanları günceller; kısmi güncellemeler birbirini silmez.
 
-Bildirim alanları ileride gönderim tercihi olarak kullanılacak; bugün push göndermez. `defaultBlurFace` yeni medya izninde, blurRequested gönderilmezse uygulanır. Manuel bölge seçimi ve önizleme onayı gerekir; otomatik yüz tespiti henüz yoktur. Oylama adımı görünürlük/yorum varsayılanlarını kullanacak; mevcut bir paylaşımın görünürlüğü/yorumları ayar değişikliğiyle geriye dönük değişmez. Ayrı kapalı hesap özelliği eklenmedi; PUBLIC/FRIENDS paylaşım kuralı korunur.
+Bildirim alanları ileride gönderim tercihi olarak kullanılacak; bugün push göndermez. `defaultBlurFace` yeni medya izninde, blurRequested gönderilmezse uygulanır. Manuel bölge seçimi ve önizleme onayı gerekir; otomatik yüz tespiti henüz yoktur. Oylama oluşturma görünürlük/yorum varsayılanlarını kullanır; mevcut bir paylaşımın görünürlüğü/yorumları ayar değişikliğiyle geriye dönük değişmez. Ayrı kapalı hesap özelliği eklenmedi; PUBLIC/FRIENDS paylaşım kuralı korunur.
 
 ## Kurulum, doğrulama ve kalan bağlantılar
 
@@ -72,4 +72,4 @@ Altıncı migration `UserSettings` ve `UserPrivate.analyticsRevision` ekler. Di�
 
 `npm run test:users` profil/ayar HTTP testlerini, `npm run test:api` auth + profil testlerini çalıştırır. Derlenmiş gerçek Nest uygulaması ve mevcut yerel DB kullanılır. Testler yalnız kendi benzersiz hesap, stil, ilişki, paylaşım ve olay fixture'larını temizler. Tek bağlantılı yerel Prisma Postgres gerçek eşzamanlı yarış testi değildir.
 
-Avatar/yükleme şimdi yerel medya modülüne bağlıdır; profil PATCH'i mediaId veya avatarMediaId kabul etmez. Profil paylaşımları ve kaydedilenlerin sayfalı listeleri, push tüketimi, trend işçisi ve Plus alanları ilgili modüllerde bağlanacak. Bu modül bunlar için çalışan sahte endpoint veya ücretli hak üretmez. Sosyal ve medya modülleri ortak SocialAccessService'i kullanır. [Sosyal rehber](social-development.md), [medya rehberi](media-development.md). Sonraki bizim işimiz oylama taslağı/yayınlamadır.
+Avatar/yükleme yerel medya modülüne bağlıdır; profil PATCH'i mediaId veya avatarMediaId kabul etmez. Kendi paylaşım listesi `GET /me/polls` ile çalışır. Başkasının profil paylaşımları, kişisel kaydedilenler, push tüketimi, trend işçisi ve Plus alanları kendi adımlarında bağlanacak. Bu modül onlar için çalışan sahte endpoint veya ücretli hak üretmez. Sosyal, medya ve oylama modülleri ortak SocialAccessService'i kullanır. [Sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Sonraki bizim işimiz tercih/kapanış/sonuçtur.

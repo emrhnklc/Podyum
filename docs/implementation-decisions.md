@@ -33,7 +33,7 @@
 | Profil düzenleme | Kullanıcı adı/ad/bio ve en fazla 10 sözlük stili; mock ilk kurulumu aynı istekte username+displayName ile tamamlanır |
 | Özel profil | Yaş grubu/cinsiyet/şehir isteğe bağlı, yalnız sahibine açık; analiz izni varsayılan false ve açık seçimle değişir |
 | Analiz değişikliği | İzin/demografi değişikliği monoton revision ve aynı transaction'da ham demografi içermeyen outbox olayı üretir; trend tüketimi sonraki adımda |
-| Ayar varsayılanları | Bildirim tercihleri, yorumlar ve yüz blur tercihi açık; yeni paylaşım görünürlüğü PUBLIC. Medya blur varsayılanını kullanır; oylama/push tüketicileri henüz yok |
+| Ayar varsayılanları | Bildirim tercihleri, yorumlar ve yüz blur tercihi açık; yeni paylaşım görünürlüğü PUBLIC. Medya blur, oylama oluşturma görünürlük/yorum varsayılanını kullanır; push tüketicisi henüz yok |
 | Profil erişimi | Oturum gerekir; aktif, iki yönde engel olmayan hedefin kamusal alanları açılır. Paylaşım sayısı izleyicinin erişimine göre hesaplanır |
 | Arkadaş isteği | Yönsüz tek çift, açık alıcı kabulü; ters istek otomatik kabul olmaz. Red sonrası yeniden istek açılabilir; bekleme süresi henüz seçilmedi |
 | Sosyal tekrar | Aynı gönderim/kabul/red/iptal/kaldırma/engel etkisizse yeni olay yazmaz; userId komutları çiftin mevcut durumuna uygulanır |
@@ -44,13 +44,21 @@
 | Medya değişmezliği | Kaynak sürümü/checksum sabit; READY çıktı değiştirilemez. Aynı complete parametresi tekrar güvenli; geç işleme silinen kaydı canlandıramaz |
 | Avatar ve erişim | Onaylı AVATAR purpose kendi profile bağlanır; eski avatar başkasına kapanır. Medya her istekte sosyal erişimi kontrol eder, orijinal dışarı açılmaz |
 | Medya temizlik | Süresi dolan yüklenmemiş veya 24 saati geçen kullanılmayan dosyalar yerel komutla silinir; bağlantılı dosyalar korunur. Cron/bulut/worker henüz yok |
+| Oylama taslağı | Boş soru ve 0–4 farklı kendi POLL medyası; options güncellemesi bütün liste/ürünleri yeni kimliklerle değiştirir; expectedVersion zorunlu |
+| Yayın | Soru + ardışık 2–4 READY/onaylı görsel; 1800/7200/86400 saniye yayın anında DB saatinden başlar; gelişmiş hedefleme kapalı |
+| Yayın sonrası | Soru/seçenek/ürün/süre/görünürlük sabit; yorum izni ayrı sürümlü endpoint'ten değişir; yorum API'si henüz yok |
+| İptal/silme | DRAFT veya süresi dolmamış OPEN iptal edilebilir; başkasına kapanır. Fiziksel silme yalnız DRAFT; medya ayrıca yönetilir |
+| Süre okuması | Süresi dolan OPEN effectiveStatus=CLOSED okunur; kalıcı kapanış/oy/sonuç 9. adımda |
+| Ürün beyanı | En fazla 10 ürün/seçenek; özgün http/https link korunur, taranmaz; tamsayı fiyat + sunucu beyan zamanı; katalog kimliği/ücretli affiliate hakkı bağlı değil |
+| İşlem tekrarı | Kullanıcı/komut/kaynak/anahtar kapsamında 24 saatlik başarılı yanıt snapshot'ı; payload değişirse 409; iş/makbuz/outbox aynı transaction |
+| Oylama kaynak sınırı | En fazla 50 mevcut taslak ve son 24 saatte 100 başarılı oluşturma; geliştirme limiti, Plus kotası değildir |
 | Yerel erişim | Varsayılan `127.0.0.1`; dış kullanıcı kaydı ve üretim açılışı henüz kapalı |
 
 E-posta taşıyıcısı `.local/mailbox` altında dosyadır. Bu, gerçek e-posta gönderimi değildir. Dosyada tek kullanımlık token bulunur; HTTP'den servis edilmez, git'e alınmaz. Dosya yazımı başarısızsa kayıt/action transaction'ı geri alınır. İşlem commit edilmeden süreç çökerse dosyada geçersiz bağlantı kalabilir; gerçek taşıyıcıya geçerken kalıcı teslim kuyruğu/yeniden deneme eklenecek.
 
 Profil/ayar API'sinin uygulanan davranışları ve sonraki modüllere kalan bağlantılar: [users rehberi](users-development.md). Kapalı hesap politikası hâlâ açık karardır; ayrı kapalı hesap alanı eklenmedi.
 
-Sosyal API ve ortak erişim servisi çalışır; yayın/medya/yorum uçları kendi adımlarında bağlanır. [Sosyal rehber](social-development.md). Engel/red olayları otomatik olarak karşı tarafa bildirim göndermez.
+Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçları bağlıdır, yorum kendi adımında bağlanır. [Sosyal rehber](social-development.md), [oylama rehberi](polls-development.md). Engel/red olayları otomatik olarak karşı tarafa bildirim göndermez.
 
 ## İlgili adım geldiğinde kesinleştirilecekler
 
