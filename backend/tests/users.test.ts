@@ -91,7 +91,7 @@ test("profil endpoint'leri oturum ister; varsayılanlar okuma sırasında DB'ye 
   assert.equal(me.body.profile.bio, null);
   assert.deepEqual((await call("/me/private", a.token)).body, { gender: null, ageBand: null, cityCode: null, analyticsConsent: false, analyticsConsentAt: null, analyticsRevision: 0 });
   assert.deepEqual((await call("/me/settings", a.token)).body, {
-    pushEnabled: true, friendRequestNotifications: true, pollResultNotifications: true, commentNotifications: true,
+    pushEnabled: true, friendRequestNotifications: true, pollResultNotifications: true, commentNotifications: true, gameNotifications: true,
     defaultPollVisibility: "PUBLIC", defaultCommentsEnabled: true, defaultBlurFace: true,
   });
   assert.equal(await db.userPrivate.count({ where: { userId: a.id } }), 0);

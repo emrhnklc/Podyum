@@ -71,6 +71,8 @@ export class SettingsResponseDto {
   pollResultNotifications!: boolean;
   @ApiProperty({ default: true })
   commentNotifications!: boolean;
+  @ApiProperty({ default: true })
+  gameNotifications!: boolean;
   @ApiProperty({ enum: Visibility, default: Visibility.PUBLIC })
   defaultPollVisibility!: Visibility;
   @ApiProperty({ default: true })

@@ -98,6 +98,11 @@ export class UpdateSettingsDto {
   @IsBoolean()
   commentNotifications?: boolean;
 
+  @ApiPropertyOptional({ default: true })
+  @ValidateIf(supplied)
+  @IsBoolean()
+  gameNotifications?: boolean;
+
   @ApiPropertyOptional({ enum: Visibility, default: Visibility.PUBLIC })
   @ValidateIf(supplied)
   @IsEnum(Visibility)

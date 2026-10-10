@@ -8,8 +8,10 @@ import { MediaModule } from "./modules/media/media.module.js";
 import { PollsModule } from "./modules/polls/polls.module.js";
 import { FeedModule } from "./modules/feed/feed.module.js";
 import { GamesModule } from "./modules/games/games.module.js";
+import { ModerationModule } from "./modules/moderation/moderation.module.js";
+import { NotificationsModule } from "./modules/notifications/notifications.module.js";
 
 @Module({
-  imports: [DatabaseModule, HealthModule, AuthModule, SocialModule, UsersModule, MediaModule, PollsModule, FeedModule, GamesModule],
+  imports: [DatabaseModule, HealthModule, AuthModule, SocialModule, UsersModule, MediaModule, PollsModule, FeedModule, GamesModule, ModerationModule, NotificationsModule],
 })
 export class AppModule {}

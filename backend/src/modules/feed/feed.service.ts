@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { decodeCursor, encodeCursor } from "../../common/pagination/cursor.js";
 import { PrismaService } from "../../database/prisma.service.js";
 import type { Prisma } from "../../generated/prisma/client.js";
-import { pollDetailInclude, presentPoll } from "../polls/poll-read-model.js";
+import { pollCardInclude, presentPollCard } from "../polls/poll-card.js";
 import { pollServerNow } from "../polls/polls-internals.js";
 import { SocialAccessService } from "../social/social-access.service.js";
 import { FeedScope, type FeedQueryDto } from "./dto/feed.dto.js";
@@ -33,19 +33,10 @@ export class FeedService {
       ] });
       const rows = await tx.poll.findMany({
         where: { AND: conditions }, orderBy: [{ publishedAt: "desc" }, { id: "desc" }], take: query.limit + 1,
-        include: {
-          ...pollDetailInclude,
-          saves: { where: { userId }, select: { userId: true } },
-          _count: { select: {
-            votes: true,
-            comments: { where: { contentStatus: "VISIBLE", author: this.access.activeUnblockedUserWhere(userId) } },
-          } },
-        },
+        include: pollCardInclude(this.access, userId),
       });
       const page = rows.slice(0, query.limit);
-      const items = page.map((poll) => ({ ...presentPoll(poll, userId, now),
-        totalVotes: poll._count.votes, commentCount: poll._count.comments, isSaved: poll.saves.length > 0,
-      }));
+      const items = page.map((poll) => presentPollCard(poll, userId, now));
       const last = page.at(-1);
       return { items, serverNow: now, nextCursor: rows.length > query.limit && last
         ? encodeCursor({ id: last.id, createdAt: last.publishedAt!.toISOString() }, context) : null };

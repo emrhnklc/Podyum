@@ -20,8 +20,8 @@ Her kart mevcut [oylama detay sözleşmesini](polls-development.md) kullanır: y
 Ek kart alanları:
 
 - `totalVotes`: oylamanın toplam tercih sayısı. Seçenek sayıları/yüzdeleri ve kazananlar oy öncesinde döndürülmez.
-- `commentCount`: görünür yorumlar; askıda/silinmiş ve izleyiciyle iki yönlü engeli olan yazarların yorumları sayılmaz. Yorum ekleme/liste API'si sonraki adımdadır.
-- `isSaved`: yalnız izleyicinin mevcut kişisel kayıt durumu. Kaydet/kaldır uçları sonraki adımdadır; bu alan bir kaydetme komutu değildir.
+- `commentCount`: görünür yorumlar; askıda/silinmiş ve izleyiciyle iki yönlü engeli olan yazarların yorumları sayılmaz. Yorum uçları: [etkileşim rehberi](interactions-development.md).
+- `isSaved`: yalnız izleyicinin mevcut kişisel kayıt durumu. Kaydet/kaldır uçları [etkileşim rehberindedir](interactions-development.md); bu alan bir kaydetme komutu değildir.
 
 Fotoğraf/avatar yolları Bearer isteyen `/v1/media/.../content` uçlarıdır; depolama anahtarı veya herkese açık dosya linki dönmez. Mobil bu dosyaları oturumla istemelidir. Tüm JSON yanıtları ortak `no-store` politikasını kullanır. Sonuç yetkisi [tercih/sonuç API'sinde](poll-votes-development.md) yeniden kontrol edilir.
 
