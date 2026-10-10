@@ -25,7 +25,7 @@ export async function createApp(rootModule: Type = AppModule, env = readEnvironm
   }
   if (env.docsEnabled) {
     const config = new DocumentBuilder()
-      .setTitle("Kombin API")
+      .setTitle("Podyum API")
       .setDescription("Çalışan endpoint'ler. Google/Apple mock ve yerel posta kutusu geliştirme içindir.")
       .setVersion("0.1.0")
       .addBearerAuth()

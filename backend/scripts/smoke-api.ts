@@ -15,7 +15,7 @@ const address = new Promise<string>((resolve, reject) => {
   child.once("exit", () => reject(new Error(`API beklenmedik şekilde kapandı.\n${output}`)));
   const collect = (chunk: Buffer) => {
     output = (output + chunk.toString()).slice(-12_000);
-    const match = output.match(/Kombin backend: (http:\/\/127\.0\.0\.1:\d+)/);
+    const match = output.match(/Podyum backend: (http:\/\/127\.0\.0\.1:\d+)/);
     if (match) resolve(match[1]);
   };
   child.stdout.on("data", collect);

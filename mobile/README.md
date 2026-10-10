@@ -1,20 +1,22 @@
-# Podyum frontend
+# Podyum — mobile
 
 Next.js 16 (App Router) + TypeScript. Şu an hiçbir backend çağrısı yapmaz; ekranlar `lib/demo.ts` içindeki demo verisinden beslenir.
+
+Önceki `web/` klasörü artık `Podyum/mobile/` altında. Backend `../backend/` dizinindedir. Genel komutlar: [Podyum rehberi](../README.md).
 
 Her ekranın rotası, her tuşun nereye gittiği ve hangi backend çağrısına karşılık geldiği: [docs/ekran-ve-api-haritasi.md](docs/ekran-ve-api-haritasi.md).
 
 ## Çalıştırma
 
 ```bash
-cd web
-npm install
+cd mobile
+npm ci
 npm run dev
 ```
 
-Adres `http://localhost:3000`. Backend de varsayılan olarak 3000'de açılır; ikisi aynı makinede çalışacaksa backend'i `PORT=3100 npm start` ile başlat.
+Adres `http://localhost:3001`. Backend varsayılan olarak 3000'de açılır; iki uygulama aynı anda çalışabilir. Proje kökünden `npm run dev:mobile` ve `npm run dev:backend` komutları da kullanılabilir.
 
-Telefonda denemek için bilgisayarla aynı Wi-Fi'da `http://<bilgisayarın-ağ-adresi>:3000` adresini aç. İzin verilen geliştirme adresleri `next.config.ts` içinde.
+Telefonda denemek için bilgisayarla aynı Wi-Fi'da `http://<bilgisayarın-ağ-adresi>:3001` adresini aç. İzin verilen geliştirme adresleri `next.config.ts` içinde.
 
 ## Klasörler
 
@@ -33,7 +35,7 @@ Telefonda denemek için bilgisayarla aynı Wi-Fi'da `http://<bilgisayarın-ağ-a
 ## Kontroller
 
 ```bash
-npx tsc --noEmit
+npm run typecheck
 npm run lint
 npm run build
 ```

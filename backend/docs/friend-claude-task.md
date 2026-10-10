@@ -4,6 +4,9 @@ Aşağıdaki metin eski oyun görevinin yerine geçer. Projenin güncel main dal
 
 ```text
 Podyum adlı kombin uygulamasının backend'ini iki kişi geliştiriyoruz.
+Depo kökünde backend/ ve mobile/ ayrı uygulamalardır. Önce kök README.md'yi
+oku, sonra backend/ klasöründe çalış. Aşağıdaki yollar ve npm komutları
+backend/ klasörüne göredir; mobile/ arayüzünün sahibi ayrı geliştiricidir.
 Sen ürün/trend/gelir kolundan sorumlusun. Günlük 30+30 podyum ve QR lobisi
 aktif backend kapsamına geri alındı; games ve canlı durumun sahibi diğer geliştirici.
 docs/game-design.md güncel kaynaktır. Sen games/Socket.IO/matchmaking/lig geliştirme.

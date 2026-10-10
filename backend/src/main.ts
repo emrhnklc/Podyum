@@ -7,4 +7,4 @@ import { readEnvironment } from "./common/config/environment.js";
 const env = readEnvironment();
 const app = await createApp(undefined, env);
 await app.listen(env.port, env.host);
-Logger.log(`Kombin backend: ${await app.getUrl()}`, "Bootstrap");
+Logger.log(`Podyum backend: ${await app.getUrl()}`, "Bootstrap");
