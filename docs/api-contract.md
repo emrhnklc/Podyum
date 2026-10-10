@@ -2,7 +2,7 @@
 
 **Kapsam güncellemesi:** Oyun ve Socket.IO bölümleri Faz 2 taslağıdır. Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
-Health ve `/v1/auth/*` endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan auth ayrıntıları ve örnekleri: [Auth geliştirme rehberi](auth-development.md). Aşağıdaki profil/sosyal/medya/oylama/oyun endpoint'leri henüz uygulanmamış taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
+Health, `/v1/auth/*` ve temel profil/ayar endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md). Aşağıdaki sosyal/medya/oylama/oyun endpoint'leri henüz uygulanmamış taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
 
 ## 1. Ortak kurallar
 
@@ -42,9 +42,12 @@ Health ve `/v1/auth/*` endpoint'leri çalışır. Controller/DTO'lardan üretile
 | Metot | Yol | Davranış |
 | --- | --- | --- |
 | POST | `/auth/oauth/:provider` | Planlanan gerçek sağlayıcı girişi; doğrulanmış dış kimlikten yerel profil/oturum; mevcut mock ile karıştırılmaz |
-| GET | `/me` | Kendi profilin; izin verilen özel alanlar ayrı nesnede |
-| PATCH | `/me` | Görünen ad, bio, stil etiketleri |
-| GET | `/users/:id` | İzin verilen kamusal profil |
+| GET | `/me` | Çalışır: `{ profile, profileSetupRequired }`; özel alanlar dahil değildir |
+| PATCH | `/me` | Çalışır: kullanıcı adı, görünen ad, bio, stil etiketleri |
+| GET / PATCH | `/me/private` | Çalışır: yalnız kendi demografik bilgilerin ve analiz iznin |
+| GET / PATCH | `/me/settings` | Çalışır: kendi bildirim/paylaşım varsayılanların; tüketiciler sonraki modüllerde |
+| GET | `/users/username-availability` | Çalışır: `username` query ile anlık uygunluk; rezervasyon değildir |
+| GET | `/users/:id` | Çalışır: aktif/engelsiz kamusal profil; sayaçlar izleyiciye göre |
 | GET | `/users/:id/polls` | Yalnızca izleyicinin görebildiği paylaşımlar |
 | GET | `/me/friends` | Kabul edilmiş arkadaşlar |
 | GET | `/me/friend-requests` | Gelen/giden istekler |
@@ -53,7 +56,7 @@ Health ve `/v1/auth/*` endpoint'leri çalışır. Controller/DTO'lardan üretile
 | POST | `/friend-requests/:userId/decline` | Gelen isteği reddet |
 | DELETE | `/friends/:userId` | Arkadaşlığı kaldır; özel içerik için yeni erişim durur |
 | PUT / DELETE | `/blocks/:userId` | Engelle / engeli kaldır |
-| GET | `/style-tags` | Stil sözlüğü |
+| GET | `/style-tags` | Çalışır: stil sözlüğü |
 
 Hesap silme, şikâyet ve yönetim endpoint'leri ilk dış kullanıcı testinden önce eklenecek; normal kullanıcıya admin endpoint'i açılmayacak.
 

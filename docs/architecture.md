@@ -12,7 +12,7 @@ Faz 1 sahipliği: kullanıcı/sosyal/medya/oylama/bildirim ve ortak altyapı biz
 
 **Önerilen başlangıç:** TypeScript + NestJS ile modüler monolit; Prisma ORM + PostgreSQL; REST üzerinden komutlar; Socket.IO üzerinden durum değişikliği haberleri; arka plan işçisi. Redis/BullMQ, medya deposu ve kimlik sağlayıcısı ilgili aşamada eklenecektir. Bunlar bugün kurulmuş servisler değildir.
 
-Bu depoda bugün veritabanı temeli, ortak HTTP altyapısı, Swagger, health ve auth modülü çalışır. E-posta/şifre ve yerel opaque oturumlar uygulanmıştır; e-posta yerel dosyaya teslim edilir, Google/Apple geliştirme mock'udur. Gerçek OAuth/e-posta, profil, sosyal/oylama/oyun API'leri, medya işçisi, abonelik ve bildirim entegrasyonları henüz yazılmadı. [Uygulanan kararlar](implementation-decisions.md), [auth davranışı](auth-development.md).
+Bu depoda bugün veritabanı temeli, ortak HTTP altyapısı, Swagger, health, auth ve temel users modülü çalışır. E-posta/şifre ve yerel opaque oturumlar, profil/stil/özel bilgiler/izin ve ayarlar uygulanmıştır; e-posta yerel dosyaya teslim edilir, Google/Apple geliştirme mock'udur. Gerçek OAuth/e-posta, sosyal/oylama/oyun API'leri, avatar/medya işçisi, abonelik ve bildirim entegrasyonları henüz yazılmadı. [Uygulanan kararlar](implementation-decisions.md), [auth davranışı](auth-development.md), [profil davranışı](users-development.md).
 
 ## 2. Sistemin şekli
 

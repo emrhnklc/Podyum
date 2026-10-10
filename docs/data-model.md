@@ -8,6 +8,7 @@
 erDiagram
     User ||--o{ AuthIdentity : "kimlik"
     User ||--o| UserPrivate : "ozel alanlar"
+    User ||--o| UserSettings : "ayarlar"
     User ||--o{ Poll : "yayinlar"
     User ||--o{ PollVote : "tercih"
     Poll ||--o{ PollOption : "secenek"
@@ -32,7 +33,7 @@ Arkadaşlık ve engelleme User'a iki taraftan bağlanan ayrı ilişkilerdir. Oyl
 
 | Alan | Modeller | Açıklama |
 | --- | --- | --- |
-| Kullanıcı | User, AuthIdentity, UserPrivate | Kamusal profil / dış kimlik / özel bilgiler ayrımı; `profileCompletedAt` ilk kurulum durumu |
+| Kullanıcı | User, AuthIdentity, UserPrivate, UserSettings | Kamusal profil / dış kimlik / özel bilgiler / bildirim ve paylaşım varsayılanları ayrımı; `profileCompletedAt` ilk kurulum durumu |
 | Giriş | AuthCredential, AuthSession, UsedRefreshToken, AuthActionToken | Özel parola hash'i/doğrulama, cihaz oturumu, refresh tekrar tespiti ve tek kullanımlık e-posta işlemleri |
 | Tarz | StyleTag, UserStyle | Kontrollü stil sözlüğü ve çoklu seçim |
 | Sosyal | Friendship, Block | Karşılıklı kabul edilmiş ilişki; yönlü engel |
@@ -45,7 +46,9 @@ Arkadaşlık ve engelleme User'a iki taraftan bağlanan ayrı ilişkilerdir. Oyl
 | Ödül | PointsLedger | Kaynağı belli puan hareketleri; ödül dağıtımı kapalı |
 | Güvenilirlik | OutboxEvent, IdempotencyRecord | Transaction sonrası işler ve komut tekrarları |
 
-Toplam 31 model vardır. Health ve auth API'leri çalışır; diğer model API'leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
+Toplam 32 model vardır. Health, auth ve temel users API'leri çalışır; diğer model API'leri henüz mevcut değildir. Auth oturum ve token hash'leri kamusal profil yanıtına girmez. Gerçek sağlayıcı ile mock kimlikler farklı issuer kullanır.
+
+Altıncı migration UserSettings ve UserPrivate.analyticsRevision alanını ekler. Analiz izni/demografi değişikliği ve outbox olayı aynı transaction'a yazılır; ham demografik değerler olay gövdesinde yer almaz. İşçi/trend tüketimi henüz yoktur. Özel alanlar, ayar varsayılanları ve sayaç görünürlüğü: [users rehberi](users-development.md).
 
 ## 3. Veritabanının bugün koruduğu kurallar
 

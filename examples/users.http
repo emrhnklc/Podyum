@@ -1,0 +1,62 @@
+@baseUrl = http://127.0.0.1:3000/v1
+@accessToken = LOGIN_VEYA_MOCK_YANITINDAN_ACCESS_TOKEN
+@userId = DIGER_KULLANICININ_UUID_DEGERI
+
+### Kendi profilim
+GET {{baseUrl}}/me
+Authorization: Bearer {{accessToken}}
+
+### Stil sözlüğü; styleIds değerlerini buradan al
+GET {{baseUrl}}/style-tags
+Authorization: Bearer {{accessToken}}
+
+### Kullanıcı adı uygunluğu; rezervasyon değildir
+GET {{baseUrl}}/users/username-availability?username=elif_local
+Authorization: Bearer {{accessToken}}
+
+### Profil / mock ilk kurulum
+PATCH {{baseUrl}}/me
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"username":"elif_local","displayName":"Elif Yılmaz","bio":"Minimal severim","styleIds":["minimal","vintage"]}
+
+### Başkasının kamusal profili
+GET {{baseUrl}}/users/{{userId}}
+Authorization: Bearer {{accessToken}}
+
+### Yalnız kendi özel bilgilerim
+GET {{baseUrl}}/me/private
+Authorization: Bearer {{accessToken}}
+
+### Bilgi doldurmak analiz izni vermez; analyticsConsent ayrı açık seçim
+PATCH {{baseUrl}}/me/private
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"gender":"WOMAN","ageBand":"AGE_18_24","cityCode":"TR_34"}
+
+### Demografik trend analizine izin
+PATCH {{baseUrl}}/me/private
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"analyticsConsent":true}
+
+### İzni geri al ve isteğe bağlı bilgileri temizle
+PATCH {{baseUrl}}/me/private
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"analyticsConsent":false,"gender":null,"ageBand":null,"cityCode":null}
+
+### Ayarlarım
+GET {{baseUrl}}/me/settings
+Authorization: Bearer {{accessToken}}
+
+### Kısmi ayar güncellemesi; medya/push tüketimi sonraki adımlarda
+PATCH {{baseUrl}}/me/settings
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"pushEnabled":false,"defaultPollVisibility":"FRIENDS","defaultCommentsEnabled":true,"defaultBlurFace":true}

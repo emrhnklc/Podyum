@@ -51,6 +51,8 @@ Paralel kodlama öncesinde şu sınırlar kayda girer:
 4. Tercih kaydı ile trend tüketimi arasında sürümlü bir veri sözleşmesi hazırlanır. Demografik verinin hangi izinle ve nasıl taşınacağı ayrıca netleştirilir.
 5. Plus rozeti bir istemci kararı değildir; hakları billing hesaplar. Reklamlar bu hakkı kullanır, akış reklam seçme kurallarını yeniden yazmaz.
 
+Profil/ayar adımı şimdi çalışır. İzin/demografi değişikliği için uygulanan ilk kaynak olayı `user.analytics-preferences.changed`, aggregate `user-analytics` ve kullanıcı başına monoton `analyticsRevision`'dır. Tam payload ve henüz olmayan işçi/tüketim sınırı: [profil rehberi](users-development.md). Arkadaş trend entegrasyonunda bu sözleşmeyi kullanır; tercih olayı ayrıca hazırlanacak.
+
 İlk şema teslimi: arkadaş ortak ürün/mağaza kimliği, belirsiz eşleşme ve fiyat bağlamı için önerisini yazar; biz ProductTag bağlantısıyla birlikte migration'ı sıraya alırız. Şema hazır olana kadar arkadaş URL normalizasyonunu, eşleştirme davranışını ve test fixture'larını geliştirebilir. Ancak gerçek DB entegrasyonunu yapılmış sayamaz.
 
 ## Paralel teslimler
@@ -119,4 +121,4 @@ Her PR: değişen sözleşmeler, migration/bağımlılık ihtiyacı, HTTP örnek
 
 Ayrı modüllerin içini bağımsız geliştirebiliriz. Ortak ürün modeli, tercih/izin olayı, ücretli haklar ve reklam–akış bağlantısında küçük entegrasyon teslimleri gerekir. Bu noktalar sözleşmeyle ve tek sahiplikle yönetilir; tamamen bağlantısız iki backend yapılmaz.
 
-Şu anda başlanacak işler nettir: **biz profil/ayarlar, arkadaş katalog/ürün linkleri**. Oyun geliştirmesi yok. Güncel Claude görevi: [arkadaş için metin](friend-claude-task.md).
+Temel profil/ayar API'si şimdi hazır; avatar ve sekme listeleri medya/oylama adımında bağlanacak. **Sonraki bizim işimiz sosyal modül; arkadaşın ilk işi hâlâ katalog/ürün linkleri.** Oyun geliştirmesi yok. Güncel Claude görevi: [arkadaş için metin](friend-claude-task.md).

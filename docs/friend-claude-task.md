@@ -10,11 +10,11 @@ ertelendi; games, canlı turlar, Socket.IO, matchmaking veya lig geliştirme.
 Önce varsa AGENTS.md, ardından README.md, docs/backend-roadmap.md,
 docs/two-developer-plan.md, docs/mentor-notes-2026-10-10.md,
 docs/implementation-decisions.md, docs/api-contract.md,
-docs/auth-development.md ve prisma/schema.prisma dosyalarını incele.
+docs/auth-development.md, docs/users-development.md ve prisma/schema.prisma dosyalarını incele.
 Bu belgelerde onaylı kararlar ve henüz seçilmemiş kurallar ayrılıyor.
 
 Mevcut proje NestJS + TypeScript, PostgreSQL + Prisma. Health, ortak
-API altyapısı ve auth çalışıyor. E-posta/şifre ve opaque oturumlar
+API altyapısı, auth ve temel profil/ayarlar çalışıyor. E-posta/şifre ve opaque oturumlar
 gerçek yerel akış; e-posta teslimi dosya, Google/Apple mock.
 Yeni ürün/trend/billing/ads servisleri henüz uygulanmış değil.
 
@@ -72,6 +72,9 @@ sözleşmesine uygun sentetik fixture'larla geliştirebilirsin. Gerçek
 tercih olayını diğer geliştirici oy transaction'ı/outbox ile sağlayacak.
 Oylama tablolarına yazma. Aynı olayın tekrarını tekilleştir; izin geri
 alma ve içerik kaldırma katkılarını çıkarma davranışını planla.
+İlk mevcut izin/demografi kaynağı user.analytics-preferences.changed
+outbox olayıdır; kullanıcı başına analyticsRevision taşır. Payload ve
+henüz olmayan işçi sınırını users-development rehberinden oku.
 
 Bir kombinin seçilmesi içindeki bütün ürünlere ayrı ayrı oy verilmesi
 değildir; satış/satın alma da değildir. Ölçüm türlerini ayır.
