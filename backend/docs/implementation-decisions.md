@@ -34,7 +34,7 @@
 | Profil düzenleme | Kullanıcı adı/ad/bio ve en fazla 10 sözlük stili; mock ilk kurulumu aynı istekte username+displayName ile tamamlanır |
 | Özel profil | Yaş grubu/cinsiyet/şehir isteğe bağlı, yalnız sahibine açık; analiz izni varsayılan false ve açık seçimle değişir |
 | Analiz değişikliği | İzin/demografi değişikliği monoton revision ve aynı transaction'da ham demografi içermeyen outbox olayı üretir; trend tüketimi sonraki adımda |
-| Ayar varsayılanları | Bildirim tercihleri, yorumlar ve yüz blur tercihi açık; yeni paylaşım görünürlüğü PUBLIC. Medya blur, oylama oluşturma görünürlük/yorum varsayılanını kullanır; push tüketicisi henüz yok |
+| Ayar varsayılanları | Bildirim tercihleri, yorumlar ve yüz blur tercihi açık; yeni paylaşım görünürlüğü PUBLIC. Medya blur, oylama oluşturma görünürlük/yorum varsayılanını kullanır; push tüketicisi hazır; gerçek cihaz doğrulaması bekliyor |
 | Profil erişimi | Oturum gerekir; aktif, iki yönde engel olmayan hedefin kamusal alanları açılır. Paylaşım sayısı izleyicinin erişimine göre hesaplanır |
 | Arkadaş isteği | Yönsüz tek çift, açık alıcı kabulü; ters istek otomatik kabul olmaz. Red sonrası yeniden istek açılabilir; bekleme süresi henüz seçilmedi |
 | Sosyal tekrar | Aynı gönderim/kabul/red/iptal/kaldırma/engel etkisizse yeni olay yazmaz; userId komutları çiftin mevcut durumuna uygulanır |
@@ -47,7 +47,7 @@
 | Medya temizlik | Süresi dolan yüklenmemiş veya 24 saati geçen kullanılmayan dosyalar yerel komutla silinir; bağlantılı dosyalar korunur. Cron/bulut/worker henüz yok |
 | Oylama taslağı | Boş soru ve 0–4 farklı kendi POLL medyası; options güncellemesi bütün liste/ürünleri yeni kimliklerle değiştirir; expectedVersion zorunlu |
 | Yayın | Soru + ardışık 2–4 READY/onaylı görsel; 1800/7200/86400 saniye yayın anında DB saatinden başlar; gelişmiş hedefleme kapalı |
-| Yayın sonrası | Soru/seçenek/ürün/süre/görünürlük sabit; yorum izni ayrı sürümlü endpoint'ten değişir; yorum API'si henüz yok |
+| Yayın sonrası | Soru/seçenek/ürün/süre/görünürlük sabit; yorum izni ayrı sürümlü endpoint'ten değişir; yorum API'si hazır |
 | İptal/silme | DRAFT veya süresi dolmamış OPEN iptal edilebilir; başkasına kapanır. Fiziksel silme yalnız DRAFT; medya ayrıca yönetilir |
 | Süre/oy/sonuç | Tek değişmez tercih; yazar veya oy sonrası/kapanışta sonuç. Süresi dolan OPEN efektif CLOSED okunur; periyodik tarayıcı kalıcı kapanış yazar |
 | Oy analizi | Yalnız açık izinle demografik snapshot/izin revision; geri alma aynı transaction’da temizler, oy sayısı korunur. Trend katkısı geri alma tüketicisi henüz yok |
@@ -60,7 +60,7 @@ E-posta taşıyıcısı `.local/mailbox` altında dosyadır. Bu, gerçek e-posta
 
 Profil/ayar API'sinin uygulanan davranışları ve sonraki modüllere kalan bağlantılar: [users rehberi](users-development.md). Kapalı hesap politikası hâlâ açık karardır; ayrı kapalı hesap alanı eklenmedi.
 
-Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçları bağlıdır, yorum kendi adımında bağlanır. [Sosyal rehber](social-development.md), [oylama rehberi](polls-development.md). Engel/red olayları otomatik olarak karşı tarafa bildirim göndermez.
+Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçları bağlıdır, yorum/kaydetme de aynı erişimi kullanır. [Sosyal rehber](social-development.md), [oylama rehberi](polls-development.md). Engel/red olayları otomatik olarak karşı tarafa bildirim göndermez.
 
 ## İlgili adım geldiğinde kesinleştirilecekler
 
@@ -79,7 +79,7 @@ Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçla
 
 Bu kararlar API temelini ve yerel auth'u engellemez. Henüz seçilmemiş ödül/Plus kuralları etkinmiş gibi davranan kod yazılmayacak.
 
-Güncel sahiplik: biz kullanıcı/kombin, arkadaş katalog/trend/gelir. İlk görevler profil ve katalogdur; önceki oyun görevi bekler. [İki kişilik plan](two-developer-plan.md), [güncel Claude metni](friend-claude-task.md).
+Güncel sahiplik: biz backend, arkadaş mobile teması. Günlük oyun/QR, canlı bağlantı ve yönetim ilk teslimi hazır; hesap silme de hazır; sonraki backend işi genel saklama/süreli temizliktir. Katalog/trend/gelir kolu yeniden atanacak. [İki kişilik plan](two-developer-plan.md), [güncel Claude metni](friend-claude-task.md).
 
 ## Harici entegrasyon listesi
 
@@ -89,7 +89,17 @@ Güncel sahiplik: biz kullanıcı/kombin, arkadaş katalog/trend/gelir. İlk gö
 | Google | Açıkça etkinleştirilen mock | Mobil/web client ID'leri, gerçek ID token imza/issuer/audience/expiry doğrulaması |
 | Apple | Açıkça etkinleştirilen mock | Apple uygulama/servis kimliği, yapılandırma, gerçek token doğrulaması ve iptal olayları |
 | Fotoğraf | Özel yerel dosya deposu ve gerçek işleme; manuel bölge blur | Özel bulut deposu/anahtarlar, kuyruk/worker, otomatik yüz tespiti ve mobil önizleme testi |
-| Push | Henüz yok | Mobil uygulama kaydı, sağlayıcı bilgileri ve cihaz testi |
+| Push | Yerel dosya + Expo sağlayıcısı hazır | Mobil uygulama kaydı, sağlayıcı bilgileri ve gerçek cihaz testi |
 | Plus | Henüz yok | Mağaza ürünleri, sunucu satın alma doğrulaması, webhook ve sandbox testleri |
 
 Gerçek Google/Apple bağlandığında mock hesaplar sessizce gerçek hesaba dönüştürülmez. Güvenli hesap bağlama ayrı akıştır. Bir sağlayıcının kendi oturumlarını kullanmaya geçersek yerel oturum sistemiyle sorumlulukları tekrar düzenleyeceğiz.
+
+## 16. adım yönetim varsayımları
+
+USER varsayılan, ADMIN ataması güvenilen yerel araç ve audit ile yapılır; kayıt/profil veya HTTP rol atama yolu yoktur. Karar gerekçesi zorunlu; şikâyet kararı, yaptırım, audit, outbox ve makbuz atomiktir. Paylaşım/şikâyet/oyun sürüm ister; kullanıcı durumu komutunda kullanıcı kilidine göre son başarılı işlem geçerlidir. ADMIN hesaplar bu yaptırım uçlarından korunur. Askıyı kaldırma eski oturumları canlandırmaz; silinmiş içerik/hesap geri açılmaz.
+
+Bunlar yerel geliştirme davranışlarıdır; hesap silme ayrı AccountsModule tesliminde hazırdır; genel saklama ve üretim yönetici tedariki açıktır. [Tam sözleşme](moderation-development.md).
+
+## Onaylı hesap silme kararı
+
+Kullanıcı seçimi: geçmiş sonuçlar anonim kalsın. Hesap silinince kimlik/profil/demografi/fotoğraflar temizlenir; eski tercihler ve oyun yıldızları başkalarının toplamlarını değiştirmez. FK geçmişi kişisel alanları kaldırılmış UUID tombstone'uyla korunur; geri açma yoktur. Geliştirme varsayımı: son 15 dakika içinde yeni giriş ve açık onay; ADMIN hesabın rolü önce kaldırılır. [Çalışan akış ve teknik sınırlar](accounts-development.md).

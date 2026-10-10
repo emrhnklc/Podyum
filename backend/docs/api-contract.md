@@ -1,8 +1,8 @@
 # API ve canlı bağlantı sözleşmesi — taslak
 
-**Kapsam güncellemesi:** Günlük podyum/QR lobisi aktif plandadır; oyun ve Socket.IO uçları henüz uygulanmamıştır. [Yeni oyun tasarımı](game-design.md). Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
+**Kapsam güncellemesi:** Günlük podyum/QR lobisi REST API'si ve yetkili Socket.IO aboneliği çalışır. [Oyun tasarımı](game-design.md), [canlı bağlantı sözleşmesi](game-realtime-development.md). Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
-Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluşturma/detay/kendi liste endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth rehberi](auth-development.md), [profil/ayar rehberi](users-development.md), [sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Tercih/sonuç endpoint’leri de çalışır; [oy rehberi](poll-votes-development.md). Organik [akış endpoint’i](feed-development.md) de çalışır. Yorum/kaydetme ve oyun endpoint’leri henüz taslaktır; OpenAPI'de tamamlanmış gibi yer almazlar. Mobil tip üretimi teslim adımında yapılacak.
+Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth](auth-development.md), [profil/ayar](users-development.md), [sosyal](social-development.md), [medya](media-development.md), [oylama](polls-development.md), [tercih/sonuç](poll-votes-development.md), [akış](feed-development.md), [etkileşim/şikâyet](interactions-development.md), [bildirim](notifications-development.md), [oyun](games-development.md) ve [yönetim](moderation-development.md). Socket protokolü OpenAPI'nin dışında aşağıda belgelenir. Mobil tip üretimi teslim adımında yapılacak.
 
 ## 1. Ortak kurallar
 
@@ -13,7 +13,7 @@ Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluştur
 - Zamanlar UTC ISO-8601. Canlı yanıtlar `serverNow`, `version`, `phaseEndsAt` içerir.
 - Görülemeyen özel kaynaklar `404 RESOURCE_NOT_FOUND`; erişim hakkı olmayan kişiye varlığı açıklanmaz.
 - Sunucu kodları kararlıdır; kullanıcıya gösterilen metin mobilde yerelleştirilebilir.
-- Oylama oluşturma/düzenleme/yayınlama/iptal/silme/yorum ayarı komutlarında `Idempotency-Key` zorunlu; kalıcı servis ve 24 saatlik makbuz çalışır. Oyun kendi aktif adımında bağlanacak. Auth endpoint'leri bu anahtarı istemez; kayıt doğal e-posta tekilliğini kullanır, refresh tek kullanımlıdır. PUT oy/değerlendirme/kaydet işlemlerinin kendi doğal tekil anahtarı olacaktır.
+- Oylama oluşturma/düzenleme/yayınlama/iptal/silme/yorum ayarı, yorum/şikâyet oluşturma yönetim yaptırımları/kararları ve ilgili oyun komutlarında `Idempotency-Key` zorunlu; kalıcı servis ve 24 saatlik makbuz çalışır. Auth endpoint'leri bu anahtarı istemez; kayıt doğal e-posta tekilliğini kullanır, refresh tek kullanımlıdır. PUT oy/değerlendirme/kaydet doğal tekil anahtar kullanır. Davet üretimi ham tokenı makbuzda saklamaz; [oyun sözleşmesi](games-development.md).
 - Taslak güncelleme/yayınlama ve oda başlatma için `expectedVersion` alınır. Oy ve değerlendirme için istemcinin tüm aggregate sürümünü eşleştirmesi istenmez; ilgili poll/round ve mevcut sunucu aşaması yeterlidir.
 
 ```json
@@ -62,7 +62,7 @@ Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama oluştur
 | PUT / DELETE | `/blocks/:userId` | Çalışır: engelle / kendi engelini kaldır; engel ilişkileri siler, unblock geri getirmez |
 | GET | `/style-tags` | Çalışır: stil sözlüğü |
 
-Şikâyet kaydı (`POST /reports`) çalışır: [etkileşim rehberi](interactions-development.md). Hesap silme ve yönetim endpoint'leri ilk dış kullanıcı testinden önce eklenecek; normal kullanıcıya admin endpoint'i açılmayacak.
+Şikâyet kaydı (`POST /reports`) çalışır: [etkileşim rehberi](interactions-development.md). Yönetici kuyruğu, inceleme/karar, içerik/hesap yaptırımları, oyun iptali ve denetim API'leri çalışır; ortak ADMIN rolü gerekir. DELETE /me/account ile yeni giriş/onay gerektiren hesap silme ve kalıcı temizlik işi çalışır; genel saklama işleri açıktır. [Yönetim sözleşmesi](moderation-development.md).
 
 Sosyal komutlar doğal çift tekilliği ve transaction ile tekrarları ele alır; bu aşamada Idempotency-Key istemez. Erişim servisi profil, medya, oylama detay, yorum, kaydetme ve şikâyet tarafından kullanılır. Olay sözleşmesi, hata/tekrar davranışları ve liste biçimi: [sosyal rehber](social-development.md).
 
@@ -145,7 +145,7 @@ Tercih/sonuç, organik akış ve yorum/kaydetme/neden/şikâyet davranışları 
 
 Sonuç yanıtında ayrıca version/serverNow/closesAt/storedStatus ve seçenek position/label alanları vardır. Bu örnekte kazanan anlık liderdir; `isFinal=false` gösterilmelidir. Oy sayısı sıfırsa kazanan dizisi boştur. Demografik kırılımlar bu ilk sözleşmeye dahil değildir.
 
-## 5. Günlük oyun ve QR lobi — yeni API taslağı
+## 5. Günlük oyun ve QR lobi
 
 **Bu uçlar artık çalışır.** Güncel yollar, gövdeler, hata kodları ve sınırlar [oyun rehberinde](games-development.md) ve OpenAPI'dedir; aşağıdaki tablo ilk taslağın özetidir. Uygulanan değerlendirme yalnız 1–5 yıldızdır. Eski per-round matchmaking sözleşmesi yerine [güncel oyun tasarımı](game-design.md) uygulandı.
 
@@ -158,33 +158,32 @@ Sonuç yanıtında ayrıca version/serverNow/closesAt/storedStatus ve seçenek p
 | Erken geçiş | Yalnız host, fotoğraf aşamasını atomik bitir; oy süresini bir kez başlat |
 | Sonuç/geçmiş | Yetkili sonuç, değerlendirme sayıları, kendi katılımları |
 
-Durum yanıtı mod/status/version/serverNow ve submissionEndsAt/votingEndsAt taşır. İstemcinin saati veya QR'ı var demesi yetki oluşturmaz. Teslim kartları sonuç öncesinde yazar kimliği/avatar/toplam puanı açmaz; kendi fotoğrafına oy kapalıdır. Yıldız/temaya uygunluk yöntemi yeni akış için adaydır; kesin değerlendirme/örneklem kuralları ayrıca seçilecek. Genel etkinlik için 3–8 kişilik ortak 20 saniyelik tur kuralı yoktur.
+Durum yanıtı kind/phase/version/serverNow ve submissionEndsAt/votingEndsAt taşır. İstemcinin saati veya QR'ı var demesi yetki oluşturmaz. Teslim kartları sonuç öncesinde yazar kimliği/avatar/toplam puanı açmaz; kendi fotoğrafına oy kapalıdır. Yalnız 1–5 yıldız kullanılır; fotoğraf göndermemiş aktif üye de oy verebilir. Resmî kazanan/ödül politikası seçilmedi. Genel etkinlik için 3–8 kişilik ortak 20 saniyelik tur kuralı yoktur.
 
 ## 6. Socket.IO
 
 İlk sürümde kalıcı komutlar REST ile gider. Socket.IO yalnızca sunucu değişiklikleri ve yeniden okuma uyarıları içindir; aynı oyun davranışı iki ayrı komut hattında uygulanmaz.
 
-İstemci bağlantı açar, token doğrulanır, `room.subscribe` isteğinde oda erişimi kontrol edilir. İstemci keyfî sunucu oda adı vererek başkasına abone olamaz. Token süresi dolunca yeniden doğrulama/bağlantı kapatma uygulanır; reconnect'te de yetki tekrar kontrol edilir.
+Çalışan namespace `/games`, transport yolu `/socket.io`; yalnız websocket transport. `auth: { accessToken }` ile mevcut oturum doğrulanır. `game.subscribe` / `game.unsubscribe` gövdesi yalnız `{ sessionId }`. Subscribe ack'i `{ ok: true, data: { state } }` şeklinde kişisel REST snapshot'ı taşır; hatası `{ ok: false, error: { code, message } }`. QR tokenı veya oda ID'si üyelik vermez. Her mesaj/teslimde güncel oturum ve kaynak erişimi denetlenir; token süresi dolunca bağlantı kapanır. Browser origin'i `CORS_ORIGINS` içinde olmalıdır.
 
 ```json
 {
   "eventId": "uuid-event",
-  "type": "room.changed",
-  "resourceId": "uuid-room",
-  "version": 13
+  "sessionId": "uuid-session",
+  "version": 13,
+  "serverNow": "2026-10-10T18:00:00.000Z"
 }
 ```
 
 | Olay | İçerik |
 | --- | --- |
-| `room.changed` | Kaynak ID ve sürüm; oyuncuya özel state yeniden okunur |
-| `poll.changed` | Yetkili aboneye ID ve sürüm; oy detayları taşınmaz |
-| `notification.created` | Kendi bildirim ID'si |
-| `access.revoked` | Aboneliği bırak / yerel görünümü kapat uyarısı |
+| `game.changed` | Yukarıdaki gövde; güncel kişisel REST state yeniden okunur |
+| `game.access-revoked` | `{ sessionId }`; abonelik kaldırıldı / yerel görünümü kapat |
+| `game.error` | `{ code, message }`; oturum hatasında yeniden giriş/refresh ve reconnect |
 
 Gateway, outbox'ın iç payload'unu doğrudan istemciye yayınlamaz. Hassas içerik olay gövdesine girmez. Yinelenen/eski olaylar `version` ile atlanır. Olayların ulaşması garanti kabul edilmez: reconnect, uygulamanın ön plana gelmesi ve faz sonlarında güncel durum yeniden okunur; canlı ekranda periyodik hafif kontrol de yapılır.
 
-Yeniden bağlanma sırası: abone ol → state oku. Okuma sürerken daha yüksek version olayı gelirse son yanıtın version'ıyla kıyasla ve yeniden oku. Bu, snapshot ile abonelik arasındaki değişikliği kaçırmayı önler. Cache'ten başkasının state'i döndürülmez.
+Yeniden bağlanma sırası: listener'ları ekle → abone ol → ack snapshot'ını uygula. Okuma sürerken daha yüksek version olayı gelirse son yanıtla kıyasla ve REST'i yeniden oku. Cache'ten başkasının state'i döndürülmez. Şimdilik tek API sürecinde çalışır; dağıtık fan-out, poll/bildirim socket abonelikleri ve mobil bağlantı henüz yoktur. [Limitler, oturum/engel kesme ve çalışan örnek](game-realtime-development.md).
 
 ## 7. Bildirim ve puan
 
@@ -208,3 +207,13 @@ Eşzamanlı aynı komutları tekilleştirmek için kapsam anahtarına transactio
 Saklanan yanıt yalnız sahibinin kendi komut snapshot'ıdır; ilk soruyu, kullanıcı beyanı ürün bilgisini ve yetki denetimli medya yollarını içerebilir. Fotoğraf byte'ı/upload token/depolama anahtarı/özel profil içermez. Başkasına açık bir kaynak okuması veya güncel GET yerine kullanılamaz. Kaynak silinmiş/durum değişmiş olsa da ilk makbuz dönebilir; yeni kayıt oluşmaz. Başkasının kaynağına bağlı gelecekteki komutlar tekrar öncesi güncel erişim kontrolü eklemelidir. Süresi dolan aynı anahtar tekrarında eski kayıt kaldırılır; toplu makbuz retention işi henüz yoktur. [Ayrıntılı tekrar sözleşmesi](polls-development.md).
 
 Komut tekrarlarının tam bir kez işlenmiş etkisi domain tekilliği ve transaction ile sağlanır; ağdan yanıtın tam bir kez ulaşacağı garanti edilmez.
+
+## 9. Yönetim — çalışan ilk teslim
+
+Tüm yollar aktif Bearer + DB'den güncel ADMIN ister. GET /admin/me, /admin/reports, /admin/reports/:id, /admin/reports/:id/media/:mediaId/content ve /admin/audit; PUT /admin/reports/:id/decision, /admin/polls/:id/visibility, /admin/users/:id/status; POST /admin/comments/:id/remove ve /admin/games/:id/cancel çalışır. Yazma uçlarında Idempotency-Key ve reason zorunlu; paylaşım/şikâyet/oyun ayrıca expectedVersion ister. Yanıtlar ve hedef türüne bağlı inceleme şemaları OpenAPI'dedir.
+
+Karar ile hedef yaptırımı/audit/outbox/makbuz aynı transaction'dadır. Rol atama API'si yoktur; ilk atama yerel denetimli araçladır. Hesap silme ayrı AccountsModule içinde çalışır; genel saklama işleri açıktır. [Yetki, özel hedef/görsel erişimi, hata ve tekrar sözleşmesi](moderation-development.md), [HTTP örnekleri](../examples/moderation.http).
+
+## 10. Hesap silme — çalışan yerel teslim
+
+DELETE /me/account yalnız {confirmDeletion:true} ve son 15 dakika içinde yeni giriş ister; 202 silme kabulü/erişim kapanışıdır. İşlem sonrası oturumlar kaldırıldığı için replay endpoint'i veya Idempotency-Key zorunluluğu yoktur; userId doğal tekilliktir. GET /admin/users/:id/deletion yalnız yöneticiye PENDING/COMPLETED ve pendingMedia verir. [Kimlik/içerik/dosya temizliği, mobil timeout davranışı ve geçmiş sonuç politikası](accounts-development.md), [HTTP örnekleri](../examples/accounts.http).

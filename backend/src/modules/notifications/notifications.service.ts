@@ -8,6 +8,7 @@ import type { Prisma } from "../../generated/prisma/client.js";
 import { SocialAccessService } from "../social/social-access.service.js";
 import type { RegisterDeviceDto } from "./dto/notifications.dto.js";
 import { NOTIFICATION_TYPES, targetType, type NotificationType } from "./notification-catalog.js";
+import { GameAccessService } from "../games/game-access.service.js";
 
 type Tx = Prisma.TransactionClient;
 
@@ -16,7 +17,7 @@ const serverNow = async (tx: Tx) => (await tx.$queryRaw<{ now: Date }[]>`SELECT 
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService, private readonly access: SocialAccessService) {}
+  constructor(private readonly prisma: PrismaService, private readonly access: SocialAccessService, private readonly games: GameAccessService) {}
 
   // Engellenen veya pasif hale gelen kişinin bildirimi silinmez ama listede ve sayaçta görünmez.
   private visibleWhere(userId: string): Prisma.NotificationWhereInput {
@@ -38,7 +39,7 @@ export class NotificationsService {
       // Başlık yalnız izleyicinin hâlâ görebildiği hedef için döner; bildirim erişim hakkı vermez.
       const ids = (type: string) => page.filter((row) => row.resourceType === type).map((row) => row.resourceId);
       const polls = await tx.poll.findMany({ where: { id: { in: ids("poll") }, ...this.access.visiblePublishedPollWhere(userId) }, select: { id: true, question: true } });
-      const games = await tx.gameSession.findMany({ where: { id: { in: ids("game") }, members: { some: { userId } } }, select: { id: true, themeTitle: true } });
+      const games = await tx.gameSession.findMany({ where: { id: { in: ids("game") }, ...this.games.visibleSessionWhere(userId) }, select: { id: true, themeTitle: true } });
       const titles = new Map<string, string | null>([...polls.map((poll) => [poll.id, poll.question] as const), ...games.map((game) => [game.id, game.themeTitle] as const)]);
       return {
         items: page.map((row) => ({
@@ -85,6 +86,9 @@ export class NotificationsService {
   registerDevice(user: AuthenticatedUser, installationId: string, dto: RegisterDeviceDto) {
     return this.prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${user.userId}::uuid FOR UPDATE`;
+      if (!await tx.user.count({ where: { id: user.userId, status: "ACTIVE" } }) || !await tx.authSession.count({ where: { id: user.sessionId, userId: user.userId, revokedAt: null } })) {
+        throw new ApiError(401, "INVALID_SESSION", "Aktif oturum gerekli.");
+      }
       // Yeniden kurulumda aynı cihaz anahtarı yeni kurulum kimliğiyle gelir.
       await tx.deviceToken.deleteMany({ where: { token: dto.token, installationId: { not: installationId } } });
       const fields = { userId: user.userId, sessionId: user.sessionId, token: dto.token, platform: dto.platform };

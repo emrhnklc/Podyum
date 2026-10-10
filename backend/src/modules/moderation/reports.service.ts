@@ -11,8 +11,8 @@ const REPORTS_PER_DAY = 50;
 const targetMissing = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Şikâyet edilecek içerik bulunamadı.");
 const ownContent = () => new ApiError(400, "SELF_REPORT_NOT_ALLOWED", "Kendi içeriğini veya hesabını şikâyet edemezsin.");
 
-// Yalnız şikâyet kaydı. İnceleme, kaldırma ve yaptırım yönetim adımındadır;
-// şikâyet içeriği kendiliğinden gizlemez.
+// Kullanıcının şikâyet kaydı içeriği kendiliğinden gizlemez.
+// İnceleme ve yaptırım ayrı, yönetici yetkili AdminService üzerinden yapılır.
 @Injectable()
 export class ReportsService {
   constructor(private readonly prisma: PrismaService, private readonly access: SocialAccessService) {}

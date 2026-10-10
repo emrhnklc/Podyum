@@ -35,7 +35,7 @@ export class PushDeliveryHandler implements OutboxHandler, OnModuleInit {
     // Çıkış yapılmış veya süresi dolmuş oturumun cihazına gönderilmez.
     const devices = await this.prisma.deviceToken.findMany({ where: { userId: row.userId, session: { revokedAt: null, expiresAt: { gt: now } } }, select: { id: true, token: true } });
     if (!devices.length) return;
-    const results = await this.provider.send(devices.map((device) => ({ to: device.token, title: PUSH_TITLE, body: push.body, ttlSeconds: push.ttlSeconds,
+    const results = await this.provider.send(devices.map((device) => ({ to: device.token, userId: row.userId, title: PUSH_TITLE, body: push.body, ttlSeconds: push.ttlSeconds,
       data: { notificationId: row.id, type: row.type, targetType: targetType(row.resourceType), targetId: row.resourceId } })));
     const invalid = devices.filter((_device, index) => results[index] === "invalid-token").map((device) => device.id);
     if (invalid.length) await this.prisma.deviceToken.deleteMany({ where: { id: { in: invalid } } });

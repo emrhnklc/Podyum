@@ -6,11 +6,12 @@ import { AuthService } from "./auth.service.js";
 import { AuthGuard } from "./guards/auth.guard.js";
 import { AuthRateGuard } from "./guards/auth-rate.guard.js";
 import { LocalMailService } from "./local-mail.service.js";
+import { AdminAccessService, AdminGuard } from "./admin-access.service.js";
 
 @Module({
   imports: [DatabaseModule],
   controllers: [AuthController],
-  providers: [AuthService, AuthRateGuard, LocalMailService, { provide: APP_GUARD, useClass: AuthGuard }],
-  exports: [AuthService],
+  providers: [AuthService, AuthRateGuard, LocalMailService, AdminAccessService, AdminGuard, { provide: APP_GUARD, useClass: AuthGuard }],
+  exports: [AuthService, AdminAccessService, AdminGuard],
 })
 export class AuthModule {}

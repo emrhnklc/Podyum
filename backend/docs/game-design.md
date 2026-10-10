@@ -2,7 +2,7 @@
 
 10 Ekim 2026, kullanıcının son kapsam değişikliği. **Oyun artık Faz 2'yi beklemiyor; aktif backend planına alındı.** Önceki 10 dakika hazırlık, 3–8 kişi, ortak 20 saniyelik turlar ve zorunlu hızlı eşleşme ilk oyunun temeli değildir. Bu belge tasarım kaynağıdır.
 
-**Uygulama durumu:** Günlük etkinlik ve özel QR lobisi API'si çalışır; uçlar, sınırlar ve kalanlar [oyun rehberinde](games-development.md). Aşağıdaki "öneri" ve "planlanan" ifadeleri tasarım anındaki halidir; uygulanan davranış için rehber esastır. Socket.IO bildirimleri, ödül/lig ve mobil ekran henüz yoktur.
+**Uygulama durumu:** Günlük etkinlik ve özel QR lobisi API'si çalışır; uçlar, sınırlar ve kalanlar [oyun rehberinde](games-development.md). Aşağıdaki "öneri" ve "planlanan" ifadeleri tasarım anındaki halidir; uygulanan davranış için rehber esastır. [Yetkili Socket.IO aboneliği](game-realtime-development.md) çalışır; dağıtık fan-out, ödül/lig ve mobil ekran henüz yoktur.
 
 **Uygulamadan önce verilen kullanıcı kararları (10 Ekim):**
 
@@ -66,7 +66,7 @@ Planlanan uçlar: günlük etkinlik/güncel durum, fotoğraf teslimi, sayfalı o
 4. İşçi toparlanması, yetkili state/medya, canlı bildirim ve yeniden bağlanma (20).
 5. Sosyal etkileşim/bildirim ve arkadaşın katalog/trend/gelir koluyla entegrasyon; oyun dahil doğrulama/frontend teslimi (17–18).
 
-Hızlı eşleşme, profil ödülü/lig ve haftalık/sponsorlu yarışma (21–23) sonraki genişleme adaylarıdır; bu güncellemeyle tamamlanmış veya tümü zorunlu ilk oyun kapsamı sayılmaz. Oyun geliştirme sahibi biziz; arkadaşın catalog/trends/billing/ads sahipliği değişmez.
+Hızlı eşleşme, profil ödülü/lig ve haftalık/sponsorlu yarışma (21–23) sonraki genişleme adaylarıdır; bu güncellemeyle tamamlanmış veya tümü zorunlu ilk oyun kapsamı sayılmaz. Güncel görev paylaşımı: biz backend, arkadaş mobile tema; önceki catalog/trends/billing/ads paylaşımı işe dönüşte yeniden netleştirilecek.
 
 ## Açık ürün kararları
 

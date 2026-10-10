@@ -10,8 +10,9 @@ import { FeedModule } from "./modules/feed/feed.module.js";
 import { GamesModule } from "./modules/games/games.module.js";
 import { ModerationModule } from "./modules/moderation/moderation.module.js";
 import { NotificationsModule } from "./modules/notifications/notifications.module.js";
+import { AccountsModule } from "./modules/accounts/accounts.module.js";
 
 @Module({
-  imports: [DatabaseModule, HealthModule, AuthModule, SocialModule, UsersModule, MediaModule, PollsModule, FeedModule, GamesModule, ModerationModule, NotificationsModule],
+  imports: [DatabaseModule, HealthModule, AuthModule, SocialModule, UsersModule, MediaModule, PollsModule, FeedModule, GamesModule, ModerationModule, NotificationsModule, AccountsModule],
 })
 export class AppModule {}

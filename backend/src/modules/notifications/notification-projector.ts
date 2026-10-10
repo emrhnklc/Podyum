@@ -38,6 +38,14 @@ export class NotificationProjector implements OutboxHandler, OnModuleInit {
   // Aynı olay + kişi + tür ikinci kez yazılmaz. Push yalnız yeni oluşan satır için istenir.
   private async create(tx: OutboxTx, event: OutboxEvent, type: NotificationType, recipients: Recipient[]) {
     const definition = NOTIFICATIONS[type];
+    // Silme isteğinin User kilidiyle sıraya girer; eski kaynak olayı kapalı
+    // hesaba temizlik sonrasında yeni bildirim oluşturamaz.
+    const active = new Set<string>();
+    for (const userId of [...new Set(recipients.map((row) => row.userId))].sort()) {
+      await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR SHARE`;
+      if (await tx.user.count({ where: { id: userId, status: "ACTIVE" } })) active.add(userId);
+    }
+    recipients = recipients.filter((row) => active.has(row.userId));
     for (let start = 0; start < recipients.length; start += FAN_OUT_CHUNK) {
       const created = await tx.notification.createManyAndReturn({ skipDuplicates: true, select: { id: true, userId: true },
         data: recipients.slice(start, start + FAN_OUT_CHUNK).map((row) => ({ userId: row.userId, eventId: event.id, type,

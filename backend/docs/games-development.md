@@ -1,6 +1,6 @@
 # Günlük podyum ve QR lobileri — çalışan API
 
-10 Ekim 2026. Yol haritasının 19. adımı ve 20. adımın zamanlayıcı/state kısmı. `/v1` altında Bearer oturumu gerekir. [Tasarım ve kararlar](game-design.md), [HTTP örnekleri](../examples/games.http). Socket.IO bildirimleri ve mobil ekran henüz yoktur; istemci durumu REST ile okur. Oylama başlayınca ve sonuç açıklanınca etkin üyelere bildirim/push gider: [bildirim rehberi](notifications-development.md).
+10 Ekim 2026. Yol haritasının 19. adımı ve 20. adımın zamanlayıcı/state/canlı abonelik kısmı. `/v1` altında Bearer oturumu gerekir. [Tasarım ve kararlar](game-design.md), [HTTP örnekleri](../examples/games.http). Socket.IO aboneliği ve yenileme sinyalleri çalışır: [canlı bağlantı sözleşmesi](game-realtime-development.md). Mobil ekran henüz bağlanmadı; durum REST ile okunur. Oylama başlayınca ve sonuç açıklanınca etkin üyelere bildirim/push gider: [bildirim rehberi](notifications-development.md).
 
 ## Uygulanan kullanıcı kararları
 
@@ -87,7 +87,7 @@ Sonuçlar oylama tamamlanana kadar `409 RESULTS_NOT_AVAILABLE` döner. Tamamlan�
 
 İşçiye bağımlılık yoktur: her okuma ve komut da oturumu kilitleyip süresi gelmiş geçişleri uygular. İşçi geç kalırsa süreler uzamaz; fotoğraf ve oylama penceresi tamamen kaçmışsa geçişler sırayla işlenir, geçmişe teslim veya oy alınmaz. Host bağlantısı kopsa da oyun ilerler. Host'un erken bitirmesi oylama süresini kabul edildiği DB saatinden bir kez başlatır; tekrar çağrı süreyi yeniden başlatmaz.
 
-Her geçiş `game-session` aggregate'i için outbox olayı yazar: `game.created`, `game.settings.changed`, `game.invite.rotated`, `game.invite.revoked`, `game.member.joined`, `game.member.left`, `game.submission.opened`, `game.submission.accepted`, `game.voting.opened`, `game.rating.cast`, `game.completed`, `game.cancelled`. Olay ve durum değişikliği aynı transaction'dadır. Olayları tüketen gönderici henüz yoktur.
+Her geçiş `game-session` aggregate'i için outbox olayı yazar: `game.created`, `game.settings.changed`, `game.invite.rotated`, `game.invite.revoked`, `game.member.joined`, `game.member.left`, `game.submission.opened`, `game.submission.accepted`, `game.voting.opened`, `game.rating.cast`, `game.completed`, `game.cancelled`. Olay ve durum değişikliği aynı transaction'dadır. Olaylar mevcut outbox işçisi tarafından bildirim/push ve canlı socket tüketicilerine dağıtılır; ham payload istemciye açılmaz.
 
 ## Günlük takvim ayarı
 
@@ -115,8 +115,14 @@ On birinci migration `GameSession`, `GameMembership`, `GameSubmission`, `GameSco
 
 Henüz yok:
 
-- Socket.IO bildirimleri. "Oylama başladı" ve "sonuç açıklandı" bildirimleri bağlandı; QR daveti kişiye hedefli olmadığından davet bildirimi yoktur.
+- Dağıtık Socket.IO fan-out. Tek API sürecindeki abonelik/güncelleme hazır; ayrı süreçler için ortak taşıyıcı henüz yok. "Oylama başladı" ve "sonuç açıklandı" bildirimleri bağlandı; QR daveti kişiye hedefli olmadığından davet bildirimi yoktur.
 - Gerçek çok bağlantılı PostgreSQL'de iki işçi ve geçiş yarışı testleri. Yerel PGlite tek bağlantılıdır.
 - Günlük saatin ürün kararı ve tema yönetimi API'si; tema şimdilik `Theme` tablosundan ayarla seçilir.
 - Minimum oy eşiği, resmî kazanan, ödül/lig ve moderasyonla oyun iptali.
 - Mobil oyun ekranı; `mobile/` hâlâ hazırlık ekranı gösterir.
+
+## Yönetici yaptırımları
+
+Ortak ADMIN yetkisiyle POST /v1/admin/games/:id/cancel, expectedVersion/Idempotency-Key/reason kullanır; MODERATION nedeni, davet kapanışı, game.cancelled ve audit atomiktir. Süre/sürüm ve bitmiş oyun koruması uygulanır. Hesap askıya alma mevcut oturum/cihaz/socket erişimini kapatır; hostun bütün oyunlarını otomatik iptal etmez. [Yönetim sözleşmesi](moderation-development.md).
+
+Hesap silme aktif özel host lobisini HOST_ACCOUNT_DELETED ile iptal eder; DAILY etkinlik diğer üyelerle sürer. Üyelik/teslim erişimi kapanır, eski yıldızlar başkalarının toplamlarını değiştirmez. [Hesap yaşam döngüsü](accounts-development.md).

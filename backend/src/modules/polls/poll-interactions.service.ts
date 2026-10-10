@@ -23,6 +23,7 @@ export class PollInteractionsService {
     private readonly idempotency: IdempotencyService) {}
 
   private async activeActor(tx: Tx, userId: string) {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR UPDATE`;
     if (!await tx.user.count({ where: { id: userId, status: "ACTIVE" } })) throw new ApiError(401, "INVALID_SESSION", "Aktif oturum gerekli.");
   }
 
@@ -30,6 +31,7 @@ export class PollInteractionsService {
 
   save(userId: string, pollId: string) {
     return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Poll" WHERE "id" = ${pollId}::uuid FOR SHARE`;
       await this.activeActor(tx, userId);
       // Kaydetmek erişim hakkı vermez; yalnız görülebilen yayın kaydedilir.
       await this.access.requirePublishedPollAccess(tx, userId, pollId);
@@ -162,6 +164,7 @@ export class PollInteractionsService {
 
   setReason(userId: string, pollId: string, reason: PollReasonCode) {
     return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Poll" WHERE "id" = ${pollId}::uuid FOR SHARE`;
       await this.activeActor(tx, userId);
       await this.access.requirePublishedPollAccess(tx, userId, pollId);
       const vote = await tx.pollVote.findUnique({ where: { pollId_voterId: { pollId, voterId: userId } }, select: { optionId: true } });

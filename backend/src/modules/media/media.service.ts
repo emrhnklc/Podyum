@@ -35,7 +35,7 @@ export class MediaService {
 
   private async owned(tx: Tx, userId: string, id: string, lock = false) {
     if (lock) await tx.$queryRaw`SELECT "id" FROM "MediaAsset" WHERE "id" = ${id}::uuid FOR UPDATE`;
-    const asset = await tx.mediaAsset.findFirst({ where: { id, ownerId: userId, status: { not: "DELETED" } } });
+    const asset = await tx.mediaAsset.findFirst({ where: { id, ownerId: userId, owner: { status: "ACTIVE" }, status: { not: "DELETED" } } });
     if (!asset) throw missing();
     return asset;
   }
@@ -154,7 +154,7 @@ export class MediaService {
       await this.storage.write(thumbnailKey, output.thumbnail);
       writtenKeys.push(thumbnailKey);
       const saved = await this.prisma.$transaction(async (tx) => {
-        const updated = await tx.mediaAsset.updateMany({ where: { id, status: "PROCESSING", processingRevision: asset.processingRevision }, data: {
+        const updated = await tx.mediaAsset.updateMany({ where: { id, owner: { status: "ACTIVE" }, status: "PROCESSING", processingRevision: asset.processingRevision }, data: {
           status: "READY", displayKey, thumbnailKey, width: output.width, height: output.height, rejectionCode: null,
         } });
         if (updated.count !== 1) throw conflict("MEDIA_STATE_CHANGED", "Fotoğrafın durumu değişti; yeniden kontrol et.");
@@ -221,6 +221,17 @@ export class MediaService {
     catch { throw new ApiError(503, "MEDIA_CONTENT_UNAVAILABLE", "Fotoğraf dosyası şu anda kullanılamıyor."); }
   }
 
+  // Yalnız yönetim modülü, şikâyet–görsel bağını doğruladıktan sonra çağırır.
+  // Upload/source key hiçbir yönetim yanıtına veya dosya yoluna dönüşmez.
+  async readModerationPreview(id: string, variant: "display" | "thumbnail") {
+    const row = await this.prisma.mediaAsset.findFirst({ where: { id, owner: { status: { not: "DELETED" } }, status: "READY", previewAcceptedAt: { not: null } },
+      select: { displayKey: true, thumbnailKey: true } });
+    const key = variant === "thumbnail" ? row?.thumbnailKey : row?.displayKey;
+    if (!key) throw missing();
+    try { return await this.storage.read(key); }
+    catch { throw new ApiError(503, "MEDIA_CONTENT_UNAVAILABLE", "Fotoğraf dosyası şu anda kullanılamıyor."); }
+  }
+
   async setAvatar(userId: string, mediaId: string) {
     await this.prisma.$transaction(async (tx) => {
       await this.requirePublishableAsset(tx, userId, mediaId, "AVATAR");
@@ -253,6 +264,26 @@ export class MediaService {
     await this.storage.removeAssetDirectory(id);
     await this.prisma.mediaAsset.update({ where: { id }, data: { filesPurgedAt: new Date() } });
     return { deleted: true };
+  }
+
+  // Hesap silme normal "kullanılmayan medya" temizliğinden ayrıdır: bağlı
+  // fotoğraflar da erişime kapanır, FK için yalnız tombstone kalır.
+  async purgeDeletedOwnerAsset(userId: string, id: string) {
+    const asset = await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "MediaAsset" WHERE "id" = ${id}::uuid FOR UPDATE`;
+      if (!await tx.user.count({ where: { id: userId, status: "DELETED" } })) throw new Error("Medya temizliği için silinmiş hesap gerekli.");
+      const row = await tx.mediaAsset.findFirst({ where: { id, ownerId: userId } });
+      if (!row) throw missing();
+      if (row.status !== "DELETED") await tx.mediaAsset.update({ where: { id }, data: { status: "DELETED", uploadTokenHash: null,
+        uploadExpiresAt: null, previewAcceptedAt: null, processingRevision: { increment: 1 } } });
+      return row;
+    });
+    // Bilinen anahtarlar eski sürümde UUID dizini dışında da olabilir.
+    for (const key of [asset.uploadKey, asset.displayKey, asset.thumbnailKey]) if (key) await this.storage.remove(key);
+    await this.storage.removeAssetDirectory(id);
+    await this.prisma.mediaAsset.update({ where: { id }, data: { filesPurgedAt: new Date(), displayKey: null, thumbnailKey: null,
+      sourceVersion: null, checksum: null, mimeType: null, declaredMimeType: null, declaredByteSize: null,
+      byteSize: null, width: null, height: null, processingRequestHash: null, rejectionCode: null } });
   }
 
   async cleanup(now = new Date()) {
