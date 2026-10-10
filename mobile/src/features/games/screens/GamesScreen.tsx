@@ -1,20 +1,14 @@
 import { View } from "react-native";
-import { router } from "expo-router";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
+import { BackButton } from "@/components/ui/BackButton";
 import { common, colors, fonts } from "@/theme";
 
 export function GamesScreen() {
   return (
     <Screen>
-      <Button
-        title="Geri"
-        variant="outline"
-        onPress={() =>
-          router.canGoBack() ? router.back() : router.replace("/")
-        }
-      />
+      <BackButton />
       <Text style={common.title}>Podyum</Text>
       <Text style={common.subtitle}>
         Bir tema, farklı yorumlar. Sıra sende.

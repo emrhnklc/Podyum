@@ -47,18 +47,21 @@ Her özellik ihtiyaç duydukça `screens`, `components`, `hooks`, `data`, `api`,
 
 ## Çalışan önizleme
 
-- Keşfet: kategori/arkadaş filtresi, normal tercih, anlık demo sonuç, sonraki kombin ve kaydetme.
-- Tercih değiştirilemez; kendi paylaşımına oy verilmez. Normal tercih yıldız/puan üretmez. Eski +10/çoğunluğu tahmin davranışı kaldırıldı.
-- Kombin detayları, kullanıcı profilleri, kendi profilindeki paylaşımlar/kaydedilenler ve örnek arkadaş listesi.
-- Trendler: hafta/ay, kategori, tercih yapan grup ve fiyat filtreleri. Küçük örneklem demo eşiği korunur; gerçek backend gizlilik eşiği olarak kabul edilmez.
-- Paylaş formu: soru, kategori, süre, görünürlük ve yorum/blur ayarlarının tasarım önizlemesi. Fotoğraf seçimi/blur işleme/yayın henüz bağlı değildir; önizleme gerçek paylaşım oluşturmaz.
+- Keşfet: içerik odaklı tek oylama; fotoğraflar ekranı doldurur. Herkes/Arkadaşlar sekmesi, ikonla açılan kategori filtresi, normal tercih, anlık demo sonuç, sonraki kombin ve kaydetme.
+- Oylama açıkken diğer seçeneğe dokunarak tercih değiştirilebilir (demo). Backend bugün ilk oyu sabit tutar; bu açık ürün kararı [ekran ve API haritasında](docs/ekran-ve-api-haritasi.md) yazılı. Kendi paylaşımına oy verilmez. Normal tercih yıldız/puan üretmez. Eski +10/çoğunluğu tahmin davranışı kaldırıldı.
+- Sonuç detayları: toplam oy, seçenek başına oy ve oy verenlerin cinsiyet/yaş dağılımı; hepsi mock veridir.
+- Kombin detayları, kullanıcı profilleri, kendi profilindeki paylaşımlar/kaydedilenler ve örnek arkadaş listesi. Alt ekranlarda sol üstte sade geri oku vardır.
+- Kombin görselleri 9:16 oranındadır (Keşfet, detay, Paylaş kutuları, profil kareleri).
+- Kombindeki parçalar: Keşfet'te aşağı kaydırınca ve detay ekranında, oy verilsin verilmesin her seçeneğin parçaları küçük görsel, ad, örnek fiyat ve "Benzerlerini gör" bağlantısıyla listelenir. Parçalar fotoğrafa bakılarak adlandırıldı (`features/polls/data/demo-products.ts`); marka ve gerçek ürün eşleşmesi yoktur, bağlantı benzer ürün aramasına gider. Küçük görseller `public/demo/products/` altında, Git dışındadır.
+- Trendler: liste bu parçalardan hesaplanır (parçanın etiketlendiği seçeneklere verilen demo oyların toplamı). Dönem, kategori, tercih yapan grup ve fiyat tek bir filtre çubuğunda toplanır; çubuk seçili filtreleri özetler, dokununca açılır. Küçük örneklem demo eşiği korunur; gerçek backend gizlilik eşiği olarak kabul edilmez.
+- Paylaş formu: A ve B için galeriden fotoğraf seçme (`expo-image-picker`), değiştirme ve kaldırma; soru, kategori, süre, görünürlük ve yorum/blur ayarları. Seçilen fotoğraflar yalnız cihazda kalır. Sunucuya yükleme, blur işleme ve yayın henüz bağlı değildir; önizleme gerçek paylaşım oluşturmaz.
 - Bildirim boş durumu; auth ve oyun alanları hazırlık ekranıdır. Günlük 30+30 ve QR lobileri planda; oyun çalışıyor gibi gösterilmez.
 
 Tercih ve kaydetmeler `DemoPollsProvider` ile yalnız bellekte tutulur; sekme/detay geçişlerinde korunur, uygulama yeniden açılınca sıfırlanır. Demo profildeki yıldız ve sayaçlar örnek değerdir. Gerçek kullanıcı oturumu veya ücretli hak yoktur.
 
 ## Medya ve API
 
-Eksik demo fotoğraflarında pastel yer tutucu gösterilir. Native, eski `/demo/...` web yollarını HTTP adresi gibi çağırmaz. Yerel özel `public/demo/` dosyaları korunur; native görsel için uygun static asset kaynağı veya tam erişilebilir medya URL'si gerekir. Kişisel fotoğraf/video Git'e eklenmez. Eski video desteği taşınmadı; ilk backend medya hattı fotoğraftır.
+Eksik demo fotoğraflarında pastel yer tutucu gösterilir. Native, eski `/demo/...` web yollarını HTTP adresi gibi çağırmaz. Yerel özel `public/demo/` dosyaları korunur; native görsel için uygun static asset kaynağı veya tam erişilebilir medya URL'si gerekir. Yerel fotoğrafları görmek için `mobile/.env.local` içine `EXPO_PUBLIC_DEMO_MEDIA_BASE_URL=http://<Mac'in-LAN-adresi>:8081` yaz: Expo geliştirme sunucusu `public/` klasörünü de sunduğu için `/demo/...` yolları bu adrese göre çözülür. Değişken yoksa davranış aynıdır, ağ isteği yapılmaz. Kişisel fotoğraf/video Git'e eklenmez. Eski video desteği taşınmadı; ilk backend medya hattı fotoğraftır.
 
 `src/lib/api/client.ts` ilerideki entegrasyon içindir, ekranlar henüz kullanmaz. `EXPO_PUBLIC_API_BASE_URL` `/v1` dahil tam API adresidir; telefon için Mac'in LAN adresi kullanılmalıdır. `EXPO_PUBLIC_*` içine sır/token yazılmaz. Gerçek auth/yenileme/güvenli token depolama ve her feature'ın API katmanı entegrasyon adımında eklenecek.
 

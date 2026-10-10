@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
+import { BackButton } from "@/components/ui/BackButton";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PreviewImage } from "@/components/media/PreviewImage";
@@ -36,16 +37,8 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
       : postsOf(username);
   return (
     <Screen>
-      <View style={common.spread}>
-        {!mine && (
-          <Button
-            title="Geri"
-            variant="outline"
-            onPress={() =>
-              router.canGoBack() ? router.back() : router.replace("/")
-            }
-          />
-        )}
+      <View style={mine ? common.spread : [common.row, { gap: 0 }]}>
+        {!mine && <BackButton />}
         <Text style={{ fontFamily: fonts.bold, fontSize: 21 }}>{username}</Text>
         {mine && (
           <Pressable
@@ -187,7 +180,7 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 }
                 style={{
                   width: "31.5%",
-                  aspectRatio: 0.78,
+                  aspectRatio: 9 / 16,
                   borderRadius: 12,
                   overflow: "hidden",
                   justifyContent: "flex-end",
