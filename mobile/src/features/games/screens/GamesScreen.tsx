@@ -79,7 +79,7 @@ export function GamesScreen() {
                 style={{
                   fontSize: 12,
                   fontFamily: fonts.bold,
-                  color: colors.text,
+                  color: colors.accent,
                 }}
               >
                 CANLI
@@ -110,9 +110,9 @@ export function GamesScreen() {
         >
           <ThemeArt />
           <View style={[common.row, { gap: 8 }]}>
-            <Ionicons name="calendar-outline" size={20} color={colors.text} />
+            <Ionicons name="calendar-outline" size={20} color={colors.accent} />
             <Text
-              style={{ flex: 1, fontFamily: fonts.bold, color: colors.text }}
+              style={{ flex: 1, fontFamily: fonts.bold, color: colors.accent }}
             >
               Haftalık tema
             </Text>
@@ -124,12 +124,12 @@ export function GamesScreen() {
           </Text>
           <View style={[common.row, { flexWrap: "wrap", gap: 10 }]}>
             <View style={styles.timer}>
-              <Ionicons name="time-outline" size={16} color={colors.text} />
+              <Ionicons name="time-outline" size={16} color={colors.accent} />
               <Text
                 style={{
                   fontSize: 13,
                   fontFamily: fonts.bold,
-                  color: colors.text,
+                  color: colors.accent,
                 }}
               >
                 {weeklyTheme.timeLeft} kaldı
@@ -162,9 +162,9 @@ export function GamesScreen() {
         <View style={[styles.box, { gap: 12 }]}>
           <View style={common.spread}>
             <View style={[common.row, { gap: 8 }]}>
-              <Ionicons name="people" size={20} color={colors.text} />
+              <Ionicons name="people" size={20} color={colors.accent} />
               <Text>
-                <Text style={{ fontFamily: fonts.bold, color: colors.text }}>
+                <Text style={{ fontFamily: fonts.bold, color: colors.accent }}>
                   Arkadaşlar
                 </Text>
                 <Text style={{ color: colors.muted }}> · bu hafta</Text>
@@ -235,7 +235,7 @@ export function GamesScreen() {
 
         <View style={[styles.box, common.row, { gap: 14 }]}>
           <View style={styles.tourIcon}>
-            <Ionicons name="shirt" size={28} color={colors.text} />
+            <Ionicons name="shirt" size={28} color={colors.accent} />
           </View>
           <View style={{ flex: 1, gap: 8 }}>
             <View style={common.spread}>
@@ -256,12 +256,12 @@ export function GamesScreen() {
                   style={{
                     fontSize: 13,
                     fontFamily: fonts.bold,
-                    color: colors.text,
+                    color: colors.accent,
                   }}
                 >
                   Turu gör
                 </Text>
-                <Ionicons name="arrow-forward" size={15} color={colors.text} />
+                <Ionicons name="arrow-forward" size={15} color={colors.accent} />
               </Pressable>
             </View>
             <View style={styles.steps}>
@@ -352,7 +352,7 @@ function Avatar({
         style={{
           fontSize: size * 0.32,
           fontFamily: fonts.bold,
-          color: colors.text,
+          color: colors.accent,
         }}
       >
         {user?.initials ?? "?"}

@@ -218,7 +218,7 @@ function Photo({ person, style }: { person: DemoPerson; style: object }) {
       <PreviewImage uri={user?.avatar} tone={person.tone} icon="person-outline" />
       {!user?.avatar && (
         <View style={[StyleSheet.absoluteFill, styles.initials]}>
-          <Text style={{ fontFamily: fonts.bold, fontSize: 22, color: colors.text }}>
+          <Text style={{ fontFamily: fonts.bold, fontSize: 22, color: colors.accent }}>
             {user?.initials ?? "?"}
           </Text>
         </View>
@@ -264,9 +264,9 @@ function AddButton({
       <Ionicons
         name={mine ? "person-outline" : requested ? "checkmark" : "person-add-outline"}
         size={18}
-        color={colors.text}
+        color={colors.accent}
       />
-      <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.text }}>
+      <Text style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.accent }}>
         {mine ? "Profilin" : requested ? "İstek gitti" : "Arkadaş ekle"}
       </Text>
     </Pressable>

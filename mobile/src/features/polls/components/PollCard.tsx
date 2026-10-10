@@ -41,7 +41,7 @@ export function PollCard({
           style={[common.row, { flex: 1 }]}
         >
           <View style={styles.avatar}>
-            <Text style={{ fontFamily: fonts.bold, color: colors.text }}>
+            <Text style={{ fontFamily: fonts.bold, color: colors.accent }}>
               {user?.initials ?? "?"}
             </Text>
           </View>

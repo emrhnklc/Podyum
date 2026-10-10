@@ -4,6 +4,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
   type ImageSourcePropType,
   type StyleProp,
@@ -31,6 +32,59 @@ const STICKERS = {
 
 const GOLD = "#F2B627";
 
+// Arka plandaki pano: pastel karolardan oluşan, alta doğru beyaza eriyen bir
+// "pin duvarı". Görsel dosyası kullanmaz; her ekran genişliğinde yeniden dizilir.
+const PIN_TONES = [colors.accentSoft, "#F1EBDA", "#DDE6F1", "#F6DCDC", colors.surface, "#ECDDF1"];
+const PIN_HEIGHTS = [
+  [150, 110, 190, 130, 170],
+  [100, 180, 120, 200, 140],
+  [170, 130, 160, 110, 190],
+  [120, 200, 140, 170, 120],
+];
+const FADE_STEPS = 12;
+
+function PinWall() {
+  const { width, height } = useWindowDimensions();
+  const columns = Math.max(4, Math.ceil(width / 130));
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.wall]}>
+      <View style={[styles.wallGrid, { height: height * 0.78 }]}>
+        {Array.from({ length: columns }, (_, column) => (
+          <View
+            key={column}
+            style={{ flex: 1, gap: 12, marginTop: column % 2 ? -70 : 0 }}
+          >
+            {PIN_HEIGHTS[column % PIN_HEIGHTS.length].map((pin, row) => (
+              <View
+                key={row}
+                style={{
+                  height: pin,
+                  borderRadius: 22,
+                  backgroundColor:
+                    PIN_TONES[(column * 2 + row) % PIN_TONES.length],
+                }}
+              />
+            ))}
+          </View>
+        ))}
+      </View>
+      {/* Gradyan kütüphanesi yok: şeffaftan beyaza basamaklı şeritler. */}
+      <View style={[styles.wallFade, { top: height * 0.3, height: height * 0.34 }]}>
+        {Array.from({ length: FADE_STEPS }, (_, step) => (
+          <View
+            key={step}
+            style={{
+              flex: 1,
+              backgroundColor: `rgba(255,255,255,${((step + 1) / FADE_STEPS).toFixed(2)})`,
+            }}
+          />
+        ))}
+      </View>
+      <View style={[styles.wallFade, { top: height * 0.64, bottom: 0, backgroundColor: colors.background }]} />
+    </View>
+  );
+}
+
 // Karşılama ve giriş ekranı. Apple/Google/e-posta girişi henüz bağlı değil;
 // "Başla" hesap açmadan Keşfet'e geçirir.
 export function AuthScreen() {
@@ -43,6 +97,7 @@ export function AuthScreen() {
     message(`${what} sunucu bağlantısı eklendiğinde açılacak.`);
   return (
     <View style={styles.background}>
+      <PinWall />
       <SafeAreaView edges={["top", "left", "right", "bottom"]} style={{ flex: 1 }}>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -244,6 +299,17 @@ function Provider({
 
 const styles = StyleSheet.create({
   background: { flex: 1, backgroundColor: colors.background },
+  wall: { overflow: "hidden", pointerEvents: "none" },
+  wallGrid: {
+    position: "absolute",
+    top: -50,
+    left: -60,
+    right: -60,
+    flexDirection: "row",
+    gap: 12,
+    transform: [{ rotate: "-7deg" }],
+  },
+  wallFade: { position: "absolute", left: 0, right: 0 },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 20, paddingBottom: 24, gap: 18 },
   logoRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },

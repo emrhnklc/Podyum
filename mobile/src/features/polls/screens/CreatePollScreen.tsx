@@ -265,12 +265,12 @@ export function CreatePollScreen() {
                 <Ionicons
                   name="time-outline"
                   size={20}
-                  color={active ? colors.text : colors.text}
+                  color={active ? colors.accent : colors.text}
                 />
                 <Text
                   style={{
                     fontFamily: fonts.bold,
-                    color: active ? colors.text : colors.text,
+                    color: active ? colors.accent : colors.text,
                   }}
                 >
                   {option.label}
@@ -283,7 +283,7 @@ export function CreatePollScreen() {
         <View style={styles.audience}>
           <View style={common.row}>
             <View style={styles.audienceIcon}>
-              <Ionicons name="people" size={22} color={colors.text} />
+              <Ionicons name="people" size={22} color={colors.accent} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: fonts.bold, fontSize: 17 }}>
@@ -431,13 +431,13 @@ function AudienceToggle({
       onPress={onPress}
       style={[styles.toggle, active && styles.toggleActive]}
     >
-      <Ionicons name={icon} size={18} color={active ? colors.text : colors.text} />
+      <Ionicons name={icon} size={18} color={active ? colors.accent : colors.text} />
       <Text
         style={{
           flex: 1,
           fontSize: 13,
           fontFamily: active ? fonts.semibold : fonts.regular,
-          color: active ? colors.text : colors.text,
+          color: active ? colors.accent : colors.text,
         }}
         numberOfLines={2}
       >

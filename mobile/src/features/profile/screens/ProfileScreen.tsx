@@ -215,7 +215,7 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
               ]}
             >
               <Text
-                style={[styles.primaryText, following && { color: colors.text }]}
+                style={[styles.primaryText, following && { color: colors.accent }]}
               >
                 {following ? "Takip ediliyor" : "Takip Et"}
               </Text>
@@ -229,8 +229,8 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 { opacity: pressed ? 0.85 : 1 },
               ]}
             >
-              <Ionicons name="paper-plane-outline" size={20} color={colors.text} />
-              <Text style={{ fontFamily: fonts.bold, color: colors.text }}>
+              <Ionicons name="paper-plane-outline" size={20} color={colors.accent} />
+              <Text style={{ fontFamily: fonts.bold, color: colors.accent }}>
                 Mesaj
               </Text>
             </Pressable>
@@ -287,13 +287,13 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                 <Ionicons
                   name={option.icon}
                   size={18}
-                  color={active ? colors.text : colors.muted}
+                  color={active ? colors.accent : colors.muted}
                 />
                 <Text
                   style={{
                     fontSize: 13,
                     fontFamily: active ? fonts.bold : fonts.medium,
-                    color: active ? colors.text : colors.muted,
+                    color: active ? colors.accent : colors.muted,
                   }}
                   numberOfLines={1}
                 >
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
   },
-  initials: { fontFamily: fonts.extraBold, fontSize: 36, color: colors.text },
+  initials: { fontFamily: fonts.extraBold, fontSize: 36, color: colors.accent },
   avatarEdit: {
     position: "absolute",
     right: 0,
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "transparent",
     marginBottom: -1,
   },
-  tabActive: { borderBottomColor: colors.text },
+  tabActive: { borderBottomColor: colors.accent },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   tile: {
     width: "32%",

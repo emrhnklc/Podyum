@@ -14,7 +14,7 @@ export function PillChip({
   active: boolean;
   onPress: () => void;
 }) {
-  const tint = active ? colors.text : colors.text;
+  const tint = active ? colors.accent : colors.text;
   return (
     <Pressable
       accessibilityRole="button"

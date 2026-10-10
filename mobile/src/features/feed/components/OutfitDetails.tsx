@@ -115,8 +115,8 @@ export function OutfitDetailsSheet({
         <View style={styles.header}>
           <Text style={styles.title}>Kombin detayları</Text>
           <View style={styles.count}>
-            <Ionicons name="bag-handle-outline" size={14} color={colors.text} />
-            <Text style={{ fontSize: 12, color: colors.text }}>
+            <Ionicons name="bag-handle-outline" size={14} color={colors.accent} />
+            <Text style={{ fontSize: 12, color: colors.accent }}>
               {items.length} ürün
             </Text>
           </View>
@@ -147,7 +147,7 @@ export function OutfitDetailsSheet({
                 <Text
                   style={{
                     fontFamily: active ? fonts.bold : fonts.medium,
-                    color: active ? colors.text : colors.text,
+                    color: active ? colors.accent : colors.text,
                   }}
                 >
                   {item.label} Kombini
@@ -178,7 +178,7 @@ export function OutfitDetailsSheet({
               <Ionicons
                 name={isSaved ? "bookmark" : "bookmark-outline"}
                 size={14}
-                color={colors.text}
+                color={colors.accent}
               />
               <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
                 {isSaved ? "Kaydedildi" : "Bu kombini kaydet"}

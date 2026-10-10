@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     fontFamily: fonts.bold,
     fontSize: 16,
-    color: colors.text,
+    color: colors.accent,
   },
   card: {
     borderRadius: 20,

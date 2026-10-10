@@ -252,7 +252,7 @@ export function EditProfileScreen() {
                 style={styles.tag}
               >
                 <Text style={styles.tagText}>{tag}</Text>
-                <Ionicons name="close" size={14} color={colors.text} />
+                <Ionicons name="close" size={14} color={colors.accent} />
               </Pressable>
             ))}
             {newTag !== null ? (
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  initials: { fontFamily: fonts.extraBold, fontSize: 38, color: colors.text },
+  initials: { fontFamily: fonts.extraBold, fontSize: 38, color: colors.accent },
   camera: {
     position: "absolute",
     width: 36,
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
   },
   inline: { flexDirection: "row", alignItems: "center", gap: 10 },
   counter: { alignSelf: "flex-end", fontSize: 12, color: colors.muted },
-  error: { fontSize: 12, color: colors.text },
+  error: { fontSize: 12, color: colors.accent },
   tags: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 6 },
   tag: {
     flexDirection: "row",
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: colors.chip,
   },
-  tagText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.text },
+  tagText: { fontFamily: fonts.semibold, fontSize: 13, color: colors.accent },
   tagAdd: {
     backgroundColor: colors.background,
     borderWidth: 1,
@@ -480,7 +480,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
     fontFamily: fonts.semibold,
     fontSize: 13,
-    color: colors.text,
+    color: colors.accent,
   },
   socialCard: {
     borderRadius: 18,

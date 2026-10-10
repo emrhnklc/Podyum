@@ -55,7 +55,7 @@ Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı 
 
 **Keşfet düzeni:** Görseller 9:16 oranındadır, altında parçalar listelenir. Fotoğraflar ekranı doldurur; filtreler üst satırdaki sekmelere ve tek bir ikona indirildi, eylemler alt satırda ikonlardır. Üst satırdaki kişi düğmesi Kişiler ekranına, zil düğmesi Bildirimler'e gider. "Senin oylaman" şeridi Keşfet'te yoktur; kendi oylamalarına Profil'den ulaşılır.
 
-**Tasarım dili:** Bütün ekranlar tek paleti kullanır: beyaz zemin, `#D00A26` kırmızı, nötr gri yüzeyler ve Hanken Grotesk (`theme` içindeki `colors`/`fonts`). Pembe/krem paletler ve serif başlıklar kaldırıldı; pastel kırmızı için `colors.accentSoft` vardır. Karşılama ekranındaki fotoğraf ve çıkartma görselleri hâlâ kahve tonludur.
+**Tasarım dili:** Bütün ekranlar tek paleti kullanır: beyaz zemin, `#D00A26` kırmızı, nötr gri yüzeyler ve Hanken Grotesk (`theme` içindeki `colors`/`fonts`). Pembe/krem paletler ve serif başlıklar kaldırıldı; pastel kırmızı için `colors.accentSoft` vardır. Vurgulu yazı ve simgeler kırmızıdır, gölgeler nötrdür. Karşılama ekranının arka planı kodla çizilen pastel "pin duvarı"dır (görsel dosyası yok); fotoğraf ve çıkartma görselleri hâlâ kahve tonludur ve değiştirilecektir.
 
 Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş filtreleri ve gerçek katalog kimliği ayrıca bağlanacak.
 
