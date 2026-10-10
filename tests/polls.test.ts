@@ -459,6 +459,6 @@ test("OpenAPI çalışan oylama yollarını, expectedVersion ve gerekli Idempote
     assert.ok(operation.parameters.some((parameter: any) => parameter.in === "header" && parameter.name === "Idempotency-Key" && parameter.required));
   }
   assert.ok(schema.body.components.schemas.UpdatePollDto.required.includes("expectedVersion"));
-  assert.equal(schema.body.paths["/v1/polls/{id}/vote"], undefined);
+  assert.ok(schema.body.paths["/v1/polls/{id}/vote"].put);
   assert.equal(schema.body.paths["/v1/feed"], undefined);
 });

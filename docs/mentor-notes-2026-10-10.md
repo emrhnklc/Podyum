@@ -2,11 +2,11 @@
 
 Tarih: 10 Ekim 2026. Kaynak: kullanıcının mentör görüşmesinden aktardığı fikirler. Bu bir ürün notu ve yapılacak iş kaydıdır; aşağıdaki gelir özellikleri henüz uygulanmadı.
 
-## Güncel öncelik kararı
+## Öncelik kaydı ve sonraki kullanıcı revizyonu
 
-**Oyun/podyum Faz 2'ye ertelendi.** İlk sürüm sosyal kombin tercihi, ürün etiketleme, trendler ve gelir özellikleri etrafında ilerleyecek. Oda, canlı turlar, Socket.IO oyun olayları, hızlı eşleşme ve oyuna bağlı puan/lig çalışmaları ilk sürümün önkoşulu değil.
+Mentör görüşmesinde oyun/podyumun Faz 2'ye ertelenmesi önerilmişti. **Sonraki kullanıcı kararı bu ertelemeyi kaldırdı:** günlük 30 dakika fotoğraf + 30 dakika oylama ve QR ile paylaşılan ayarlanabilir özel lobiler aktif backend kapsamındadır. Genel etkinlikte yalnız katılımcılar oy verir; özel host fotoğraf aşamasını erken bitirebilir. [Güncel oyun tasarımı](game-design.md).
 
-Mevcut oyun tabloları ve tasarım belgeleri korunur. Önceki oyun geliştirme sırası ve arkadaşın Claude'una hazırlanan oyun görevi yeni önceliği yansıtmıyor; bu görev Faz 2 için bekletilecek. Haftalık/sponsorlu yarışma da şimdilik yarışma kapsamıyla Faz 2'de tutulur; akışta mağaza reklamı ayrı Faz 1 işidir.
+Eski 10 dakikalık hazırlık/ortak 20 saniyelik tur görevi uygulanmaz. Arkadaş katalog/trend/gelir kolunda kalır; oyunun sahibi biziz. Hızlı eşleşme/lig/haftalık-sponsorlu yarışma ayrı genişleme adaylarıdır. Aşağıdaki trend/gelir fikirleri korunur.
 
 ## 1. Affiliate link kullananlar için ücretli kullanım
 
@@ -90,7 +90,8 @@ Trendler ekranının veya demografik/fiyat filtrelerinin ücretli olacağı hen�
 - [ ] Reklam kampanyaları, akış yerleşimleri ve ayrı ölçüm olayları.
 - [ ] Plus/üretici hakları ve gerçek abonelik doğrulaması; reklamsız akış.
 - [ ] Faz 1 yönetim, test ve frontend teslimi.
-- [ ] Faz 2: podyum → canlı olaylar → eşleşme → oyun puanı/lig → haftalık/sponsorlu yarışmalar.
+- [ ] Aktif: günlük 30+30 podyum → QR lobisi/süreler/host erken geçişi → oyun zamanlayıcısı/canlı durum → oyun dahil test/frontend teslimi.
+- [ ] Sonraki genişleme: hızlı eşleşme, oyun puanı/lig ve haftalık/sponsorlu yarışmalar.
 
 Bu not ürün planına eklendi. Uygulama kodu, şema ve migration bu görüşme kaydı nedeniyle değiştirilmedi.
 
@@ -100,6 +101,6 @@ Kaynak: kullanıcının 10 Ekim 2026 tarihli ek fikirleri. Aşağıdakiler geli�
 
 - [ ] **Profilde beğenilen kombinler:** Kullanıcının beğendiği kombinlere profilinden tekrar ulaşabileceği bir bölüm. Beğenmenin ayrı bir eylem mi, tercih verilen seçenek mi olacağı; kaydedilenlerden farkı ve listenin kimlere görüneceği netleştirilecek. Listelenen kombinler güncel arkadaşlık/engel ve paylaşım görünürlüğüne uymalı.
 - [ ] **Giyilenler / highlights:** Kullanıcının gerçekten giydiğini belirttiği kombinleri profilinde öne çıkarabileceği, seçilmiş kombinlerden oluşan bir highlights alanı. Ekleme/kaldırma, koleksiyon başlıkları ve görünürlük daha sonra tasarlanacak. Bir oylamada kazanan kombin otomatik olarak giyilmiş sayılmayacak.
-- [ ] **Halloween:** Halloween temalı kombin içeriği ve özel gün deneyimi fikri. Tema/keşif alanı mı, dönemsel etkinlik mi olacağı ayrıca netleştirilecek; yarışma seçilirse ertelenmiş oyun/etkinlik planıyla birlikte ele alınacak.
+- [ ] **Halloween:** Halloween temalı kombin içeriği ve özel gün deneyimi fikri. Tema/keşif alanı mı, dönemsel etkinlik mi olacağı ayrıca netleştirilecek; yarışma seçilirse güncel oyun/etkinlik planıyla birlikte ele alınacak.
 - [ ] **Moda toplulukları:** Kullanıcıların ortak moda ilgileri, stilleri veya temaları etrafında topluluklar oluşturup kombin paylaşabileceği alanlar. Topluluk üyeliği, açık/kapalı görünürlük, yönetici/moderasyon ve topluluk akışının kapsamı belirlenecek. İlk kullanıcıları kazanmak için dışarıdaki moda kulüpleriyle iş birliği, uygulama içi topluluk özelliğinden ayrı takip edilecek.
 - [ ] **İleride AI ile ürün pazarlama ve talep testi:** Ürün pazarlamak isteyen üretici/satıcıların AI ile hazırladıkları ürün fikirlerini, tasarımları veya ürün görsellerini uygulamada karşılaştırmaya sunması; en çok ilgi görenleri belirleyip satışa çıkarması. AI üretiminin uygulamada mı yapılacağı yoksa dışarıda hazırlanan içeriklerin mi yükleneceği, üretici araçları, karşılaştırma ölçütü ve satış kanalına yönlendirme daha sonra kararlaştırılacak. Tercih/ilgi verisi ile gerçek satın alma sonuçları ayrı ölçülecek; AI görsellerinin henüz üretilmemiş bir ürünü temsil etmesi açıkça belirtilmeli.

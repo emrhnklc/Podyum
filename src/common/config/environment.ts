@@ -7,6 +7,8 @@ export interface Environment {
   localMailboxDir: string;
   localMediaDir: string;
   corsOrigins: string[];
+  pollCloseWorkerEnabled: boolean;
+  pollCloseIntervalMs: number;
 }
 
 function flag(value: string | undefined, fallback: boolean, name: string): boolean {
@@ -32,6 +34,10 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
     throw new Error("DATABASE_URL geçerli bir PostgreSQL bağlantısı olmalı.");
   }
   const authMockEnabled = flag(env.AUTH_MOCK_ENABLED, false, "AUTH_MOCK_ENABLED");
+  const pollCloseInterval = env.POLL_CLOSE_INTERVAL_MS ?? "15000";
+  if (!/^\d+$/.test(pollCloseInterval) || Number(pollCloseInterval) < 1000 || Number(pollCloseInterval) > 300000) {
+    throw new Error("POLL_CLOSE_INTERVAL_MS 1000–300000 aralığında olmalı.");
+  }
   // Gerçek e-posta/OAuth taşıyıcıları bağlanana kadar canlı ortamda sessizce yerel akış çalıştırılmaz.
   if (nodeEnv === "production") {
     throw new Error("Üretim açılışı kapalı: gerçek e-posta ve OAuth entegrasyonları henüz tamamlanmadı.");
@@ -54,5 +60,7 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
     localMailboxDir: env.LOCAL_MAILBOX_DIR ?? ".local/mailbox",
     localMediaDir: env.LOCAL_MEDIA_DIR ?? ".local/media",
     corsOrigins,
+    pollCloseWorkerEnabled: flag(env.POLL_CLOSE_WORKER_ENABLED, true, "POLL_CLOSE_WORKER_ENABLED"),
+    pollCloseIntervalMs: Number(pollCloseInterval),
   };
 }

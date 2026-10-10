@@ -58,7 +58,7 @@ Gerçek izin veya demografi değişikliğinde UserPrivate ve OutboxEvent aynı t
 }
 ```
 
-Olayın `id` alanı DB tarafından üretilir; tüketici eventId ve kullanıcı başına revision ile tekrar/sıra dışı teslimi ele almalıdır. Olay ham cinsiyet/yaş/şehir içermez, HTTP'den yayınlanmaz. Gönderici/işçi ve trend katkısı çıkarma henüz uygulanmadı; olaylar publishedAt=null kalır. Bu olay geçmiş tercihlerin demografisini yeni bilgilerle değiştirme talimatı değildir. Tercih anı snapshot'ı ve trend tüketim/izin kuralları arkadaşın trend entegrasyonunda ayrıca uygulanır.
+Olayın `id` alanı DB tarafından üretilir; tüketici eventId ve kullanıcı başına revision ile tekrar/sıra dışı teslimi ele almalıdır. Olay ham cinsiyet/yaş/şehir içermez, HTTP'den yayınlanmaz. Gönderici/işçi ve trend katkısı çıkarma henüz uygulanmadı; olaylar publishedAt=null kalır. Bu olay geçmiş tercihlerin demografisini yeni bilgilerle değiştirme talimatı değildir. Tercih anı izinli snapshot ve izin geri alırken bütün oy demografisini temizleme artık çalışır; oy sayısı korunur, yeniden izin eski snapshot’ı doldurmaz. Trend tüketicisinin eski toplu katkıları geri alması arkadaşın entegrasyonunda ayrıca uygulanacak. [Oy/izin sözleşmesi](poll-votes-development.md).
 
 ## Ayar varsayımları
 
@@ -72,4 +72,4 @@ Altıncı migration `UserSettings` ve `UserPrivate.analyticsRevision` ekler. Di�
 
 `npm run test:users` profil/ayar HTTP testlerini, `npm run test:api` auth + profil testlerini çalıştırır. Derlenmiş gerçek Nest uygulaması ve mevcut yerel DB kullanılır. Testler yalnız kendi benzersiz hesap, stil, ilişki, paylaşım ve olay fixture'larını temizler. Tek bağlantılı yerel Prisma Postgres gerçek eşzamanlı yarış testi değildir.
 
-Avatar/yükleme yerel medya modülüne bağlıdır; profil PATCH'i mediaId veya avatarMediaId kabul etmez. Kendi paylaşım listesi `GET /me/polls` ile çalışır. Başkasının profil paylaşımları, kişisel kaydedilenler, push tüketimi, trend işçisi ve Plus alanları kendi adımlarında bağlanacak. Bu modül onlar için çalışan sahte endpoint veya ücretli hak üretmez. Sosyal, medya ve oylama modülleri ortak SocialAccessService'i kullanır. [Sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Sonraki bizim işimiz tercih/kapanış/sonuçtur.
+Avatar/yükleme yerel medya modülüne bağlıdır; profil PATCH'i mediaId veya avatarMediaId kabul etmez. Kendi paylaşım listesi `GET /me/polls` ile çalışır. Başkasının profil paylaşımları, kişisel kaydedilenler, push tüketimi, trend işçisi ve Plus alanları kendi adımlarında bağlanacak. Bu modül onlar için çalışan sahte endpoint veya ücretli hak üretmez. Sosyal, medya ve oylama modülleri ortak SocialAccessService'i kullanır. [Sosyal rehber](social-development.md), [medya rehberi](media-development.md), [oylama rehberi](polls-development.md). Sonraki bizim işimiz ana akış, ardından günlük podyum/QR lobisidir.

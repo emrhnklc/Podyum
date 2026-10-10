@@ -4,8 +4,9 @@ Aşağıdaki metin eski oyun görevinin yerine geçer. Projenin güncel main dal
 
 ```text
 Podyum adlı kombin uygulamasının backend'ini iki kişi geliştiriyoruz.
-Sen ürün/trend/gelir kolundan sorumlusun. Oyun/podyum Faz 2'ye
-ertelendi; games, canlı turlar, Socket.IO, matchmaking veya lig geliştirme.
+Sen ürün/trend/gelir kolundan sorumlusun. Günlük 30+30 podyum ve QR lobisi
+aktif backend kapsamına geri alındı; games ve canlı durumun sahibi diğer geliştirici.
+docs/game-design.md güncel kaynaktır. Sen games/Socket.IO/matchmaking/lig geliştirme.
 
 Önce varsa AGENTS.md, ardından README.md, docs/backend-roadmap.md,
 docs/two-developer-plan.md, docs/mentor-notes-2026-10-10.md,
@@ -16,7 +17,10 @@ Bu belgelerde onaylı kararlar ve henüz seçilmemiş kurallar ayrılıyor.
 Mevcut proje NestJS + TypeScript, PostgreSQL + Prisma. Health, ortak
 API altyapısı, auth, temel profil/ayarlar, sosyal ve yerel medya/avatar çalışıyor.
 Oylama taslak/düzenleme/yayın/iptal/silme/detay/kendi liste ve kalıcı işlem tekrarı da hazır;
-oy/sonuç/akış henüz yok. Ürün etiketleri USER_ENTERED, productId henüz yok.
+tek tercih/sonuç/kalıcı kapanış da hazır, ana akış henüz yok.
+Onuncu migration PollVote izin tarihi/revision ekler; docs/poll-votes-development.md
+oy olayı ve izin geri alma/trend katkısı sözleşmesidir. Trendleri OPTION_PREFERENCE
+olayından üret, özel oyu genel trende katma, geri alınan iznin eski katkısını kaldır. Ürün etiketleri USER_ENTERED, productId henüz yok.
 Dokuzuncu migration ProductTag.priceRecordedAt ekler (fiyat beyanının sunucu zamanı,
 eski veride null); ortak şema önerisinde alanı ve özgün linki koru.
 docs/polls-development.md sözleşmesini incele. E-posta/şifre ve opaque oturumlar

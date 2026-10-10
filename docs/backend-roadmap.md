@@ -1,10 +1,10 @@
 # Backend çalışma planı
 
-10 Ekim 2026. Amaç: Faz 1 sosyal kombin, ürün trendleri ve gelir özelliklerinin backend'ini tamamlayıp frontend'e teslim etmek; ardından Faz 2 oyun/rekabet kapsamına geçmek. Bu belge yapılacak iş listesidir; kutuların boş olması işlevin henüz tamamlanmadığı anlamına gelir. Mimari ayrıntılar ayrı belgelerde kalır.
+10 Ekim 2026. Amaç: sosyal kombin, günlük podyum/QR lobileri, ürün trendleri ve gelir özelliklerinin backend'ini tamamlayıp frontend'e teslim etmek. Oyun artık aktif ilk teslim kapsamındadır; rekabet genişlemeleri ayrıca seçilir. Bu belge yapılacak iş listesidir; kutuların boş olması işlevin henüz tamamlanmadığı anlamına gelir. Mimari ayrıntılar ayrı belgelerde kalır.
 
-**Mentör görüşmesiyle güncellenen öncelik:** Oyun/podyum en sona, **Faz 2**'ye alındı. Günlük/haftalık/aylık ürün trendleri, cinsiyet/yaş/fiyat filtreleri, affiliate kullanan üreticilere ücretli hak, akış reklamları ve reklamsız Plus Faz 1 ürün planına eklendi. Ayrıntılı not ve açık kararlar: [mentör görüşmesi](mentor-notes-2026-10-10.md).
+**Son kullanıcı revizyonu:** Günlük oyun 30 dk fotoğraf + 30 dk oylama; yalnız etkinlik katılımcıları oy verir. Özel lobi QR davetiyle, ayarlanabilir teslim/oy süreleri ve hostun teslimi erken bitirme komutuyla çalışır. Oyun Faz 2 beklemez. [Güncel oyun tasarımı](game-design.md); trend/gelir notları [mentör kaydında](mentor-notes-2026-10-10.md).
 
-**Plan artık gerçek geliştirme sırasıyla yeniden numaralandırıldı:** 1–18 Faz 1, 19–23 Faz 2. Eski 7A/11A/11B numaraları kaldırıldı. 4–6 ve 8–12 ile ürün/trend/gelir kolu paralel ilerleyebilir; aşağıdaki sıra entegrasyon bağımlılıklarını gösterir. Faz 1'in test ve frontend teslimi Faz 2'yi beklemez.
+Adım kimlikleri belge bağlantıları bozulmasın diye korunur: **19–20 aktif ilk teslim oyun işleridir**, 21–23 hızlı eşleşme/ödül/haftalık-sponsorlu yarışma genişleme adaylarıdır. Sayı tek başına iş sırası değildir; güncel sıra belgenin sonundadır.
 
 ## İki kişinin paralel çalışma özeti
 
@@ -13,25 +13,25 @@
 | İlk iş | 4: profil ve ayarlar | 7: ürün kataloğu ve link eşleştirme |
 | Devam | 5–6: sosyal/medya, 8–12: oylama/akış/etkileşim/bildirim | 13: trendler, 14: Plus/affiliate hakları, 15: reklamlar |
 | Ortak teslim | 1–3 ortak temel, 16 yönetim sınırları, 17 test ve 18 frontend teslimi | Kendi modüllerinin yönetim API'leri, testleri ve sözleşmeleri |
-| Faz 2 | 19–23 oyun kapsamı; şu anda başlanmayacak | Önceki oyun görevinin yerine Faz 1 ürün kolu |
+| Oyun | 19–20 günlük etkinlik/QR lobi/canlı durum; aktif sıra | Katalog/trend/gelir sahipliği değişmez |
 
 Dosya sahipliği, servis sözleşmeleri, ilk görev ve Claude'a verilecek güncel metin: [iki kişilik çalışma planı](two-developer-plan.md), [arkadaş için görev metni](friend-claude-task.md).
 
 ## Mevcut durum
 
 - [x] NestJS başlangıcı, health endpoint'leri ve özellik klasörleri.
-- [x] Prisma şeması, yerel veritabanı, dokuz migration ve demo kayıtları.
-- [x] Veritabanı hedef kontrolü, 13 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
+- [x] Prisma şeması, yerel veritabanı, on migration ve demo kayıtları.
+- [x] Veritabanı hedef kontrolü, 14 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
 - [x] Yerel e-posta/şifre ve oturum akışları; Google/Apple mock.
-- [x] Auth/ortak API, profil/ayar ve sosyal HTTP testleri; mevcut 13 DB testi ve bootstrap kontrolü.
+- [x] Auth/ortak API, profil/ayar ve sosyal HTTP testleri; mevcut 14 DB testi ve bootstrap kontrolü.
 - [x] Temel profil, stil seçimi, özel bilgiler/analiz izni, ayarlar ve avatar; sekme listeleri oylama modülüne bağlı.
 - [x] Kullanıcı arama, arkadaş isteği/kabul/red/iptal, arkadaş listesi/kaldırma, engelleme ve ortak sosyal erişim servisi.
 - [x] Yerel özel fotoğraf yükleme/işleme/önizleme/manuel blur/erişim ve avatar; otomatik yüz tespiti ve bulut deposu bekliyor.
 - [ ] Faz 1 sosyal kombin, ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
-- [ ] Faz 2 oyun/rekabet akışları; ertelendi.
+- [ ] Aktif kapsam: günlük 30+30 etkinlik ve süreli QR lobileri; tasarlandı, API/şema henüz uygulanmadı.
 
-**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayınlama API'leri çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. Sonraki bizim işimiz 9. adım tercih/kapanış/sonuç; 7. adım katalog arkadaşta paralel ilerler. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
+**İlk uygulama ilerlemesi:** Ortak API altyapısı, yerel auth, temel profil/ayar, sosyal, yerel medya/avatar ve oylama taslağı/yayın/tercih/sonuç API’leri, kapanış tarayıcısı ve izinli oy snapshot/geri alma çalışır. Kalıcı işlem tekrarı ve elle ürün etiketleri hazır; ortak katalog eşleşmesi henüz bağlı değil. Google/Apple mock; gerçek OAuth/e-posta, otomatik yüz tespiti ve bulut medya entegrasyonu tamamlanmış sayılmıyor. Sonraki bizim işimiz 10. adım ana akış; ardından 19–20 günlük oyun/QR lobileri; 7. adım katalog arkadaşta paralel ilerler. [Karar kaydı](implementation-decisions.md), [auth kullanımı](auth-development.md), [profil kullanımı](users-development.md), [sosyal kullanımı](social-development.md), [medya kullanımı](media-development.md), [oylama kullanımı](polls-development.md).
 
 Hazır şema başlangıçtır; şikâyet, lig, haftalık etkinlik, abonelik gibi alanlar ilgili adımda yeni migration'larla eklenecek. Generated dosyalar elle düzenlenmeyecek.
 
@@ -39,7 +39,7 @@ Hazır şema başlangıçtır; şikâyet, lig, haftalık etkinlik, abonelik gibi
 
 Adımları belgenin sonundaki güncel Faz 1/Faz 2 uygulama sırasıyla ele alacağız. Her adımda gerekli veri değişikliği, servis, API, anlamlı davranış kontrolü ve istek/yanıt örneği birlikte tamamlanacak. Bir modülü yalnızca dosyaları açıldı diye bitmiş saymayacağız. Her ekranda gerekebilecek boş, süresi dolmuş, yetkisiz ve başarısız durumları da sözleşmeye girecek.
 
-Frontend yazmadan Faz 1 akışlarını HTTP istekleri, örnek dosyalar ve birden fazla test kullanıcısını temsil eden scriptlerle çalıştıracağız. Oyun simülasyonları Faz 2'dedir. Mobil cihaz davranışı, kamera entegrasyonu ve gerçek mağaza satın alma gibi istemciye bağlı kontroller frontend entegrasyonunda ayrıca doğrulanacak; script kontrolleri bunların yerine geçmiş sayılmayacak.
+Frontend yazmadan Faz 1 akışlarını HTTP istekleri, örnek dosyalar ve birden fazla test kullanıcısını temsil eden scriptlerle çalıştıracağız. Günlük etkinlik ve QR lobi simülasyonları aktif oyun teslimindedir. Mobil cihaz davranışı, kamera entegrasyonu ve gerçek mağaza satın alma gibi istemciye bağlı kontroller frontend entegrasyonunda ayrıca doğrulanacak; script kontrolleri bunların yerine geçmiş sayılmayacak.
 
 Harici servis gereken alanlar: giriş, medya depolama, push ve abonelik doğrulama. Bunların sağlayıcı/hesap/anahtar ihtiyacını 1. adımda listeleyeceğiz. Anahtar eksikse yerel taklitle geliştirilen alanı ayrıca işaretleyeceğiz; gerçek entegrasyon tamamlanmış sayılmayacak. Bir alandaki harici eksik, bağımsız backend işlerini durdurmayacak.
 
@@ -57,7 +57,7 @@ Harici servis gereken alanlar: giriş, medya depolama, push ve abonelik doğrula
 - [ ] Hazır yorum etiketlerinin yorum mu yoksa ayrı tepki mi olduğunu ve sayaçlarını belirle.
 - [ ] Hesap görünürlüğü gerekirse paylaşım görünürlüğüyle ilişkisini açıkça yaz; onaylı PUBLIC/FRIENDS kuralını sessizce değiştirme.
 
-Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2 adımları 19–23'te kesinleştirilir; Faz 1'i bekletmez.
+Oyun günlük 30+30 kuralı onaylıdır; özel süre sınırları/eksik oy/katılım 19–20 aktif oyun adımında seçilir. Ödül/lig/haftalık yarışma 21–23 genişlemelerinde ayrıca seçilir.
 
 **Bittiğinde:** aynı duruma farklı API'ler farklı karar vermeyecek. Normal oy tercihtir; çoğunluğu seçme ödülü hiçbir aşamada geri gelmez. Henüz onaylanmayan puan sayıları varsayılan gerçek kural gibi kodlanmaz.
 
@@ -70,7 +70,7 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 - [x] Ortak limit/cursor yardımcıları, UTC tarih biçimi ve JSON için 64 KiB sınırı.
 - [ ] Liste endpoint'lerinde sayfalama entegrasyonu ve medya dosya sınırları; ilgili modülde uygulanacak.
 - [x] Hassas yanıtlarda no-store; e-posta ve mock kimlikten tekil kullanıcı.
-- [x] Kalıcı idempotency servisi; oylama komutlarında 24 saatlik makbuz/anahtar ve iş/outbox ile aynı transaction. Diğer ilgili Faz 1 komutları kendi adımında bağlanır; oyun komutları Faz 2'de kullanacak.
+- [x] Kalıcı idempotency servisi; oylama komutlarında 24 saatlik makbuz/anahtar ve iş/outbox ile aynı transaction. Diğer ilgili Faz 1 komutları kendi adımında bağlanır; oyun komutları aktif oyun adımında kullanacak.
 - [x] OpenAPI/Swagger ve çalışan auth için örnek HTTP istekleri.
 - [x] Ortam değişkenlerinin açılışta kontrolü; yerel/test ortamlarının ayrımı.
 
@@ -102,7 +102,7 @@ Oyun süreleri, eksik oy, oyun puanı/lig ve yarışma ödülü kararları Faz 2
 - [x] Kendi profili, başkasının profili ve profil düzenleme.
 - [x] Paylaşım/arkadaş/puan sayaçlarının sözleşmesi; henüz oluşmamış veride sıfır/boş davranışı.
 - [x] Kendi paylaşımlarını sayfalama: GET /me/polls; taslak/yayın/iptal ve status filtresi.
-- [ ] Başkasının görünür paylaşımları ve kişisel kaydedilenler sekmelerinin sayfalı API'leri; ilgili özellik tamamlandıkça bağla. Yarışma geçmişi Faz 2'de eklenir.
+- [ ] Başkasının görünür paylaşımları ve kişisel kaydedilenler sekmelerinin sayfalı API'leri; ilgili özellik tamamlandıkça bağla. Günlük etkinlik/lobi geçmişi oyun adımında eklenir; lig/haftalık yarışma ayrıca seçilir.
 - [x] Bildirim/gizlilik ayarları için kullanıcı tercihlerini saklama/okuma. Push, blur ve paylaşım varsayılanlarının tüketimi ilgili modüllerde bağlanır.
 
 Çalışan uçlar ve bağlantısı bekleyen alanlar: [profil/ayar rehberi](users-development.md). Ayrı kapalı hesap politikası eklenmedi.
@@ -134,7 +134,7 @@ Sosyal değişiklik ve kalıcı outbox olayı aynı transaction'dadır. Bildirim
 - [ ] Otomatik yüz tespit sağlayıcısı/modeli; mobil bölge seçme ve önizleme ekranının cihaz üzerinde doğrulanması.
 - [x] İşleniyor/hazır/reddedildi durumları ve geçici hatadan yeniden deneme.
 - [x] Tamamlanmış fotoğrafın yeniden kullanılan upload linkiyle değiştirilememesi.
-- [x] Arkadaş içeriğine yetkili erişim; orijinal dosyaların dışarı açılmaması. Gerçek oylama yayınlama ve sosyal HTTP komutları öncesi/sonrası doğrulandı. Oyun fotoğrafı erişimi Faz 2'de bağlanır.
+- [x] Arkadaş içeriğine yetkili erişim; orijinal dosyaların dışarı açılmaması. Gerçek oylama yayınlama ve sosyal HTTP komutları öncesi/sonrası doğrulandı. Oyun fotoğrafı erişimi aktif 19. adımda ayrı GAME amacı/katılım kurallarıyla bağlanır.
 - [x] Kullanılmamış/silinen dosyalar için tekrar çalıştırılabilir yerel temizlik komutu; kullanımda medya korunur.
 - [ ] Özel bulut deposu, ayrı işçi/kuyruk ve periyodik temizlik zamanlaması; canlı entegrasyon.
 
@@ -178,15 +178,16 @@ Yerel akış ve 18 HTTP testi: [oylama rehberi](polls-development.md), [örnekle
 
 **Sorumlu:** Biz; trend veri sözleşmesini arkadaşla birlikte uygularız.
 
-- [ ] Kullanıcı başına tek tercih; kendi paylaşımına oy yasağı.
-- [ ] Aynı isteğin tekrarı, başka oylamanın seçeneği ve yetkisiz oy kontrolleri.
-- [ ] Süre dolunca oy kabulünü durdurma; kapanış işi gecikse de geç oy almama.
-- [ ] Toplam oy, seçenek sayıları/yüzdeleri, kullanıcının tercihi ve anlık/kesin sonuç ayrımı.
-- [ ] Beraberlik ve hiç oy gelmemesi.
-- [ ] Sonuç görüntüleme izni ve oylama sahibi için sonuç erişimi.
-- [ ] Trendler için seçilen seçenek–ürün ilişkisi ve gereken oy zamanı bağlamı; doğrudan ürün tercihiyle kombin tercihinin ayrımı, yinelenen sayımın önlenmesi.
+- [x] Kullanıcı başına tek değişmez tercih; kendi paylaşımına oy yasağı.
+- [x] Doğal anahtarla aynı kabul tekrarı, farklı tercih çatışması; başka oylamanın seçeneği ve güncel erişim kontrolleri.
+- [x] DB saatinden geç oy reddi; açılışta/periyodik/elle kalıcı kapanış, atomik CLOSED/sürüm/outbox.
+- [x] Toplam oy, seçenek sayıları/yüzdeleri, kullanıcının tercihi ve anlık/kesin sonuç ayrımı.
+- [x] Bütün eşit liderler, sıfır oyda kazanan yok; ham sayılar ve toplamı 100 yapan yüzdeler.
+- [x] Yazar veya oy veren için sonuç; kapanıştan sonra görünür içerik izleyicileri. Özel/engel erişimi her istekte tekrar.
+- [x] Sabit seçenek/ürün ilişkisi, oy zamanı ve tekil iç olay kaynağı; OPTION_PREFERENCE ölçümü. İzinli demografik snapshot ve izin geri alırken atomik temizleme.
+- [ ] Arkadaşın katalog/trend teslimi: ortak productId, ürün bazlı tekil katkı/örneklem/formül ve eski toplu katkıları geri alma. Normal seçenek tercihi otomatik satış/doğrudan ürün oyu sayılmaz.
 
-**Bittiğinde:** paylaş → başka kullanıcı tercih yapsın → sonuç gör akışı tamamlanır. Normal oy profil puanı yazmaz.
+**Yerel teslim hazır:** tercih/sonuç/kapanış ve izin temizliği 15 yeni HTTP/servis testiyle doğrulanır; [rehber](poll-votes-development.md), [örnekler](../examples/poll-votes.http). Normal oy profil puanı yazmaz. Gerçek çok bağlantılı PostgreSQL yarışları ve trend tüketicisi henüz yoktur.
 
 ## 10. Ana akış ve keşfi bitir — Faz 1
 
@@ -224,7 +225,7 @@ Yerel akış ve 18 HTTP testi: [oylama rehberi](polls-development.md), [örnekle
 - [ ] Push entegrasyonu, geçersiz token temizleme, tekrar deneme ve uygulama açma hedefi.
 - [ ] Aynı olaydan yinelenen uygulama içi kayıt çıkmaması; özel içeriğin push gövdesine taşınmaması.
 
-Oyun daveti/sonucu, haftalık tema ve ödül bildirimleri Faz 2'de bu altyapıya bağlanır; Faz 1 kabulünü bekletmez.
+Oyun daveti/sonucu aktif 19–20 ile bu altyapıya bağlanır; haftalık tema ve ödül bildirimleri genişleme adımlarında gelir.
 
 **Bittiğinde:** bildirim sekmesi çalışır; seçilen push sağlayıcısı test ortamında doğrulanır. Frontend yazılmadan cihaz teslimi doğrulanamıyorsa bu kısım entegrasyon kontrolü olarak açıkça kalır.
 
@@ -290,7 +291,7 @@ Paket/fiyat/sağlayıcı kararı gelene kadar hak sözleşmesi ve testler ilerle
 - [ ] Veri saklama ve kullanılmayan dosya/oturum/bildirim/iş kaydı temizleme görevleri.
 - [ ] Gerekirse kullanıcı veri dışa aktarımı ve izin geri alma; demografik snapshot'ları da kapsama.
 
-Oyun iptali/oyuncu yaptırımı, ödül düzeltmesi, lig/rozet ve yarışma teması/sponsor etkinliği yönetimi Faz 2'de eklenir.
+Günlük etkinlik/lobi iptali ve oyuncu yaptırımı oyun tesliminin yönetim kapsamındadır. Ödül düzeltmesi/lig/rozet/sponsor yönetimi ilgili genişlemede gelir.
 
 **Bittiğinde:** uygulama içerik ve kullanıcı sorunları yönetilebilen bir ürün olur. Yönetim panelinin frontend'i daha sonra yazılabilir; API ve yetkileri burada tamamlanır.
 
@@ -307,7 +308,7 @@ Oyun iptali/oyuncu yaptırımı, ödül düzeltmesi, lig/rozet ve yarışma tema
 - [ ] Log/hata/iş gecikmesi takibi; token ve özel verinin loglanmaması.
 - [ ] Ayrı test ortamı, otomatik kontroller, kontrollü migration süreci, yedekleme ve geri yükleme denemesi.
 
-Faz 2'de bu kabul akışı oyun/puan/haftalık yarışma için tekrar uygulanır; son oda yeri, iki oyun işçisi, çift ödül ve eşleşme iptali testleri o fazdadır.
+İlk teslim oyunları da doğrulanır: QR yenileme/iptal, son lobi yeri, host erken geçişi ile zamanlayıcı yarışı, günlük tekil etkinlik, 30+30 sınırı, yetkisiz değerlendirme ve iki işçinin aynı geçişi işlemesi. Ödül/eşleşme testleri o genişlemelerdedir.
 
 **Bittiğinde:** yerelde tablo oluşturabilmenin ötesinde, ilgili fazın akışlarının birlikte ve eşzamanlı çalıştığına dair kanıt bulunur. Yerel Prisma Postgres tek bağlantılı olduğundan eşzamanlılık testleri ayrıca gerçek PostgreSQL'de yapılır. Test/üretim yayını gerektiğinde somut sürüm ve ortam hazırlanır; bu plan yayın yapıldığı anlamına gelmez.
 
@@ -319,43 +320,44 @@ Faz 2'de bu kabul akışı oyun/puan/haftalık yarışma için tekrar uygulanır
 - [ ] Giriş/oturum kullanımı, medya yükleme ve yeniden deneme örnekleri.
 - [ ] Her ekran için endpoint/alan eşleştirmesi; boş/hata/kilitli/bitmiş durumlar.
 - [ ] Faz 1: ürün/trend/affiliate/reklam/Plus ekranlarının istek, yanıt ve boş/hak yetersiz durumları.
-- [ ] Faz 1 demo hesapları: yazar, arkadaş, yabancı, engellenmiş, Plus ve affiliate üreticisi; trend ve reklam verileri. Farklı oyun durumları Faz 2'de.
-- [ ] Tekrar üretilebilir test verisi ve HTTP scriptleri; oyun simülasyonu Faz 2'de.
+- [ ] Faz 1 demo hesapları: yazar, arkadaş, yabancı, engellenmiş, Plus ve affiliate üreticisi; trend ve reklam verileri. Günlük etkinlik ve özel lobi durumları da demo paketine dahil.
+- [ ] Tekrar üretilebilir test verisi ve HTTP scriptleri; günlük etkinlik ve lobi için hızlandırılmış oyun simülasyonu dahil.
 - [ ] Sağlayıcı anahtarı veya mobil cihaz gerektiren açık entegrasyon kontrol listesi; sahte/test/canlı ayrımı.
 - [ ] Ekranları besleyen son API kontrolü; kullanılmayan/eksik endpoint'leri ayıklama.
 
-Faz 2'de Socket, yeniden bağlanma, geri sayım, oyun simülasyonu ve yarışma ekranlarının teslimi ayrıca yapılır.
+Günlük etkinlik/lobi, sunucu geri sayımı, QR katılımı ve yeniden bağlanma ilk frontend tesliminde yer alır. Seçilmemiş ödül/haftalık yarışma ekranları ayrıca gelir.
 
 **Bittiğinde:** frontend geliştirirken Faz 1 alanları, hata kodları veya ürün kuralları tahmin edilmeyecek. Mobil cihaz, mağaza satın alma ve push teslim kontrolleri frontend entegrasyonunun kabul işleri olarak ayrıca takip edilecek.
 
-## 19. Arkadaş odası ve podyum oyununu bitir — Faz 2
+## 19. Günlük podyum ve QR lobilerini bitir — aktif ilk teslim
 
-**Sorumlu:** Faz 2 başlarken yeniden atanacak.
+**Sorumlu:** Biz. [Yeni oyun sözleşmesi](game-design.md); eski 10 dakika/ortak 20 saniyelik tur önerisi geçersizdir.
 
-- [ ] Oyuncu sayısı, aşama süreleri, geç teslim, eksik oy, beraberlik ve aktif özel odada engel davranışını kesinleştir.
-- [ ] Oda oluşturma, davet, katılma/ayrılma, hazır olma ve yeterli oyuncuyla başlama.
-- [ ] Tek aktif oda hakkı; kapasite ve arkadaşlık kontrolleri.
-- [ ] Tema açıklama ve 10 dakikalık hazırlık.
-- [ ] Fotoğraf teslimi, süre bitiminde yeni teslimi kapatma ve işleme süresi.
-- [ ] Geçerli katılımcıları/tur sırasını sabitleme; yetersiz oyuncuda gerekçeli iptal.
-- [ ] Kombinleri sırayla sunma; kendi turunda değerlendirmeyi kapatma.
-- [ ] 1–5 yıldız + temaya uygunluk; tur başına tek oy ve süre kontrolü.
-- [ ] Sonuç hesabı, isimleri açma, oyun geçmişi ve geçerli aktif üyelikleri bırakma.
+- [x] İki mod, genel 30+30 dakika, yalnız etkinlik katılımcısına oy ve QR lobi/host erken geçişi kapsamını kaydet.
+- [ ] Günlük kesin saat/saat dilimi, tema yönetimi, oy için teslim koşulu ve kapasite/süre sınırlarını seç.
+- [ ] Günlük etkinlik takvimi/tekil oluşturma, katılım ve yalnız kendi etkinliğinde değerlendirme yetkisi.
+- [ ] Eski oyun şemasını gözden geçir; günlük ve özel mod, ayrı teslim/oy süreleri, davet hash'i ve GAME medya erişimi migration'ı.
+- [ ] Özel lobi oluştur/düzenle/başlat; QR davet bağlantısı üret/yenile/iptal, girişle katıl/ayrıl.
+- [ ] Fotoğraf penceresinde tek değiştirilebilir hazır/onaylı teslim; kapanınca teslimleri sabitle.
+- [ ] Genel otomatik geçiş; özel süresi dolunca veya hostun erken bitirmesiyle tek atomik oylama başlangıcı.
+- [ ] Ortak 20 saniyelik tur yerine süreli pencerede sayfalı/dengeli oy adayları; kimlikleri sonuç öncesi gizle.
+- [ ] Seçilen değerlendirme yöntemi, tek değerlendirme/kendine oy yasağı ve DB saatinden geç oy reddi.
+- [ ] Hiç oy/eşitlik/yetersiz örneklem, sonuç/geçmiş ve aktif üyelikleri bırakma; profil ödülü seçilene kadar kapalı.
 
-**Bittiğinde:** birden fazla test oyuncusu API üzerinden baştan sona aynı oyunu tamamlar. Sonuç tek kez oluşur; profil puanı 22. adıma kadar kapalıdır.
+**Bittiğinde:** günlük takvim ve QR lobisi baştan sona API üzerinden tamamlanır; host erken geçişi/zamanlayıcı yarışı çift oylama süresi veya çift sonuç üretmez.
 
-## 20. Canlı olaylar ve oyuna dönüşü bitir — Faz 2
+## 20. Oyun zamanlayıcısı, canlı durum ve dönüşü bitir — aktif ilk teslim
 
-**Sorumlu:** Faz 2 başlarken yeniden atanacak.
+**Sorumlu:** Biz.
 
-- [ ] Yetkili oda aboneliği ve duruma göre kullanıcıya özel yanıtlar.
-- [ ] Oda/tema/hazırlık/tur/sonuç değişikliklerinin Socket.IO üzerinden bildirilmesi.
-- [ ] Sunucu saati, kalan süre ve aşama sürümünün istemciye verilmesi.
-- [ ] Bağlantı kopması ve tekrar bağlanma; uygulamanın ön plana dönmesi.
-- [ ] Sırasız/yinelenen/kaçan olayların güncel durum okumasıyla düzeltilmesi.
-- [ ] Host ayrılması, oyuncu terk etmesi, sunucu/işçi yeniden başlaması ve uzun kesintide iptal.
+- [ ] DB'den günlük etkinlik/faz tarayıcısı; başlangıç ve 30+30 sınırları, kesintiden toparlanma.
+- [ ] Host kopunca süreyi devam ettirme; geç işçi genel takvimi uzatmaz, geçmişe oy almaz.
+- [ ] Yetkili oda/etkinlik aboneliği ve kişiye özel state/medya yanıtları.
+- [ ] Fotoğraf/oy/sonuç değişiklikleri; ham katılımcı/oy verisini açmayan Socket.IO bildirimleri.
+- [ ] serverNow, submissionEndsAt/votingEndsAt ve sürüm; reconnect/foreground/periyodik REST ile düzeltme.
+- [ ] Yinelenen/sırasız olaylar, iki işçi, host erken geçişi, geç teslim/oy, moderasyon/engel ve QR sızıntısı testleri.
 
-**Bittiğinde:** canlı oyun telefondaki sayaç veya tek bir socket mesajının ulaşmasına bağlı kalmaz. Tur sırasında gizlenen isimler yanıt ve olaylarda açığa çıkmaz.
+**Bittiğinde:** oyun istemci saati, host bağlantısı veya tek socket mesajının ulaşmasına bağlı kalmaz; fotoğraf ve kimlik gizliliği bütün uçlarda korunur.
 
 ## 21. Hızlı eşleşme ve oda keşfini bitir — Faz 2
 
@@ -415,7 +417,8 @@ Faz 2'de Socket, yeniden bağlanma, geri sayım, oyun simülasyonu ve yarışma 
 | Reklamlar ve reklamsız Plus | 14–15 |
 | Şikâyet, yönetim ve hesap silme | 11, 16 |
 | Faz 1 doğrulama ve frontend teslimi | 17–18 |
-| Faz 2 oda, podyum, canlı olaylar, hızlı eşleşme | 19–21 |
+| Aktif günlük podyum, QR lobi, canlı durum ve zamanlayıcı | 19–20 |
+| Sonraki hızlı eşleşme genişlemesi | 21 |
 | Faz 2 puan/lig/rozet ve haftalık/sponsorlu yarışma | 22–23 |
 
 ## Kayda alınan ek ürün fikirleri
@@ -430,10 +433,10 @@ Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması at
 
 ## Uygulama sırası
 
-**Faz 1 entegrasyon sırası:** 1–3 ortak temel/giriş → 4 profil → 5 sosyal → 6 medya → 7 ürün kataloğu → 8 paylaşım → 9 tercih/sonuç → 10 akış → 11 yorum/kaydetme → 12 bildirim → 13 trendler → 14 Plus/affiliate hakları → 15 reklamlar → 16 yönetim/hesap yaşam döngüsü → 17 doğrulama → 18 frontend teslimi.
+**Bizim aktif sıra:** 9 tercih/sonuç → 10 ana akış → **19 günlük podyum/QR lobileri → 20 oyun zamanlama/canlı durum** → 11 yorum/kaydetme → 12 bildirim → 16 yönetim/hesap yaşam döngüsü → oyun dahil 17 doğrulama → 18 frontend teslimi.
 
-**Paralel başlangıç:** Biz 4. adıma, arkadaş 7. adımın ürün/link sözleşmesine başlar. Katalog bağımsız geliştirilir; oylama kayıtlarına doğrudan yazmaz. Sonraki paralel teslimler [iki kişilik planda](two-developer-plan.md) açıklanır.
+**Arkadaşın paralel sırası:** 7 katalog → 13 trendler → 14 Plus/affiliate hakları → 15 reklamlar → kendi yönetim/test/frontend sözleşmeleri. Ortak ürün/oy/izin/hak noktaları koordine edilir; oyun sahipliği bizde kalır.
 
-**Faz 2:** 19 arkadaş odası/podyum → 20 canlı olaylar → 21 hızlı eşleşme → 22 oyun puanı/lig → 23 haftalık/sponsorlu yarışma → Faz 2 test ve frontend entegrasyonu. Mevcut oyun tabloları korunur; önceki oyun görevi aktif iş değildir.
+**Sonraki genişleme adayları:** 21 hızlı eşleşme → 22 puan/lig → 23 haftalık/sponsorlu yarışma. Bunlar günlük etkinlik ve QR lobisini Faz 2'ye ertelemez. Mevcut oyun tabloları yeni akışa doğrudan uygun sayılmaz; aktif oyun adımında migration ile gözden geçirilir.
 
-Bir sonraki ürün işi bizim tarafta **9: tercih oyu, kapanış ve sonuç**, arkadaş tarafında **7: ürün kataloğu ve link eşleştirme**. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.
+Bir sonraki ürün işi bizim tarafta **10: ana akış; ardından 19–20 günlük oyun/QR lobileri**, arkadaş tarafında **7: ürün kataloğu ve link eşleştirme**. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.

@@ -43,7 +43,7 @@ export class PollSummaryDto {
   @ApiProperty() question!: string;
   @ApiProperty({ enum: PollCategory }) category!: PollCategory;
   @ApiProperty({ enum: Visibility }) visibility!: Visibility;
-  @ApiProperty({ enum: PollStatus, description: "Kalıcı durum; kapanış işçisi sonraki adımda." }) status!: PollStatus;
+  @ApiProperty({ enum: PollStatus, description: "Kalıcı durum; tarama aralığında effectiveStatus daha güncel olabilir." }) status!: PollStatus;
   @ApiProperty({ enum: PollStatus, description: "OPEN süre dolduysa işçi beklenmeden CLOSED görünür." }) effectiveStatus!: PollStatus;
   @ApiProperty({ enum: ContentStatus }) contentStatus!: ContentStatus;
   @ApiProperty() version!: number;
@@ -67,6 +67,9 @@ export class PollResponseDto extends PollSummaryDto {
   @ApiProperty() isOwner!: boolean;
   @ApiProperty() canEditDraft!: boolean;
   @ApiProperty() canCancel!: boolean;
+  @ApiProperty({ type: String, nullable: true, format: "uuid" }) myOptionId!: string | null;
+  @ApiProperty() canVote!: boolean;
+  @ApiProperty() canViewResults!: boolean;
   @ApiProperty({ type: [PollOptionResponseDto] }) options!: PollOptionResponseDto[];
 }
 
