@@ -7,12 +7,10 @@ import {
 } from "react-native";
 import { Text } from "@/components/ui/Text";
 import { PreviewImage } from "@/components/media/PreviewImage";
-import { blush, colors, fonts } from "@/theme";
+import { colors, fonts } from "@/theme";
 import { ME } from "@/constants/demo";
 import { demoResults, useDemoPolls } from "../hooks/use-demo-polls";
 import type { DemoPost } from "../types";
-
-const BADGE_TONE = { A: "rgba(204,92,134,0.85)", B: "rgba(160,112,160,0.85)" };
 
 // Yan yana iki seçenek. Dokununca tercih kaydedilir; oylama açıkken diğerine
 // dokunarak tercih değiştirilebilir. Kendi paylaşımında ve kapanmış oylamada
@@ -50,7 +48,7 @@ export function PollOptions({
             onPress={() => vote(post.id, option.label)}
             style={[
               styles.option,
-              { borderColor: selected ? blush.pink : "transparent" },
+              { borderColor: selected ? colors.accent : "transparent" },
             ]}
           >
             <PreviewImage uri={option.image} tone={option.tone} />
@@ -66,7 +64,7 @@ export function PollOptions({
                     {
                       height: `${option.percent}%`,
                       backgroundColor: selected
-                        ? "rgba(236,94,146,0.82)"
+                        ? "rgba(208,10,38,0.82)"
                         : "rgba(17,17,17,0.45)",
                     },
                   ]}
@@ -74,9 +72,7 @@ export function PollOptions({
                 <Text style={styles.percent}>%{option.percent}</Text>
               </>
             )}
-            <View
-              style={[styles.badge, { backgroundColor: BADGE_TONE[option.label] }]}
-            >
+            <View style={styles.badge}>
               <Text style={styles.badgeText}>{option.label}</Text>
             </View>
             {selected && (
@@ -99,7 +95,7 @@ export function PollOptions({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: "row", gap: 8 },
+  row: { flexDirection: "row", gap: 4 },
   // Kombin görselleri dikey 9:16 oranındadır.
   option: {
     flex: 1,
@@ -115,9 +111,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     left: 10,
-    height: 34,
-    width: 34,
-    borderRadius: 17,
+    height: 32,
+    width: 32,
+    borderRadius: 16,
+    backgroundColor: colors.text,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -136,10 +133,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     left: 10,
-    backgroundColor: blush.card,
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    backgroundColor: colors.background,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   productsText: { fontSize: 12, fontFamily: fonts.semibold },
   resultFill: { position: "absolute", bottom: 0, left: 0, right: 0 },

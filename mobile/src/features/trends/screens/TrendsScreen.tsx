@@ -3,7 +3,6 @@ import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { BrandTitle } from "@/components/ui/BrandTitle";
 import { ChipRow } from "@/components/ui/ChipRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PreviewImage } from "@/components/media/PreviewImage";
@@ -60,7 +59,7 @@ export function TrendsScreen() {
     .join(" · ");
   return (
     <Screen>
-      <BrandTitle title="Trendler" />
+      <Text style={common.title}>Trendler</Text>
       <Text style={common.subtitle}>
         Seçilen kombinlerde en çok yer alan parçalar
       </Text>

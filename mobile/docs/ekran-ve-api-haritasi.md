@@ -6,23 +6,23 @@
 
 | Route | Feature ekranı | Şimdiki davranış |
 | --- | --- | --- |
-| `/` | feed/FeedScreen | Pembe kart; Herkes/Arkadaşlar, filtre tuşuyla açılan kategoriler, kombindeki parçalar |
+| `/` | feed/FeedScreen | Kırmızı/beyaz içerik odaklı akış; Herkes/Arkadaşlar, filtre tuşuyla açılan kategoriler, kombindeki parçalar; üstte Kişiler ve Defile düğmeleri |
 | `/trendler` | trends/TrendsScreen | Dönem, kategori, tercih yapanlar ve fiyat filtreleri |
-| `/paylas` | polls/CreatePollScreen | Form tasarımı (2–4 seçenek, kitle seçimi); fotoğraf/yayın henüz yok |
-| `/bildirimler` | notifications/NotificationsScreen | Boş durum (sekme çubuğunda gizli) |
-| `/defile` | games/GamesScreen | Defile: lig, canlı Podyum, haftalık tema, arkadaş sıralaması, Podyum Turu (demo) |
-| `/profil` | profile/ProfileScreen | "Profilim": konum, takipçi/takip, Profili Düzenle, öne çıkanlar, Gönderiler/Kombinler/Oylamalar/Kaydedilenler (demo) |
-| `/u/:username` | profile/ProfileScreen | "Profil": lig rozeti, Takip Et/Mesaj, öne çıkanlar; bilinmeyen kullanıcı için boş durum |
+| `/paylas` | polls/CreatePollScreen | Form tasarımı; fotoğraf alanına dokununca galeriden seçim; yayın henüz yok |
+| `/bildirimler` | notifications/NotificationsScreen | Boş durum |
+| `/defile` | games/GamesScreen | Defile: lig, canlı Podyum, haftalık tema, arkadaş sıralaması, Podyum Turu (demo); sekme çubuğunda gizli, Keşfet'teki kupa düğmesinden açılır |
+| `/profil` | profile/ProfileScreen | Demo kendi profili; paylaşım/kaydedilenler, Profili Düzenle ve Ayarlar bağlantıları |
+| `/u/:username` | profile/ProfileScreen | Demo hedef profil; bilinmeyen kullanıcı için boş durum |
 | `/polls/:id` | polls/PollDetailScreen | Demo kombin detayı; aynı tercih state'i |
 | `/profile/edit` | profile/EditProfileScreen | Profili Düzenle: kapak/avatar seçimi, ad, bio, konum, stil etiketleri, sosyal hesaplar; Kaydet bellekte tutar |
 | `/settings` | settings/SettingsScreen | Ayarlar: Bildirimler ekranına gider, Çıkış karşılama ekranına döner; diğer satırlar henüz bağlı değil |
 | `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
 | `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |
-| `/games` | → `/defile` | Eski bağlantılar Defile sekmesine yönlenir |
+| `/games` | → `/defile` | Eski bağlantılar Defile ekranına yönlenir |
 | `/auth` | auth/AuthScreen | Karşılama/giriş: açılışta bir kez gösterilir, Başla ile Keşfet'e geçer; Apple/Google/e-posta girişi bağlı değil |
 | bilinmeyen route | +not-found | Güvenli Keşfet'e dönüş |
 
-Alt menü Keşfet, Trendler, Paylaş, Defile, Profil içerir. Günlük podyum ve oyunlar Defile sekmesindedir; `/bildirimler` rotası durur ama sekmede gizlidir. `src/app/` dosyaları route/layout/parametreyle sınırlı, UI ve davranış feature'ların içindedir.
+Alt menü Keşfet, Trendler, Paylaş, Bildirim, Profil içerir. Günlük podyum ve oyunlar Defile ekranındadır; Keşfet üstündeki kupa düğmesinden açılır. `src/app/` dosyaları route/layout/parametreyle sınırlı, UI ve davranış feature'ların içindedir.
 
 ## İlk gerçek API bağlantısı
 
@@ -53,7 +53,9 @@ Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı 
 
 **Kombindeki parçalar ve trendler:** Her seçenek, parça kimliklerinin listesini taşır (`products: string[]`); parça adı, kategori, örnek fiyat, küçük görsel ve arama sorgusu `features/polls/data/demo-products.ts` içindedir. Gerçek bağlantıda bunların karşılığı seçenek başına ProductTag ve katalogdaki ortak ürün kimliğidir; "Benzerlerini gör" yerine etiketin `externalUrl` adresi açılır. Demo trend listesi aynı parçalardan hesaplanır: parçanın etiketlendiği seçeneklere verilen oyların toplamı. Bu, mentör notundaki "seçilen kombinlerde yer alan ürünler" ölçümüdür; ürün oyu ya da satış değildir.
 
-**Keşfet düzeni:** Pembe tasarımda oylama tek bir kart içindedir: yazar, serif soru, yan yana 9:16 seçenekler ve kartın içinde Geç/Kaydet/yorum eylemleri. Kartın altında parçalar listelenir. Kategori filtreleri sağ üstteki filtre tuşuyla açılır; arama çubuğu Kişiler ekranına gider. "Senin oylaman" şeridi Keşfet'te yoktur; kendi oylamalarına Profil'den ulaşılır.
+**Keşfet düzeni:** Görseller 9:16 oranındadır, altında parçalar listelenir. Fotoğraflar ekranı doldurur; filtreler üst satırdaki sekmelere ve tek bir ikona indirildi, eylemler alt satırda ikonlardır. Üst satırdaki kişi düğmesi Kişiler ekranına, kupa düğmesi Defile'ye gider. "Senin oylaman" şeridi Keşfet'te yoktur; kendi oylamalarına Profil'den ulaşılır.
+
+**Tasarım dili:** Keşfet, oylama kartı ve seçenekleri, Paylaş, Profil, Trendler ve alt menü beyaz zemin + `#D00A26` kırmızı + Hanken Grotesk kullanır (`theme` içindeki `colors`/`fonts`). Karşılama, Defile, Kişiler, Ayarlar ve Profili Düzenle ekranları pembe/krem paletle (`blush`/`sand`) durur.
 
 Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş filtreleri ve gerçek katalog kimliği ayrıca bağlanacak.
 

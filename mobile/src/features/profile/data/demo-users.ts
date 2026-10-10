@@ -5,7 +5,7 @@ export const users: DemoUser[] = [
     username: "elifyz",
     displayName: "Elif Yılmaz",
     initials: "EY",
-    bio: "Moda, kahve ve güzel kombinler 💕\nGünlük stilimi ve favorilerimi paylaşıyorum.",
+    bio: "Minimal dolap, vintage zaaf.",
     location: "İstanbul, Türkiye",
     verified: true,
     styles: ["Minimal", "Vintage", "Sokak stili"],
