@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   tile: {
     width: "48.5%",
-    aspectRatio: 1.25,
+    aspectRatio: 3 / 4,
     borderRadius: 18,
     overflow: "hidden",
     justifyContent: "flex-end",

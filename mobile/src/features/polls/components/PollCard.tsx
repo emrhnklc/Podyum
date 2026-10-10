@@ -3,16 +3,16 @@ import { Pressable, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
-import { PreviewImage } from "@/components/media/PreviewImage";
 import { blush, colors, common, fonts, serif } from "@/theme";
 import { ME } from "@/constants/demo";
 import { compactCount } from "@/lib/format";
 import { getUser } from "@/features/profile/data/demo-users";
 import { demoResults, useDemoPolls } from "../hooks/use-demo-polls";
+import { PollOptions } from "./PollOptions";
 import type { DemoPost } from "../types";
 
-const BADGE_TONE = { A: "rgba(204,92,134,0.85)", B: "rgba(160,112,160,0.85)" };
-
+// Pembe oylama kartı: yazar, soru, seçenekler ve durum satırı. Keşfet eylemleri
+// `footer` ile kartın içine eklenir; detay ekranı kartı footer'sız kullanır.
 export function PollCard({
   post,
   footer,
@@ -20,12 +20,11 @@ export function PollCard({
   post: DemoPost;
   footer?: ReactNode;
 }) {
-  const { votes, vote } = useDemoPolls();
+  const { votes } = useDemoPolls();
   const picked = votes[post.id];
   const user = getUser(post.user);
   const mine = post.user === ME;
   const closed = post.timeLeft === "bitti";
-  const revealed = !!picked || mine || closed;
   const results = demoResults(post, picked);
   return (
     <View style={styles.card}>
@@ -75,91 +74,16 @@ export function PollCard({
       <Text style={styles.question}>
         {post.question} <Text style={styles.heart}>♡</Text>
       </Text>
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        {results.options.map((option) => (
-          <Pressable
-            key={option.label}
-            accessibilityRole="button"
-            accessibilityLabel={`Seçenek ${option.label}${revealed ? `, yüzde ${option.percent}` : ""}`}
-            accessibilityState={{
-              selected: picked === option.label,
-              disabled: revealed,
-            }}
-            disabled={revealed}
-            onPress={() => vote(post.id, option.label)}
-            style={[
-              styles.option,
-              {
-                borderColor:
-                  picked === option.label ? blush.pink : "transparent",
-              },
-            ]}
-          >
-            <PreviewImage uri={option.image} tone={option.tone} />
-            {!option.image && (
-              <Text
-                style={{ fontSize: 12, color: colors.photoText, marginTop: 65 }}
-              >
-                {post.photoLabel}
-              </Text>
-            )}
-            <View
-              style={[styles.badge, { backgroundColor: BADGE_TONE[option.label] }]}
-            >
-              <Text
-                style={{ fontFamily: fonts.extraBold, color: colors.onAccent }}
-              >
-                {option.label}
-              </Text>
-            </View>
-            {revealed ? (
-              <>
-                <View
-                  pointerEvents="none"
-                  style={[
-                    styles.resultFill,
-                    {
-                      height: `${option.percent}%`,
-                      backgroundColor:
-                        picked === option.label
-                          ? "rgba(236,94,146,0.88)"
-                          : "rgba(17,17,17,0.12)",
-                    },
-                  ]}
-                />
-                <Text
-                  style={[
-                    styles.percent,
-                    {
-                      color:
-                        picked === option.label ? colors.onAccent : colors.text,
-                    },
-                  ]}
-                >
-                  %{option.percent}
-                </Text>
-                {picked === option.label && (
-                  <View style={styles.mine}>
-                    <Text style={{ fontSize: 11, fontFamily: fonts.bold }}>
-                      Senin seçimin
-                    </Text>
-                  </View>
-                )}
-              </>
-            ) : (
-              <View style={styles.products}>
-                <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
-                  {option.productCount} ürün
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        ))}
-      </View>
-      {picked ? (
+      <PollOptions post={post} />
+      {picked && !closed ? (
         <View style={[common.row, styles.accepted]}>
           <Ionicons name="checkmark-circle" size={20} color={blush.pink} />
-          <Text style={{ fontFamily: fonts.bold }}>Tercihin kaydedildi</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: fonts.bold }}>Tercihin kaydedildi</Text>
+            <Text style={{ fontSize: 12, color: colors.muted }}>
+              Değiştirmek için diğerine dokun
+            </Text>
+          </View>
         </View>
       ) : (
         <View style={common.row}>
@@ -174,20 +98,11 @@ export function PollCard({
           <View style={styles.rule} />
         </View>
       )}
-      {revealed && (
-        <View style={common.spread}>
-          <Text style={{ fontSize: 13, color: colors.muted }}>
-            {results.total} oy · {closed ? "Sonuç" : "Anlık sonuç"}
-          </Text>
-          <Text style={{ fontSize: 12, color: colors.muted }}>
-            Demo önizleme
-          </Text>
-        </View>
-      )}
       {footer}
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   card: {
     padding: 16,
@@ -231,51 +146,5 @@ const styles = StyleSheet.create({
   },
   heart: { fontSize: 26, color: blush.pink },
   rule: { flex: 1, height: 1, backgroundColor: blush.line },
-  option: {
-    flex: 1,
-    height: 300,
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badge: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    height: 36,
-    width: 36,
-    borderRadius: 18,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  products: {
-    position: "absolute",
-    bottom: 12,
-    left: 10,
-    backgroundColor: "white",
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-  },
-  resultFill: { position: "absolute", bottom: 0, left: 0, right: 0 },
-  percent: {
-    position: "absolute",
-    bottom: 8,
-    left: 10,
-    fontSize: 34,
-    fontFamily: fonts.extraBold,
-  },
-  mine: {
-    position: "absolute",
-    top: 50,
-    left: 8,
-    right: 8,
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingVertical: 5,
-  },
   accepted: { backgroundColor: blush.chip, padding: 12, borderRadius: 14 },
 });

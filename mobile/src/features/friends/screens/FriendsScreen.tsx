@@ -2,7 +2,7 @@ import { Pressable, View } from "react-native";
 import { router } from "expo-router";
 import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
-import { Button } from "@/components/ui/Button";
+import { BackButton } from "@/components/ui/BackButton";
 import { DEMO_FRIENDS } from "@/constants/demo";
 import { getUser } from "@/features/profile/data/demo-users";
 import { common, fonts } from "@/theme";
@@ -10,13 +10,7 @@ import { common, fonts } from "@/theme";
 export function FriendsScreen() {
   return (
     <Screen>
-      <Button
-        title="Geri"
-        variant="outline"
-        onPress={() =>
-          router.canGoBack() ? router.back() : router.replace("/profil")
-        }
-      />
+      <BackButton fallback="/profil" />
       <Text style={common.title}>Arkadaşlar</Text>
       <Text style={common.subtitle}>Önizleme için örnek arkadaş listesi</Text>
       {DEMO_FRIENDS.map((username) => (

@@ -142,8 +142,12 @@ model User {
   polls              Poll[]
   votes              PollVote[]
   saves              PollSave[]
-  comments           Comment[]
-  notifications      Notification[]
+  comments           Comment[]             @relation("CommentAuthor")
+  removedComments    Comment[]             @relation("CommentRemover")
+  reportsMade        Report[]              @relation("ReportReporter")
+  reportsReceived    Report[]              @relation("ReportTargetUser")
+  notifications      Notification[]        @relation("NotificationRecipient")
+  notificationsActed Notification[]        @relation("NotificationActor")
   devices            DeviceToken[]
   hostedRooms        GameRoom[]
   participations     GameParticipant[]
@@ -178,6 +182,7 @@ model AuthSession {
   createdAt         DateTime           @default(now()) @db.Timestamptz(3)
   user              User               @relation(fields: [userId], references: [id], onDelete: Restrict)
   usedRefreshTokens UsedRefreshToken[]
+  deviceTokens      DeviceToken[]
 
   @@index([userId, revokedAt])
   @@index([expiresAt])
@@ -235,6 +240,7 @@ model UserSettings {
   friendRequestNotifications Boolean    @default(true)
   pollResultNotifications    Boolean    @default(true)
   commentNotifications       Boolean    @default(true)
+  gameNotifications          Boolean    @default(true)
   defaultPollVisibility      Visibility @default(PUBLIC)
   defaultCommentsEnabled     Boolean    @default(true)
   defaultBlurFace            Boolean    @default(true)
@@ -345,6 +351,7 @@ model Poll {
   votes              PollVote[]
   saves              PollSave[]
   comments           Comment[]
+  reports            Report[]
 
   @@index([status, visibility, publishedAt(sort: Desc), id(sort: Desc)])
   @@index([authorId, publishedAt(sort: Desc), id(sort: Desc)])
@@ -381,17 +388,18 @@ model ProductTag {
 }
 
 model PollVote {
-  pollId                  String     @db.Uuid
-  voterId                 String     @db.Uuid
-  optionId                String     @db.Uuid
+  pollId                  String          @db.Uuid
+  voterId                 String          @db.Uuid
+  optionId                String          @db.Uuid
   genderAtVote            Gender?
   ageBandAtVote           AgeBand?
-  analyticsConsentAtVote  DateTime?  @db.Timestamptz(3)
+  analyticsConsentAtVote  DateTime?       @db.Timestamptz(3)
   analyticsRevisionAtVote Int?
-  createdAt               DateTime   @default(now()) @db.Timestamptz(3)
-  poll                    Poll       @relation(fields: [pollId], references: [id], onDelete: Restrict)
-  voter                   User       @relation(fields: [voterId], references: [id], onDelete: Restrict)
-  option                  PollOption @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
+  createdAt               DateTime        @default(now()) @db.Timestamptz(3)
+  poll                    Poll            @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  voter                   User            @relation(fields: [voterId], references: [id], onDelete: Restrict)
+  option                  PollOption      @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
+  reason                  PollVoteReason?
 
   @@id([pollId, voterId])
   @@index([pollId, optionId])
@@ -417,11 +425,82 @@ model Comment {
   contentStatus ContentStatus @default(VISIBLE)
   createdAt     DateTime      @default(now()) @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @db.Timestamptz(3)
+  removedAt     DateTime?     @db.Timestamptz(3)
+  removedById   String?       @db.Uuid
   poll          Poll          @relation(fields: [pollId], references: [id], onDelete: Restrict)
-  author        User          @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  author        User          @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  removedBy     User?         @relation("CommentRemover", fields: [removedById], references: [id], onDelete: Restrict)
+  reports       Report[]
 
   @@index([pollId, createdAt, id])
   @@index([authorId])
+}
+
+enum PollReasonCode {
+  COLOR_HARMONY
+  MORE_STYLISH
+  MORE_COMFORTABLE
+  FITS_OCCASION
+  BETTER_FIT
+}
+
+// Oy verenin kendi seçtiği seçenek için işaretlediği tek hazır neden.
+// Seçenek ayrı tutulmaz; değişmez PollVote kaydından okunur.
+model PollVoteReason {
+  pollId    String         @db.Uuid
+  voterId   String         @db.Uuid
+  reason    PollReasonCode
+  createdAt DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime       @updatedAt @db.Timestamptz(3)
+  vote      PollVote       @relation(fields: [pollId, voterId], references: [pollId, voterId], onDelete: Restrict)
+
+  @@id([pollId, voterId])
+  @@index([pollId, reason])
+}
+
+enum ReportTargetType {
+  POLL
+  COMMENT
+  USER
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  INAPPROPRIATE
+  IMPERSONATION
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+// Hedef türüne göre tam bir hedef sütunu doludur (migration'da CHECK).
+model Report {
+  id           String           @id @default(uuid()) @db.Uuid
+  reporterId   String           @db.Uuid
+  targetType   ReportTargetType
+  pollId       String?          @db.Uuid
+  commentId    String?          @db.Uuid
+  targetUserId String?          @db.Uuid
+  reason       ReportReason
+  note         String?          @db.VarChar(500)
+  status       ReportStatus     @default(OPEN)
+  createdAt    DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime         @updatedAt @db.Timestamptz(3)
+  reporter     User             @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  poll         Poll?            @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  comment      Comment?         @relation(fields: [commentId], references: [id], onDelete: Restrict)
+  targetUser   User?            @relation("ReportTargetUser", fields: [targetUserId], references: [id], onDelete: Restrict)
+
+  @@unique([reporterId, pollId])
+  @@unique([reporterId, commentId])
+  @@unique([reporterId, targetUserId])
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt(sort: Desc)])
 }
 
 model Notification {
@@ -431,23 +510,35 @@ model Notification {
   type         String    @db.VarChar(80)
   resourceType String    @db.VarChar(40)
   resourceId   String    @db.Uuid
+  actorId      String?   @db.Uuid
+  count        Int       @default(1)
   readAt       DateTime? @db.Timestamptz(3)
+  activityAt   DateTime  @default(now()) @db.Timestamptz(3)
   createdAt    DateTime  @default(now()) @db.Timestamptz(3)
-  user         User      @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user         User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Restrict)
+  actor        User?     @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Restrict)
 
   @@unique([userId, eventId, type])
-  @@index([userId, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, activityAt(sort: Desc), id(sort: Desc)])
+  @@index([userId, readAt])
+  @@index([userId, type, resourceId])
+  @@index([actorId])
 }
 
 model DeviceToken {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @db.Uuid
-  token     String   @unique @db.VarChar(512)
-  platform  String   @db.VarChar(20)
-  updatedAt DateTime @updatedAt @db.Timestamptz(3)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  id             String      @id @default(uuid()) @db.Uuid
+  userId         String      @db.Uuid
+  installationId String      @unique @db.Uuid
+  sessionId      String      @db.Uuid
+  token          String      @unique @db.VarChar(512)
+  platform       String      @db.VarChar(20)
+  createdAt      DateTime    @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime    @updatedAt @db.Timestamptz(3)
+  user           User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  session        AuthSession @relation(fields: [sessionId], references: [id], onDelete: Restrict)
 
-  @@index([userId])
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([sessionId])
 }
 
 model Theme {

@@ -1,0 +1,146 @@
+@origin = http://127.0.0.1:3000
+@hostToken = REPLACE_HOST_ACCESS_TOKEN
+@guestToken = REPLACE_GUEST_ACCESS_TOKEN
+@gameId = REPLACE_GAME_UUID
+@inviteToken = REPLACE_43_CHAR_INVITE_TOKEN
+@mediaId = REPLACE_GAME_MEDIA_UUID
+@submissionId = REPLACE_SUBMISSION_UUID
+
+### Günlük etkinlik; DAILY_GAME_* ayarı yoksa scheduleConfigured=false ve event=null
+GET {{origin}}/v1/games/daily
+Authorization: Bearer {{guestToken}}
+
+### Günlük etkinliğe katıl; gövde boş. Idempotency-Key her yeni komutta farklı olmalı.
+POST {{origin}}/v1/games/{{gameId}}/join
+Authorization: Bearer {{guestToken}}
+Idempotency-Key: join-daily-0001
+Content-Type: application/json
+
+{}
+
+### Özel lobi oluştur; host otomatik üye olur. Süreler saniye, 60–7200.
+POST {{origin}}/v1/games/lobbies
+Authorization: Bearer {{hostToken}}
+Idempotency-Key: create-lobby-0001
+Content-Type: application/json
+
+{
+  "themeTitle": "90'lar",
+  "submissionSeconds": 600,
+  "votingSeconds": 600,
+  "maxMembers": 8
+}
+
+### Başlamamış lobinin ayarlarını değiştir; expectedVersion son state'ten alınır
+PUT {{origin}}/v1/games/{{gameId}}/settings
+Authorization: Bearer {{hostToken}}
+Idempotency-Key: settings-0001
+Content-Type: application/json
+
+{
+  "themeTitle": "90'lar sokak stili",
+  "submissionSeconds": 900,
+  "votingSeconds": 600,
+  "maxMembers": 10,
+  "expectedVersion": 0
+}
+
+### QR daveti üret/yenile. Ham token yalnız bu yanıtta görünür; eski token iptal olur.
+POST {{origin}}/v1/games/{{gameId}}/invite
+Authorization: Bearer {{hostToken}}
+Content-Type: application/json
+
+{ "expectedVersion": 1 }
+
+### Daveti iptal et
+POST {{origin}}/v1/games/{{gameId}}/invite/revoke
+Authorization: Bearer {{hostToken}}
+Idempotency-Key: revoke-invite-0001
+Content-Type: application/json
+
+{ "expectedVersion": 2 }
+
+### Daveti önizle; üyelik oluşturmaz
+POST {{origin}}/v1/games/invites/preview
+Authorization: Bearer {{guestToken}}
+Content-Type: application/json
+
+{ "token": "{{inviteToken}}" }
+
+### Davetle katıl; arkadaşlık gerekmez
+POST {{origin}}/v1/games/join
+Authorization: Bearer {{guestToken}}
+Idempotency-Key: join-invite-0001
+Content-Type: application/json
+
+{ "token": "{{inviteToken}}" }
+
+### Üyeye özel state; geri sayım serverNow ve phaseEndsAt farkından hesaplanır
+GET {{origin}}/v1/games/{{gameId}}
+Authorization: Bearer {{guestToken}}
+
+### Host fotoğraf aşamasını başlatır; en az 2 aktif üye gerekir
+POST {{origin}}/v1/games/{{gameId}}/start
+Authorization: Bearer {{hostToken}}
+Idempotency-Key: start-0001
+Content-Type: application/json
+
+{ "expectedVersion": 3 }
+
+### Oyun fotoğrafı için yükleme izni; sonraki adımlar media.http ile aynı (upload → complete → accept-preview)
+POST {{origin}}/v1/media/uploads
+Authorization: Bearer {{guestToken}}
+Content-Type: application/json
+
+{
+  "purpose": "GAME",
+  "mimeType": "image/jpeg",
+  "byteSize": 12345,
+  "blurRequested": false
+}
+
+### Onaylı GAME fotoğrafını teslim et; süre içinde başka mediaId ile değiştirilebilir
+PUT {{origin}}/v1/games/{{gameId}}/submission
+Authorization: Bearer {{guestToken}}
+Content-Type: application/json
+
+{ "mediaId": "{{mediaId}}" }
+
+### Host fotoğraf aşamasını erken bitirir; oy süresi şimdi başlar
+POST {{origin}}/v1/games/{{gameId}}/end-submission
+Authorization: Bearer {{hostToken}}
+Idempotency-Key: end-submission-0001
+Content-Type: application/json
+
+{ "expectedVersion": 6 }
+
+### Henüz değerlendirilmemiş anonim kartlar
+GET {{origin}}/v1/games/{{gameId}}/ballot?limit=10
+Authorization: Bearer {{guestToken}}
+
+### Karttaki fotoğraf; yalnız aktif üyelere, oylama başladıktan sonra
+GET {{origin}}/v1/media/{{mediaId}}/content
+Authorization: Bearer {{guestToken}}
+
+### 1–5 yıldız; tek ve değişmez. Aynı yıldızın tekrarı aynı makbuzu döndürür.
+PUT {{origin}}/v1/games/{{gameId}}/submissions/{{submissionId}}/rating
+Authorization: Bearer {{guestToken}}
+Content-Type: application/json
+
+{ "stars": 4 }
+
+### Sonuçlar; oylama tamamlanmadan 409 RESULTS_NOT_AVAILABLE
+GET {{origin}}/v1/games/{{gameId}}/results?limit=20
+Authorization: Bearer {{guestToken}}
+
+### Oylama başlamadan ayrıl; gövde boş
+POST {{origin}}/v1/games/{{gameId}}/leave
+Authorization: Bearer {{guestToken}}
+Idempotency-Key: leave-0001
+Content-Type: application/json
+
+{}
+
+### Kendi oyun geçmişin
+GET {{origin}}/v1/me/games?limit=20
+Authorization: Bearer {{guestToken}}

@@ -14,6 +14,12 @@ export interface Environment {
   gameWorkerEnabled: boolean;
   gameIntervalMs: number;
   dailyGameSchedule: DailyGameSchedule | null;
+  outboxWorkerEnabled: boolean;
+  outboxIntervalMs: number;
+  pushProvider: "local" | "expo";
+  localPushDir: string;
+  expoPushUrl: string;
+  expoAccessToken: string | null;
 }
 
 function flag(value: string | undefined, fallback: boolean, name: string): boolean {
@@ -45,6 +51,16 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
   }
   const gameInterval = env.GAME_INTERVAL_MS ?? "5000";
   if (!/^\d+$/.test(gameInterval) || Number(gameInterval) < 1000 || Number(gameInterval) > 300000) throw new Error("GAME_INTERVAL_MS 1000–300000 aralığında olmalı.");
+  const outboxInterval = env.OUTBOX_INTERVAL_MS ?? "3000";
+  if (!/^\d+$/.test(outboxInterval) || Number(outboxInterval) < 500 || Number(outboxInterval) > 300000) throw new Error("OUTBOX_INTERVAL_MS 500–300000 aralığında olmalı.");
+  const pushProvider = env.PUSH_PROVIDER ?? "local";
+  if (pushProvider !== "local" && pushProvider !== "expo") throw new Error("PUSH_PROVIDER local veya expo olmalı.");
+  const expoPushUrl = env.EXPO_PUSH_URL ?? "https://exp.host/--/api/v2/push/send";
+  try {
+    if (!["http:", "https:"].includes(new URL(expoPushUrl).protocol)) throw new Error();
+  } catch {
+    throw new Error("EXPO_PUSH_URL geçerli bir http/https adresi olmalı.");
+  }
   // Gerçek e-posta/OAuth taşıyıcıları bağlanana kadar canlı ortamda sessizce yerel akış çalıştırılmaz.
   if (nodeEnv === "production") {
     throw new Error("Üretim açılışı kapalı: gerçek e-posta ve OAuth entegrasyonları henüz tamamlanmadı.");
@@ -72,5 +88,11 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
     gameWorkerEnabled: flag(env.GAME_WORKER_ENABLED, true, "GAME_WORKER_ENABLED"),
     gameIntervalMs: Number(gameInterval),
     dailyGameSchedule: readDailyGameSchedule(env),
+    outboxWorkerEnabled: flag(env.OUTBOX_WORKER_ENABLED, true, "OUTBOX_WORKER_ENABLED"),
+    outboxIntervalMs: Number(outboxInterval),
+    pushProvider,
+    localPushDir: env.LOCAL_PUSH_DIR ?? ".local/push",
+    expoPushUrl,
+    expoAccessToken: env.EXPO_ACCESS_TOKEN || null,
   };
 }

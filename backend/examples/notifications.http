@@ -1,0 +1,51 @@
+@origin = http://127.0.0.1:3000
+@accessToken = REPLACE_ACCESS_TOKEN
+@notificationId = REPLACE_NOTIFICATION_UUID
+@installationId = REPLACE_WITH_UUID_STORED_ON_DEVICE
+@cursor = REPLACE_NEXT_CURSOR
+@serverNow = REPLACE_SERVER_NOW_FROM_LIST
+
+### Bildirimler: son etkinlik önce; okunmamış sayısı dahil
+GET {{origin}}/v1/me/notifications?limit=20
+Authorization: Bearer {{accessToken}}
+
+### Sonraki sayfa
+GET {{origin}}/v1/me/notifications?limit=20&cursor={{cursor}}
+Authorization: Bearer {{accessToken}}
+
+### Sekme rozeti
+GET {{origin}}/v1/me/notifications/unread-count
+Authorization: Bearer {{accessToken}}
+
+### Tek bildirimi okundu yap; tekrar aynı yanıtı verir
+PUT {{origin}}/v1/me/notifications/{{notificationId}}/read
+Authorization: Bearer {{accessToken}}
+
+### Ekranda görülenleri okundu yap: listeden alınan serverNow gönderilir
+POST {{origin}}/v1/me/notifications/read-all
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "before": "{{serverNow}}" }
+
+### Hepsini okundu yap
+POST {{origin}}/v1/me/notifications/read-all
+Authorization: Bearer {{accessToken}}
+
+### Push anahtarını kaydet/güncelle; kayıt bu oturuma bağlanır
+PUT {{origin}}/v1/me/devices/{{installationId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]", "platform": "ios" }
+
+### Push kaydını kaldır; çıkış da bu oturumun kaydını siler
+DELETE {{origin}}/v1/me/devices/{{installationId}}
+Authorization: Bearer {{accessToken}}
+
+### Bildirim tercihleri: yalnız push'u kapatır, uygulama içi liste yazılmaya devam eder
+PATCH {{origin}}/v1/me/settings
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{ "commentNotifications": false, "gameNotifications": true }

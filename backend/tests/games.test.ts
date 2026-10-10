@@ -309,7 +309,7 @@ test("değerlendirme aynı tekrarda aynı makbuz; değiştirme/başka oda redded
 
 test("anonim oy kartları döndürülen sırayla sayfalanır; cursor kaynak/oda/kullanıcıya bağlı", async () => {
   const row = await group(4); await command(row.id, "start");
-  const entries = [];
+  const entries: string[] = [];
   for (const actor of actors.slice(0, 3)) entries.push((await submit(row.id, actor)).body.submissionId);
   await command(row.id, "end-submission");
   const first = await call("GET", `/games/${row.id}/ballot?limit=1`, actors[3]); assert.equal(first.status, 200); assert.ok(first.body.nextCursor);

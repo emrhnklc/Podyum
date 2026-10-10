@@ -8,6 +8,7 @@ import {
   View,
 } from "react-native";
 import { router } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
@@ -49,12 +50,13 @@ const AGES = [
   { value: "45+", label: "45+", icon: "person-outline" },
 ] as const;
 
-type Option = { id: number; image?: string; productCount: number };
+type Photo = { uri: string; mimeType?: string; fileSize?: number };
+type Option = { id: number; photo?: Photo };
 
 export function CreatePollScreen() {
   const [options, setOptions] = useState<Option[]>([
-    { id: 1, productCount: 0 },
-    { id: 2, productCount: 0 },
+    { id: 1 },
+    { id: 2 },
   ]);
   const [nextId, setNextId] = useState(3);
   const [question, setQuestion] = useState("");
@@ -65,13 +67,40 @@ export function CreatePollScreen() {
   const [myStyle, setMyStyle] = useState(false);
   const [friendsOnly, setFriendsOnly] = useState(false);
   const [comments, setComments] = useState(true);
-  const [blur, setBlur] = useState(false);
+  const [blur, setBlur] = useState(true);
   const message = usePreviewMessage();
-  const canPublish = options.length >= 2 && question.trim().length > 0;
+  const canPublish =
+    options.length >= 2 &&
+    options.every((option) => option.photo) &&
+    question.trim().length > 0;
 
   function addOption() {
-    setOptions((previous) => [...previous, { id: nextId, productCount: 0 }]);
+    setOptions((previous) => [...previous, { id: nextId }]);
     setNextId((id) => id + 1);
+  }
+  // Galeriden tek fotoğraf seçer. quality verildiği için iOS'taki HEIC
+  // fotoğraflar JPEG'e çevrilir; backend HEIC kabul etmiyor.
+  async function pick(id: number) {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: "images",
+        quality: 0.85,
+      });
+      if (result.canceled) return;
+      const asset = result.assets[0];
+      const photo = {
+        uri: asset.uri,
+        mimeType: asset.mimeType,
+        fileSize: asset.fileSize,
+      };
+      setOptions((previous) =>
+        previous.map((option) =>
+          option.id === id ? { ...option, photo } : option,
+        ),
+      );
+    } catch {
+      message("Fotoğraf seçilemedi. Galeri iznini kontrol edip tekrar dene.");
+    }
   }
   function removeOption(id: number) {
     setOptions((previous) => previous.filter((option) => option.id !== id));
@@ -114,14 +143,16 @@ export function CreatePollScreen() {
             <Pressable
               key={option.id}
               accessibilityRole="button"
-              accessibilityLabel={`${LETTERS[index]} fotoğrafı ekle`}
-              onPress={() =>
-                message("Fotoğraf seçimi bir sonraki adımda açılacak.")
+              accessibilityLabel={
+                option.photo
+                  ? `${LETTERS[index]} fotoğrafını değiştir`
+                  : `${LETTERS[index]} fotoğrafı ekle`
               }
+              onPress={() => pick(option.id)}
               style={styles.tile}
             >
-              <PreviewImage uri={option.image} tone={TONES[index]} />
-              {!option.image && (
+              <PreviewImage uri={option.photo?.uri} tone={TONES[index]} />
+              {!option.photo && (
                 <Text style={styles.tileHint}>Fotoğraf ekle</Text>
               )}
               <View
@@ -140,11 +171,13 @@ export function CreatePollScreen() {
               >
                 <Ionicons name="close" size={18} color={colors.text} />
               </Pressable>
-              <View style={styles.products}>
-                <Text style={{ fontSize: 13, fontFamily: fonts.semibold }}>
-                  {option.productCount} ürün
-                </Text>
-              </View>
+              {option.photo && (
+                <View style={styles.products}>
+                  <Text style={{ fontSize: 13, fontFamily: fonts.semibold }}>
+                    Değiştir
+                  </Text>
+                </View>
+              )}
             </Pressable>
           ))}
           {options.length < MAX_OPTIONS && (
@@ -308,7 +341,9 @@ export function CreatePollScreen() {
           accessibilityState={{ disabled: !canPublish }}
           disabled={!canPublish}
           onPress={() =>
-            message("Bu bir tasarım önizlemesi. Paylaşım yayınlanmadı.")
+            message(
+              "Fotoğrafların ve sorun hazır. Yayınlama, giriş ve sunucu bağlantısı eklendiğinde açılacak.",
+            )
           }
           style={({ pressed }) => [
             styles.publish,
@@ -327,7 +362,8 @@ export function CreatePollScreen() {
           <Ionicons name="sparkles" size={20} color={colors.onAccent} />
         </Pressable>
         <Text style={{ fontSize: 12, color: colors.muted, textAlign: "center" }}>
-          Tasarım önizlemesi · Bu form henüz paylaşım yayınlamaz.
+          Seçtiğin fotoğraflar şimdilik yalnızca bu telefonda kalır. Giriş
+          bağlandığında hesabınla birlikte sunucuya yüklenecek.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -448,7 +484,7 @@ const styles = StyleSheet.create({
   },
   tile: {
     width: 132,
-    height: 200,
+    aspectRatio: 9 / 16,
     borderRadius: 20,
     overflow: "hidden",
     alignItems: "center",

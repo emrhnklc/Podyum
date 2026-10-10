@@ -6,9 +6,12 @@ import { colors } from "@/theme";
 export function Screen({
   children,
   scroll = true,
+  padding = 16,
 }: {
   children: ReactNode;
   scroll?: boolean;
+  // Kaydırmasız ekranlarda kenar boşluğu; içerik kenara dayanacaksa 0.
+  padding?: number;
 }) {
   return (
     <SafeAreaView
@@ -32,7 +35,7 @@ export function Screen({
             {children}
           </ScrollView>
         ) : (
-          <View style={{ flex: 1, padding: 16, gap: 14 }}>{children}</View>
+          <View style={{ flex: 1, padding, gap: 14 }}>{children}</View>
         )}
       </View>
     </SafeAreaView>

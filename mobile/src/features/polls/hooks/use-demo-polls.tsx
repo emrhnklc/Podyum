@@ -14,9 +14,12 @@ const Context = createContext<State | null>(null);
 export function DemoPollsProvider({ children }: { children: ReactNode }) {
   const [votes, setVotes] = useState<Record<string, Label>>({});
   const [saved, setSaved] = useState<string[]>([]);
+  // Tercih değiştirilebilir: diğer seçeneğe dokunmak önceki tercihin yerine geçer.
+  // Backend bugün ilk oyu sabit tutuyor (farklı seçenek 409 VOTE_ALREADY_CAST);
+  // bağlantıdan önce bu kuralın değişmesi gerekir.
   function vote(id: string, label: Label) {
     setVotes((previous) =>
-      previous[id] ? previous : { ...previous, [id]: label },
+      previous[id] === label ? previous : { ...previous, [id]: label },
     );
   }
   function toggleSave(id: string) {

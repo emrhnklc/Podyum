@@ -142,6 +142,8 @@ export class AuthService {
     await this.prisma.$transaction(async (tx) => {
       await this.lockUser(tx, user.userId);
       await tx.authSession.updateMany({ where: { userId: user.userId, ...(all ? {} : { id: user.sessionId }), revokedAt: null }, data: { revokedAt: new Date() } });
+      // Çıkış yapılan oturumun cihazı artık bu hesap adına push almaz.
+      await tx.deviceToken.deleteMany({ where: { userId: user.userId, ...(all ? {} : { sessionId: user.sessionId }) } });
     });
     return { status: "ok" as const };
   }

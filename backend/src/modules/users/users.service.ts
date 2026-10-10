@@ -13,6 +13,7 @@ const settingsDefaults = {
   friendRequestNotifications: true,
   pollResultNotifications: true,
   commentNotifications: true,
+  gameNotifications: true,
   defaultPollVisibility: "PUBLIC" as const,
   defaultCommentsEnabled: true,
   defaultBlurFace: true,

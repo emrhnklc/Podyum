@@ -11,9 +11,10 @@ import {
   CATEGORY_LABEL,
   type PollCategory,
 } from "@/constants/poll-categories";
-import { DEMO_FRIENDS, ME } from "@/constants/demo";
-import { feed, postsOf } from "@/features/polls/data/demo-polls";
+import { DEMO_FRIENDS } from "@/constants/demo";
+import { feed } from "@/features/polls/data/demo-polls";
 import { PollCard } from "@/features/polls/components/PollCard";
+import { OptionProducts } from "@/features/polls/components/OptionProducts";
 import { useDemoPolls } from "@/features/polls/hooks/use-demo-polls";
 import { blush, colors, common, fonts, serif } from "@/theme";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
@@ -40,7 +41,6 @@ export function FeedScreen() {
     .filter((post) => category === "ALL" || post.category === category)
     .filter((post) => audience === "ALL" || DEMO_FRIENDS.includes(post.user));
   const post = rows.length ? rows[index % rows.length] : undefined;
-  const myPoll = postsOf(ME)[0];
   const isSaved = !!post && saved.includes(post.id);
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
@@ -140,30 +140,8 @@ export function FeedScreen() {
           </ScrollView>
         )}
 
-        {myPoll && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Senin oylamanı aç"
-            onPress={() =>
-              router.push({ pathname: "/polls/[id]", params: { id: myPoll.id } })
-            }
-            style={[styles.pill, common.spread, { paddingHorizontal: 16 }]}
-          >
-            <Text style={{ fontSize: 13 }}>
-              <Text style={{ fontFamily: fonts.bold, fontSize: 13 }}>
-                Senin oylaman
-              </Text>{" "}
-              · {myPoll.timeLeft} kaldı
-            </Text>
-            <Text
-              style={{ fontFamily: fonts.bold, fontSize: 13, color: blush.wine }}
-            >
-              {myPoll.totalVotes} oy →
-            </Text>
-          </Pressable>
-        )}
-
         {post ? (
+          <>
           <PollCard
             post={post}
             footer={
@@ -221,6 +199,8 @@ export function FeedScreen() {
               </>
             }
           />
+          <OptionProducts post={post} />
+          </>
         ) : (
           <EmptyState
             title="Henüz oylama yok"
