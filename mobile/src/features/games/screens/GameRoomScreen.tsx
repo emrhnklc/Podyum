@@ -12,6 +12,8 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
+import { Button } from "@/components/ui/Button";
+import { confirmAction } from "@/lib/confirm";
 import { ApiImage } from "@/components/media/ApiImage";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { errorMessage } from "@/lib/api/client";
@@ -22,7 +24,10 @@ import { PodiumTurnView } from "../components/PodiumTurnView";
 import {
   getGame,
   startNow,
-  submitGamePhoto,
+  endSubmission,
+  leaveGame,
+  prepareGamePhoto,
+  submitPreparedGamePhoto,
   type GamePhase,
   type GameState,
 } from "../api/games";
@@ -51,12 +56,16 @@ export function GameRoomScreen({
   const { client } = useAuth();
   const [game, setGame] = useState<GameState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [commandError, setCommandError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewLoaded, setPreviewLoaded] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   // Telefon saati yerine sunucu saati: serverNow ile yerel saat farkı.
   const [offset, setOffset] = useState(0);
   // Saniyelik zamanlayıcı süre bitişini görebilsin diye son bitiş anı.
   const deadline = useRef<number | null>(null);
+  const actionLock = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -108,7 +117,7 @@ export function GameRoomScreen({
       if (source === "camera" && Platform.OS !== "web") {
         const permission = await ImagePicker.requestCameraPermissionsAsync();
         if (!permission.granted) {
-          setError("Kamera izni verilmedi. Galeriden seçebilirsin.");
+          setCommandError("Kamera izni verilmedi. Galeriden seçebilirsin.");
           return;
         }
         result = await ImagePicker.launchCameraAsync({ quality: 0.85 });
@@ -121,17 +130,67 @@ export function GameRoomScreen({
       if (result.canceled) return;
       const asset = result.assets[0];
       setUploading(true);
-      setError(null);
-      await submitGamePhoto(client, id, {
+      setCommandError(null);
+      const prepared = await prepareGamePhoto(client, {
         uri: asset.uri,
         mimeType: asset.mimeType,
         fileSize: asset.fileSize,
         fileName: asset.fileName,
       });
+      setPreviewLoaded(false);
+      setPreviewId(prepared.id);
+    } catch (failure) {
+      setCommandError(errorMessage(failure));
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function confirmPhoto() {
+    if (!previewId || !previewLoaded || !game?.canSubmit || actionLock.current)
+      return;
+    actionLock.current = true;
+    setUploading(true);
+    setCommandError(null);
+    try {
+      await submitPreparedGamePhoto(client, id, previewId);
+      setPreviewId(null);
       await load();
     } catch (failure) {
-      setError(errorMessage(failure));
+      setCommandError(errorMessage(failure));
     } finally {
+      actionLock.current = false;
+      setUploading(false);
+    }
+  }
+
+  async function control(leave: boolean) {
+    if (!game || actionLock.current || uploading) return;
+    actionLock.current = true;
+    try {
+      if (
+        !(await confirmAction(
+          leave ? "Odadan ayrıl" : "Fotoğraf aşamasını bitir",
+          leave
+            ? "Oda sahibiysen oda iptal olabilir. Ayrılmak istiyor musun?"
+            : "Yeni fotoğraf alınmayacak. En az iki fotoğraf yoksa oyun iptal olur.",
+          leave ? "Ayrıl" : "Oylamaya geç",
+        ))
+      )
+        return;
+      setUploading(true);
+      setCommandError(null);
+      if (leave) {
+        await leaveGame(client, game);
+        router.replace("/defile");
+      } else {
+        await endSubmission(client, await getGame(client, id));
+        await load();
+      }
+    } catch (failure) {
+      setCommandError(errorMessage(failure));
+    } finally {
+      actionLock.current = false;
       setUploading(false);
     }
   }
@@ -170,18 +229,56 @@ export function GameRoomScreen({
     hostPrivate && game.phase === "WAITING" && game.memberCount >= 2;
 
   async function start() {
-    if (!game || !canStart || uploading) return;
+    if (!game || !canStart || uploading || actionLock.current) return;
+    actionLock.current = true;
     setUploading(true);
-    setError(null);
+    setCommandError(null);
     try {
-      await startNow(client, game);
+      await startNow(client, await getGame(client, id));
       await load();
     } catch (failure) {
-      setError(errorMessage(failure));
+      setCommandError(errorMessage(failure));
     } finally {
+      actionLock.current = false;
       setUploading(false);
     }
   }
+
+  if (previewId && game.canSubmit)
+    return (
+      <SafeAreaView
+        edges={["top", "left", "right", "bottom"]}
+        style={styles.safe}
+      >
+        <ScrollView
+          style={styles.page}
+          contentContainerStyle={[styles.content, { gap: 16 }]}
+        >
+          <Text style={styles.title}>Fotoğrafını kontrol et</Text>
+          <View style={{ height: 460, overflow: "hidden", borderRadius: 26 }}>
+            <ApiImage
+              path={`/v1/media/${previewId}/content`}
+              retryable
+              onLoad={() => setPreviewLoaded(true)}
+            />
+          </View>
+          {(commandError || error) && (
+            <Text accessibilityRole="alert">{commandError ?? error}</Text>
+          )}
+          <Button
+            title="Onayla ve defileye gönder"
+            disabled={uploading || !previewLoaded}
+            onPress={() => void confirmPhoto()}
+          />
+          <Button
+            title="Vazgeç"
+            variant="outline"
+            disabled={uploading}
+            onPress={() => setPreviewId(null)}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
 
   if (game.phase === "COMPLETED")
     return (
@@ -254,6 +351,22 @@ export function GameRoomScreen({
             </View>
           </View>
 
+          {hostPrivate && submitting && (
+            <Button
+              title="Fotoğraf aşamasını bitir"
+              disabled={uploading}
+              onPress={() => void control(false)}
+            />
+          )}
+          {["WAITING", "SCHEDULED", "SUBMISSION"].includes(game.phase) &&
+            game.membershipStatus === "ACTIVE" && (
+              <Button
+                title="Odadan ayrıl"
+                variant="outline"
+                disabled={uploading}
+                onPress={() => void control(true)}
+              />
+            )}
           {manualStart && (
             <View style={styles.timer}>
               <Ionicons
@@ -375,6 +488,7 @@ export function GameRoomScreen({
           {hostPrivate && (game.phase === "WAITING" || submitting) && (
             <InviteCard
               game={game}
+              onChanged={load}
               autoCreate={justCreated && game.phase === "WAITING"}
             />
           )}
@@ -417,9 +531,9 @@ export function GameRoomScreen({
             </View>
           </View>
 
-          {error && (
+          {(commandError || error) && (
             <Text accessibilityRole="alert" style={styles.error}>
-              {error}
+              {commandError ?? error}
             </Text>
           )}
 

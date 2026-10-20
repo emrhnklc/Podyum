@@ -144,3 +144,19 @@ Content-Type: application/json
 ### Kendi oyun geçmişin
 GET {{origin}}/v1/me/games?limit=20
 Authorization: Bearer {{guestToken}}
+
+### ADMIN tema/takvim yönetimi (20 Ekim)
+GET {{origin}}/v1/admin/games/themes
+Authorization: Bearer {{hostToken}}
+
+### ADMIN güncel sürüm ve ayar kaynağı
+GET {{origin}}/v1/admin/games/daily-schedule
+Authorization: Bearer {{hostToken}}
+
+### ÖRNEK saat; ürün için seçilmiş saat değildir. ADMIN oturumu gerekir.
+PUT {{origin}}/v1/admin/games/daily-schedule
+Authorization: Bearer {{hostToken}}
+Idempotency-Key: daily-schedule-example-001
+Content-Type: application/json
+
+{"expectedVersion":0,"enabled":true,"startTime":"20:00","timeZone":"Europe/Istanbul","themeSlug":"90lar","reason":"Pilot program ayarı"}

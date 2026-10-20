@@ -1,7 +1,14 @@
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApiFeedScreen } from "./ApiFeedScreen";
+import { PeopleSearchLink } from "../components/PeopleSearchLink";
 import { useState, type ComponentProps, type ReactNode } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,14 +24,21 @@ import {
 import { DEMO_FRIENDS } from "@/constants/demo";
 import { feed } from "@/features/polls/data/demo-polls";
 import { PollCard } from "@/features/polls/components/PollCard";
-import { OutfitDetailsBar, OutfitDetailsSheet } from "../components/OutfitDetails";
+import {
+  OutfitDetailsBar,
+  OutfitDetailsSheet,
+} from "../components/OutfitDetails";
 import { useDemoPolls } from "@/features/polls/hooks/use-demo-polls";
 import { brand, colors, common, fonts } from "@/theme";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
 
-const categories: { value: "ALL" | PollCategory; label: string; icon: IconName }[] = [
+const categories: {
+  value: "ALL" | PollCategory;
+  label: string;
+  icon: IconName;
+}[] = [
   { value: "ALL", label: "Tümü", icon: "grid" },
   ...Object.entries(CATEGORY_LABEL).map(([value, label]) => ({
     value: value as PollCategory,
@@ -35,7 +49,12 @@ const categories: { value: "ALL" | PollCategory; label: string; icon: IconName }
 
 export function FeedScreen() {
   const { ready, me, session, error } = useAuth();
-  if (!ready) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={brand.accent} /></View>;
+  if (!ready)
+    return (
+      <View style={{ flex: 1, justifyContent: "center" }}>
+        <ActivityIndicator color={brand.accent} />
+      </View>
+    );
   if (me && session) return <ApiFeedScreen key={session.sessionId} />;
   return <DemoFeedScreen sessionError={error} />;
 }
@@ -74,17 +93,12 @@ function DemoFeedScreen({ sessionError }: { sessionError: string | null }) {
           </Pressable>
         </View>
 
-        {sessionError && <Text accessibilityRole="alert" style={{ color: colors.accent }}>{sessionError}</Text>}
-        <Pressable
-          accessibilityRole="search"
-          accessibilityLabel="Ara, kişi keşfet"
-          onPress={() => router.push("/people")}
-          style={[styles.pill, styles.search]}
-        >
-          <Ionicons name="search-outline" size={20} color={colors.text} />
-          <Text style={{ flex: 1, color: colors.muted }}>Ara, kişi keşfet</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.text} />
-        </Pressable>
+        {sessionError && (
+          <Text accessibilityRole="alert" style={{ color: colors.accent }}>
+            {sessionError}
+          </Text>
+        )}
+        <PeopleSearchLink />
 
         <View style={[styles.pill, styles.segment]}>
           {(
@@ -152,7 +166,13 @@ function DemoFeedScreen({ sessionError }: { sessionError: string | null }) {
                 <View style={{ flexDirection: "row", gap: 8 }}>
                   <Action
                     label="Geç"
-                    icon={<Ionicons name="arrow-forward" size={20} color={colors.text} />}
+                    icon={
+                      <Ionicons
+                        name="arrow-forward"
+                        size={20}
+                        color={colors.text}
+                      />
+                    }
                     onPress={() => setIndex((value) => value + 1)}
                   />
                   <Action
@@ -291,12 +311,6 @@ const styles = StyleSheet.create({
     backgroundColor: brand.surface,
     borderWidth: 1,
     borderColor: brand.line,
-  },
-  search: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    paddingHorizontal: 18,
   },
   segment: { flexDirection: "row", padding: 4 },
   segmentItem: {

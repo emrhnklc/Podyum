@@ -3,7 +3,7 @@ import { apiRequest } from "../../lib/api/client";
 export const REGISTRATION_RULES = {
   username: /^[a-z0-9_]{3,30}$/,
   usernameHint: "3–30 karakter; küçük harf, rakam ve alt çizgi kullan.",
-  passwordMin: 15,
+  passwordMin: 8,
   passwordMax: 128,
   nameMax: 80,
   bioMax: 300,
@@ -51,7 +51,7 @@ export function registrationErrors(
       input.password.length >= REGISTRATION_RULES.passwordMin &&
       input.password.length <= REGISTRATION_RULES.passwordMax
         ? undefined
-        : "Şifren 15–128 karakter olmalı.",
+        : `Şifren ${REGISTRATION_RULES.passwordMin}–${REGISTRATION_RULES.passwordMax} karakter olmalı.`,
     password2:
       confirmation && input.password === confirmation
         ? undefined

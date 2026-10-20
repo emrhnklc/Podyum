@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import * as Crypto from "expo-crypto";
 import type { SessionManager } from "@/features/auth/session-manager";
 import {
@@ -8,6 +7,7 @@ import {
 } from "@/features/profile/api/avatar";
 import { ApiError } from "@/lib/api/client";
 import type { PollCategory } from "@/constants/poll-categories";
+import { productTagInputs, type ProductTagDraft } from "../product-tags";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -29,6 +29,7 @@ export type PollDraftInput = {
   // Bulanıklaştırma açıkken kullanıcının açık "fotoğraflarda yüz yok" onayı.
   confirmNoFaces: boolean;
   photos: PickedPhoto[];
+  products?: ProductTagDraft[][];
 };
 
 // Yarıda kalan yayının kaldığı yer. Tekrar denemede yüklenen fotoğraflar ve
@@ -38,6 +39,7 @@ export type PublishProgress = {
   createKey: string;
   publishKey: string;
   poll?: { id: string; version: number };
+  previewApproved?: boolean;
 };
 
 export function newProgress(count: number): PublishProgress {
@@ -73,20 +75,15 @@ export async function readPhoto(photo: PickedPhoto) {
       "IMAGE_TOO_LARGE",
       "Fotoğraf en fazla 10 MB olabilir.",
     );
+  // Fotoğrafı zaten okuduk; native URI nesnesine geri çevirmeden aynı
+  // Blob'u göndeririz. Expo 57 fetch URI tabanlı multipart kabul etmez.
   const file: AvatarFile =
-    Platform.OS === "web"
-      ? blob
-      : {
-          uri: photo.uri,
-          name: photo.fileName ?? "kombin.jpg",
-          type: mimeType,
-        };
+    blob.type === mimeType ? blob : blob.slice(0, blob.size, mimeType);
   return { file, byteSize: blob.size, mimeType };
 }
 
-// Fotoğrafları yükler, son hallerini onaylar, taslağı oluşturur ve yayınlar.
-// "Yayına al" kullanıcının fotoğrafların son halini onayladığı eylemdir.
-export async function publishPoll(
+// Önce işlenmiş fotoğraflar hazırlanır; kullanıcı sunucudaki son halleri görür.
+export async function preparePollPhotos(
   client: SessionManager,
   input: PollDraftInput,
   progress: PublishProgress,
@@ -100,9 +97,31 @@ export async function publishPoll(
       requested: input.blur,
       confirmNoFaces: input.confirmNoFaces,
     });
-    await acceptPreview(client, asset.id);
     progress.mediaIds[index] = asset.id;
   }
+}
+
+export async function publishPoll(
+  client: SessionManager,
+  input: PollDraftInput,
+  progress: PublishProgress,
+  onStep: (label: string) => void,
+) {
+  if (
+    !progress.previewApproved ||
+    progress.mediaIds.length !== input.photos.length ||
+    progress.mediaIds.some((id) => !id)
+  )
+    throw new ApiError(
+      409,
+      "PREVIEW_REQUIRED",
+      "Fotoğrafların son halini kontrol edip onayla.",
+    );
+  for (const mediaId of progress.mediaIds)
+    await acceptPreview(client, mediaId!);
+
+  if (input.products && input.products.length !== input.photos.length)
+    throw new Error("Ürün listesi fotoğraf seçenekleriyle eşleşmiyor.");
 
   if (!progress.poll) {
     onStep("Oylama hazırlanıyor");
@@ -120,6 +139,7 @@ export async function publishPoll(
           options: progress.mediaIds.map((mediaId, index) => ({
             position: index + 1,
             mediaId,
+            products: productTagInputs(input.products?.[index] ?? []),
           })),
         }),
       },

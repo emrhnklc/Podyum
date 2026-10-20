@@ -1,0 +1,53 @@
+@baseUrl = http://127.0.0.1:3000/v1
+@accessToken = replace-after-login
+@adminToken = replace-with-admin-session
+@storeId = replace-store-uuid
+@productId = replace-product-uuid
+@suggestionId = replace-own-suggestion-uuid
+
+### Arama isimden aday getirir; liste boş olabilir.
+GET {{baseUrl}}/catalog/products?q=siyah&limit=20
+Authorization: Bearer {{accessToken}}
+
+### Ağdan sayfa alınmaz. Özgün URL yanıt içinde korunur.
+POST {{baseUrl}}/catalog/resolve
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{"url":"https://shop.example.com/item/42?utm_source=podyum&color=black","query":"Siyah gömlek"}
+
+### Özel öneri; ortak ürün yaratmaz. 129900 TRY = 1299 TL.
+POST {{baseUrl}}/catalog/suggestions
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: catalog-suggest-example-001
+Content-Type: application/json
+
+{"title":"Siyah gömlek","category":"OUTFIT","brand":"Örnek","priceMinor":129900,"currency":"TRY"}
+
+### Yalnız kendi önerileri
+GET {{baseUrl}}/catalog/suggestions?status=PENDING
+Authorization: Bearer {{accessToken}}
+
+### ADMIN mağaza tanımı; domain ve takip anahtarları sonra bu API'den değiştirilmez.
+POST {{baseUrl}}/admin/catalog/stores
+Authorization: Bearer {{adminToken}}
+Idempotency-Key: catalog-store-example-001
+Content-Type: application/json
+
+{"name":"Örnek mağaza","domain":"shop.example.com","trackingParameters":["aff"],"reason":"İncelenen kaynak"}
+
+### ADMIN ortak ürün; mağaza/harici kimlik/varyant tekildir.
+POST {{baseUrl}}/admin/catalog/products
+Authorization: Bearer {{adminToken}}
+Idempotency-Key: catalog-product-example-001
+Content-Type: application/json
+
+{"storeId":"{{storeId}}","externalId":"42","variantKey":"black","title":"Siyah gömlek","category":"OUTFIT","url":"https://shop.example.com/item/42?color=black","priceMinor":129900,"currency":"TRY","reason":"Ürün sayfası incelendi"}
+
+### Öneriyi mevcut ürüne onayla; sürümü güncel GET yanıtından al.
+PUT {{baseUrl}}/admin/catalog/suggestions/{{suggestionId}}/decision
+Authorization: Bearer {{adminToken}}
+Idempotency-Key: catalog-decision-example-001
+Content-Type: application/json
+
+{"expectedVersion":0,"decision":"APPROVE","productId":"{{productId}}","reason":"Aynı ürün doğrulandı"}

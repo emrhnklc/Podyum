@@ -1,8 +1,10 @@
 # Podyum — mobile
 
-Expo SDK 57 + React Native + Expo Router + TypeScript. Ana ekran e-posta girişinden sonra gerçek backend kullanır: akış, tercih/sonuç, kaydetme, ürün linkleri ve yorumlar bağlıdır. Kayıt, yerel e-posta doğrulama ve profil/stil/avatar kurulumu da bağlıdır; diğer sekmelerin entegrasyonu sıradadır. [Kayıt rehberi](docs/registration-api-integration.md). [Bağlantı rehberi](docs/home-api-integration.md).
+Expo SDK 57 + React Native + Expo Router + TypeScript. Ana ekran e-posta girişinden sonra gerçek backend kullanır: akış, tercih/sonuç, kaydetme, ürün linkleri ve yorumlar bağlıdır. Kayıt, yerel e-posta doğrulama ve profil/stil/avatar kurulumu da bağlıdır; profil/sosyal, paylaşım, bildirim/ayar ve Defile de gerçek API kullanır. Trendler de gerçek dönem/kitle/ürün/fiyat API’sine ve katalog detayına bağlıdır; [Trendler rehberi](docs/trends-api-integration.md). [Diğer ekran bağlantıları](docs/connected-screens-integration.md). [Kayıt rehberi](docs/registration-api-integration.md). [Bağlantı rehberi](docs/home-api-integration.md).
 
 ## Çalıştırma
+
+Uygulama ikonu, açılış ve giriş/ana ekran logosu `assets/brand/` altındadır; [kaynak ve yeniden üretme notları](assets/brand/README.md). Native ikon/splash değişiklikleri yeni uygulama derlemesinde uygulanır.
 
 Proje kökünden:
 
@@ -30,12 +32,12 @@ mobile/
   assets/                 Gömülü ortak medya; kişisel demo fotoğrafları Git dışında
   src/
     app/                  İnce route dosyaları ve navigation layout
-      (tabs)/             Keşfet, Trendler, Paylaş, Bildirim, Profil
+      (tabs)/             Keşfet, Trendler, Paylaş, Defile, Profil
       auth/ friends/ games/
       polls/[id].tsx
       u/[username].tsx
     features/
-      auth/ feed/ polls/ profile/ friends/ trends/ games/ notifications/
+      auth/ feed/ polls/ profile/ people/ friends/ trends/ games/ notifications/ settings/ moderation/
     components/           Ortak UI ve medya bileşenleri
     constants/            Kategori etiketleri ve demo kimliği
     hooks/                Ortak hook'lar
@@ -45,27 +47,17 @@ mobile/
 
 Her özellik ihtiyaç duydukça `screens`, `components`, `hooks`, `data`, `api`, `types` ekler; kullanılmayan boş servisler oluşturulmaz. App route dosyaları ekranı export eder veya parametreyi ekrana iletir. Özelliğe özel kod ortak components/hooks klasörlerine taşınmaz. [Feature sınırları](src/features/README.md), [ekran ve API haritası](docs/ekran-ve-api-haritasi.md).
 
-## Tasarım önizlemesi
+## Ekranların durumu
 
-Aşağıdakiler giriş yapılmadan açılan demo ekranlardır. Girişten sonraki gerçek Keşfet davranışı [API rehberindedir](docs/home-api-integration.md).
+Gerçek oturumla Keşfet, profil/arkadaşlar/kişi arama, fotoğraflı paylaşım ve yorumlar, bildirim/tercihler, şikâyet/engel ve Defile odaları çalışır. Sonbahar kartının görselleri korunur; düğmesi aynı temadaki odaları açar. Lig ve defile sonuçlarını backend hesaplar. Trendler gerçek filtre/sayfalama/örneklem API’sine ve katalog detayına bağlıdır. Hazır API’si olmayan Plus/ödeme/haftalık yarışma için başarı üretilmez.
 
-- Keşfet: içerik odaklı tek oylama; fotoğraflar ekranı doldurur. Herkes/Arkadaşlar sekmesi, ikonla açılan kategori filtresi, normal tercih, anlık demo sonuç, sonraki kombin ve kaydetme.
-- Oylama açıkken diğer seçeneğe dokunarak tercih değiştirilebilir (demo). Backend bugün ilk oyu sabit tutar; bu açık ürün kararı [ekran ve API haritasında](docs/ekran-ve-api-haritasi.md) yazılı. Kendi paylaşımına oy verilmez. Normal tercih yıldız/puan üretmez. Eski +10/çoğunluğu tahmin davranışı kaldırıldı.
-- Sonuç detayları: toplam oy, seçenek başına oy ve oy verenlerin cinsiyet/yaş dağılımı; hepsi mock veridir.
-- Kombin detayları, kullanıcı profilleri, kendi profilindeki paylaşımlar/kaydedilenler ve örnek arkadaş listesi. Alt ekranlarda sol üstte sade geri oku vardır.
-- Kombin görselleri 9:16 oranındadır (Keşfet, detay, Paylaş kutuları, profil kareleri).
-- Kombindeki parçalar: Keşfet'te aşağı kaydırınca ve detay ekranında, oy verilsin verilmesin her seçeneğin parçaları küçük görsel, ad, örnek fiyat ve "Benzerlerini gör" bağlantısıyla listelenir. Parçalar fotoğrafa bakılarak adlandırıldı (`features/polls/data/demo-products.ts`); marka ve gerçek ürün eşleşmesi yoktur, bağlantı benzer ürün aramasına gider. Küçük görseller `public/demo/products/` altında, Git dışındadır.
-- Trendler: liste bu parçalardan hesaplanır (parçanın etiketlendiği seçeneklere verilen demo oyların toplamı). Dönem, kategori, tercih yapan grup ve fiyat tek bir filtre çubuğunda toplanır; çubuk seçili filtreleri özetler, dokununca açılır. Küçük örneklem demo eşiği korunur; gerçek backend gizlilik eşiği olarak kabul edilmez.
-- Paylaş formu: A ve B için galeriden fotoğraf seçme (`expo-image-picker`), değiştirme ve kaldırma; soru, kategori, süre, görünürlük ve yorum/blur ayarları. Seçilen fotoğraflar yalnız cihazda kalır. Sunucuya yükleme, blur işleme ve yayın henüz bağlı değildir; önizleme gerçek paylaşım oluşturmaz.
-- Bildirim boş durumu; auth ve oyun alanları hazırlık ekranıdır. Günlük 30+30 ve QR lobileri planda; oyun çalışıyor gibi gösterilmez.
-
-Tercih ve kaydetmeler `DemoPollsProvider` ile yalnız bellekte tutulur; sekme/detay geçişlerinde korunur, uygulama yeniden açılınca sıfırlanır. Demo profildeki yıldız ve sayaçlar örnek değerdir. Gerçek kullanıcı oturumu veya ücretli hak yoktur.
+Eski demo bileşenleri ve verileri kaynakta tasarım referansı olarak durur. Demo yüzdeleri/demografi, tercih değiştirme ve kaydetme bellektedir; gerçek API verisine veya yetkilere dönüşmez. Gerçek normal oy tek tercihtir ve yıldız/puan üretmez. [Güncel ekran/API haritası](docs/ekran-ve-api-haritasi.md).
 
 ## Medya ve API
 
 Eksik demo fotoğraflarında pastel yer tutucu gösterilir. Native, eski `/demo/...` web yollarını HTTP adresi gibi çağırmaz. Yerel özel `public/demo/` dosyaları korunur; native görsel için uygun static asset kaynağı veya tam erişilebilir medya URL'si gerekir. Yerel fotoğrafları görmek için `mobile/.env.local` içine `EXPO_PUBLIC_DEMO_MEDIA_BASE_URL=http://<Mac'in-LAN-adresi>:8081` yaz: Expo geliştirme sunucusu `public/` klasörünü de sunduğu için `/demo/...` yolları bu adrese göre çözülür. Değişken yoksa davranış aynıdır, ağ isteği yapılmaz. Kişisel fotoğraf/video Git'e eklenmez. Eski video desteği taşınmadı; ilk backend medya hattı fotoğraftır.
 
-`src/lib/api/client.ts` gerçek ana ekran, oturum ve medya isteklerinde kullanılır. `EXPO_PUBLIC_API_BASE_URL` `/v1` dahil tam API adresidir; telefon için Mac'in LAN adresi kullanılmalıdır. `EXPO_PUBLIC_*` içine sır/token yazılmaz. E-posta girişi, tek uçuşlu yenileme ve native güvenli token deposu bağlıdır; kayıt/doğrulama ve profil kurulumu bağlıdır; diğer feature entegrasyonları sıradadır.
+`src/lib/api/client.ts` gerçek ana ekran, oturum ve medya isteklerinde kullanılır. `EXPO_PUBLIC_API_BASE_URL` `/v1` dahil tam API adresidir; telefon için Mac'in LAN adresi kullanılmalıdır. `EXPO_PUBLIC_*` içine sır/token yazılmaz. E-posta girişi, tek uçuşlu yenileme ve native güvenli token deposu bağlıdır; kayıt/doğrulama ve profil kurulumu bağlıdır; diğer bağlı ekranlar ve kalan sınırlar [bağlantı notlarında](docs/connected-screens-integration.md) yer alır.
 
 ## Kontroller
 

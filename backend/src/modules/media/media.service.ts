@@ -286,16 +286,35 @@ export class MediaService {
       byteSize: null, width: null, height: null, processingRequestHash: null, rejectionCode: null } });
   }
 
-  async cleanup(now = new Date()) {
+  async previewCleanup(now: Date, batchSize = 100, orphanAfter: string | null = null) {
+    const old = new Date(now.getTime() - MEDIA_LIMITS.unreferencedHours * 3_600_000);
+    const candidates = await this.prisma.mediaAsset.count({ where: { pollOptions: { none: {} }, gameEntries: { none: {} }, gameSubmissions: { none: {} }, avatarFor: { is: null }, OR: [
+      { status: "DELETED", filesPurgedAt: null }, { status: { in: ["PENDING_UPLOAD", "REJECTED", "READY"] }, createdAt: { lt: old } },
+      { status: "PENDING_UPLOAD", sourceVersion: null, uploadExpiresAt: { lte: now } },
+    ] } });
+    const stuck = new Date(now.getTime() - MEDIA_LIMITS.processingTimeoutMinutes * 60_000);
+    const timedOutCandidates = await this.prisma.mediaAsset.count({ where: { status: "PROCESSING", updatedAt: { lt: stuck } } });
+    const directories = (await this.storage.oldAssetDirectories(stuck, false)).sort().filter((id) => !orphanAfter || id > orphanAfter);
+    let orphanCandidates = 0;
+    for (const id of directories.slice(0, batchSize)) {
+      const row = await this.prisma.mediaAsset.findUnique({ where: { id }, select: { status: true } });
+      if (!row || row.status === "DELETED") orphanCandidates++;
+    }
+    return { candidates: Math.min(candidates, batchSize), timedOutCandidates, orphanCandidates, hasMore: candidates > batchSize || directories.length > batchSize, removed: 0, orphans: 0, orphanCursor: directories.length > batchSize ? directories.slice(0, batchSize).at(-1)! : null };
+  }
+
+  async cleanup(now = new Date(), batchSize = 200, orphanAfter: string | null = null) {
+    if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 500) throw new Error("Medya bakım sınırı 1–500 olmalı.");
     const old = new Date(now.getTime() - MEDIA_LIMITS.unreferencedHours * 3_600_000);
     const stuck = new Date(now.getTime() - MEDIA_LIMITS.processingTimeoutMinutes * 60_000);
-    const timedOut = await this.prisma.mediaAsset.updateMany({ where: { status: "PROCESSING", updatedAt: { lt: stuck } }, data: {
+    const stuckIds = await this.prisma.mediaAsset.findMany({ where: { status: "PROCESSING", updatedAt: { lt: stuck } }, select: { id: true }, take: batchSize, orderBy: { updatedAt: "asc" } });
+    const timedOut = await this.prisma.mediaAsset.updateMany({ where: { id: { in: stuckIds.map((row) => row.id) }, status: "PROCESSING", updatedAt: { lt: stuck } }, data: {
       status: "REJECTED", rejectionCode: "PROCESSING_TIMEOUT", processingRevision: { increment: 1 },
     } });
     const candidates = await this.prisma.mediaAsset.findMany({ where: { pollOptions: { none: {} }, gameEntries: { none: {} }, gameSubmissions: { none: {} }, avatarFor: { is: null }, OR: [
       { status: "DELETED", filesPurgedAt: null }, { status: { in: ["PENDING_UPLOAD", "REJECTED", "READY"] }, createdAt: { lt: old } },
       { status: "PENDING_UPLOAD", sourceVersion: null, uploadExpiresAt: { lte: now } },
-    ] }, select: { id: true }, take: 200, orderBy: { updatedAt: "asc" } });
+    ] }, select: { id: true }, take: batchSize, orderBy: { updatedAt: "asc" } });
     let removed = 0;
     for (const { id } of candidates) {
       const purge = await this.prisma.$transaction(async (tx) => {
@@ -315,10 +334,11 @@ export class MediaService {
       }
     }
     let orphans = 0;
-    for (const id of await this.storage.oldAssetDirectories(stuck)) {
+    const directories = (await this.storage.oldAssetDirectories(stuck)).sort().filter((id) => !orphanAfter || id > orphanAfter);
+    for (const id of directories.slice(0, batchSize)) {
       const row = await this.prisma.mediaAsset.findUnique({ where: { id }, select: { status: true } });
       if (!row || row.status === "DELETED") { await this.storage.removeAssetDirectory(id); orphans++; }
     }
-    return { timedOut: timedOut.count, removed, orphans };
+    return { timedOut: timedOut.count, removed, orphans, orphanCursor: directories.length > batchSize ? directories.slice(0, batchSize).at(-1)! : null };
   }
 }

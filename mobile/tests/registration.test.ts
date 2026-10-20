@@ -23,7 +23,7 @@ test("kayıt boşluklu parolayı korur; kullanıcı adı nokta kabul etmez", () 
   assert.ok(registrationErrors(account, account.password.trim()).password2);
 });
 test("kayıt backend parola ve ad sınırlarında kabul/red uygular", () => {
-  for (const length of [15, 128])
+  for (const length of [8, 128])
     assert.equal(
       registrationErrors(
         { ...account, password: "a".repeat(length) },
@@ -31,7 +31,7 @@ test("kayıt backend parola ve ad sınırlarında kabul/red uygular", () => {
       ).password,
       undefined,
     );
-  for (const length of [14, 129])
+  for (const length of [7, 129])
     assert.ok(
       registrationErrors(
         { ...account, password: "a".repeat(length) },

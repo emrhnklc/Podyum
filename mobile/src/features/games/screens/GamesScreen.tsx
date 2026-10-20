@@ -1,24 +1,21 @@
+import { useRef, useState } from "react";
+import { useApiQuery, useApiList } from "@/hooks/use-api-query";
+import { ApiStatus } from "@/components/ui/ApiStatus";
+import { openUser, type SocialItem } from "@/features/people/api/social";
+import type { MyLeague } from "./GameHistoryScreen";
+import type { GameSummary } from "../api/games";
 import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
 import { BrandTitle } from "@/components/ui/BrandTitle";
-import { ME } from "@/constants/demo";
-import { getUser } from "@/features/profile/data/demo-users";
-import { compactCount } from "@/lib/format";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { errorMessage } from "@/lib/api/client";
 import { quickMatch as findMatch } from "../api/games";
 import { brand, colors, common, fonts, serif } from "@/theme";
-import { leagueFor } from "../data/league";
-import {
-  liveGame,
-  tour,
-  weeklyFriends,
-  weeklyTheme,
-} from "../data/demo-defile";
+import { liveGame, weeklyTheme } from "../data/demo-defile";
 
 const GOLD = "#F2B627";
 const MEDALS = ["#F2B627", "#B9BCC6", "#D08A55"];
@@ -27,24 +24,58 @@ const THEME_PHOTO = require("../../../../assets/images/defile/autumn-layers.jpg"
 
 export function GamesScreen() {
   const message = usePreviewMessage();
-  const soon = (what: string) =>
-    message(`${what} oyun API'si bağlanınca açılacak.`);
   const { client } = useAuth();
+  const leagueQuery = useApiQuery<MyLeague>("/me/league");
+  const friends = useApiList<SocialItem>("/me/friends?limit=3");
+  const history = useApiList<GameSummary & { membershipStatus: string }>(
+    "/me/games?limit=20",
+  );
+  const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  const active = history.items.find(
+    (game) =>
+      game.membershipStatus === "ACTIVE" &&
+      !["COMPLETED", "CANCELLED"].includes(game.phase),
+  );
+  const tour = {
+    step: active
+      ? ["WAITING", "SCHEDULED", "SUBMISSION", "VOTING"].indexOf(active.phase) +
+        1
+      : 0,
+    total: 4,
+    theme: active?.themeTitle ?? "Henüz katılım yok",
+  };
+  const openTheme = () =>
+    router.push({
+      pathname: "/games/browse",
+      params: { theme: weeklyTheme.title },
+    });
   // Hızlı eşleş: günün defilesine ya da herkese açık bir odaya katılıp odayı açar.
   async function quickMatch() {
+    if (lock.current) return;
+    lock.current = true;
+    setBusy(true);
     try {
       const game = await findMatch(client);
-      if (!game)
-        return message(
-          "Şu an katılabileceğin açık bir defile yok. Kendi odanı kurabilirsin.",
-        );
+      if (!game) return router.push("/games/browse");
       router.push({ pathname: "/games/[id]", params: { id: game.id } });
     } catch (failure) {
       message(errorMessage(failure));
+    } finally {
+      lock.current = false;
+      setBusy(false);
     }
   }
-  const myStars = getUser(ME)?.counts.stars ?? 0;
-  const league = leagueFor(myStars);
+  const myStars = leagueQuery.data?.totalPoints ?? 0;
+  const info = leagueQuery.data?.league;
+  const league = {
+    name: info?.name ?? "Ligim",
+    progress: info
+      ? info.span
+        ? Math.min(1, info.current / info.span)
+        : 1
+      : 0,
+  };
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
       <ScrollView
@@ -57,7 +88,7 @@ export function GamesScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Defile filtreleri"
-            onPress={() => soon("Defile filtreleri")}
+            onPress={() => router.push("/games/browse")}
             style={styles.round}
           >
             <Ionicons name="options-outline" size={24} color={colors.text} />
@@ -67,7 +98,7 @@ export function GamesScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${league.name}, ${myStars} yıldız`}
-          onPress={() => soon("Lig tablosu")}
+          onPress={() => router.push("/games/league")}
           style={[styles.box, styles.league]}
         >
           <Ionicons name="trophy" size={24} color={GOLD} />
@@ -86,6 +117,11 @@ export function GamesScreen() {
           <Ionicons name="chevron-forward" size={18} color={colors.text} />
         </Pressable>
 
+        <ApiStatus
+          loading={leagueQuery.loading}
+          error={leagueQuery.error}
+          retry={leagueQuery.refresh}
+        />
         <View style={[styles.box, styles.hero]}>
           <HeroArt />
           <View style={[common.row, { gap: 8 }]}>
@@ -106,7 +142,8 @@ export function GamesScreen() {
           <Text style={styles.heroText}>{liveGame.description}</Text>
           <View style={{ flexDirection: "row", gap: 8 }}>
             <Cta
-              label="Hızlı eşleş"
+              label={busy ? "Bağlanıyor…" : "Hızlı eşleş"}
+              disabled={busy}
               icon="flash"
               filled
               onPress={() => void quickMatch()}
@@ -114,7 +151,12 @@ export function GamesScreen() {
             <Cta
               label="Arkadaşlarla oda"
               icon="people-outline"
-              onPress={() => router.push("/games/new")}
+              onPress={() =>
+                router.push({
+                  pathname: "/games/new",
+                  params: { private: "1" },
+                })
+              }
             />
           </View>
         </View>
@@ -124,7 +166,7 @@ export function GamesScreen() {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Haftalık tema: ${weeklyTheme.title}`}
-            onPress={() => soon("Tema detayı")}
+            onPress={openTheme}
             style={[common.row, { gap: 8 }]}
           >
             <Ionicons
@@ -161,31 +203,14 @@ export function GamesScreen() {
                   color: brand.accentDark,
                 }}
               >
-                {weeklyTheme.timeLeft} kaldı
+                Tema odaları
               </Text>
             </View>
-            <View style={[common.row, { gap: 6 }]}>
-              <View style={{ flexDirection: "row" }}>
-                {weeklyTheme.sampleUsers.map((username, index) => (
-                  <Avatar
-                    key={username}
-                    username={username}
-                    size={28}
-                    style={{ marginLeft: index ? -8 : 0 }}
-                  />
-                ))}
-              </View>
-              <Text style={{ fontSize: 13, color: colors.muted }}>
-                {compactCount(weeklyTheme.participants)} katılımcı
-              </Text>
-            </View>
+            <Text style={{ fontSize: 13, color: colors.muted }}>
+              Açık odaları gör veya bu temayla oda kur
+            </Text>
           </View>
-          <Cta
-            label="Katıl"
-            icon="sparkles"
-            filled
-            onPress={() => soon("Haftalık temaya katılım")}
-          />
+          <Cta label="Katıl" icon="sparkles" filled onPress={openTheme} />
         </View>
 
         <View style={[styles.box, { gap: 12 }]}>
@@ -198,7 +223,7 @@ export function GamesScreen() {
                 >
                   Arkadaşlar
                 </Text>
-                <Text style={{ color: colors.muted }}> · bu hafta</Text>
+                <Text style={{ color: colors.muted }}> · bağlantıların</Text>
               </Text>
             </View>
             <Pressable
@@ -212,20 +237,21 @@ export function GamesScreen() {
               <Ionicons name="chevron-forward" size={15} color={colors.muted} />
             </Pressable>
           </View>
+          <ApiStatus
+            loading={friends.loading}
+            error={friends.error}
+            retry={friends.refresh}
+          />
+          {!friends.loading && !friends.error && !friends.items.length && (
+            <Text>Arkadaş eklediğinde burada görünür.</Text>
+          )}
           <View style={{ flexDirection: "row", gap: 8 }}>
-            {weeklyFriends.map((friend, index) => (
+            {friends.items.slice(0, 3).map(({ user: friend }, index) => (
               <Pressable
                 key={friend.username}
                 accessibilityRole="button"
-                accessibilityLabel={`${index + 1}. ${friend.username}, ${friend.stars} yıldız`}
-                onPress={() =>
-                  friend.username === ME
-                    ? router.push("/profil")
-                    : router.push({
-                        pathname: "/u/[username]",
-                        params: { username: friend.username },
-                      })
-                }
+                accessibilityLabel={`${friend.username} profilini aç`}
+                onPress={() => openUser(friend)}
                 style={styles.rank}
               >
                 <View>
@@ -249,9 +275,8 @@ export function GamesScreen() {
                     {friend.username}
                   </Text>
                   <View style={[common.row, { gap: 3 }]}>
-                    <Ionicons name="star" size={12} color={GOLD} />
                     <Text style={{ fontSize: 12, fontFamily: fonts.semibold }}>
-                      {compactCount(friend.stars)}
+                      Profili aç
                     </Text>
                   </View>
                 </View>
@@ -276,7 +301,14 @@ export function GamesScreen() {
               </View>
               <Pressable
                 accessibilityRole="button"
-                onPress={() => soon("Podyum Turu")}
+                onPress={() =>
+                  active
+                    ? router.push({
+                        pathname: "/games/[id]",
+                        params: { id: active.id },
+                      })
+                    : router.push("/games/history")
+                }
                 style={styles.tourButton}
               >
                 <Text
@@ -286,7 +318,7 @@ export function GamesScreen() {
                     color: brand.accentDark,
                   }}
                 >
-                  Turu gör
+                  {active ? "Turu gör" : "Defilelerim"}
                 </Text>
                 <Ionicons
                   name="arrow-forward"
@@ -326,11 +358,13 @@ function Cta({
   label,
   icon,
   filled = false,
+  disabled = false,
   onPress,
 }: {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   filled?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const tint = filled ? colors.onAccent : colors.text;
@@ -338,6 +372,7 @@ function Cta({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.cta,
@@ -365,7 +400,6 @@ function Avatar({
   size: number;
   style?: object;
 }) {
-  const user = getUser(username);
   return (
     <View
       style={[
@@ -389,7 +423,7 @@ function Avatar({
           color: brand.accentDark,
         }}
       >
-        {user?.initials ?? "?"}
+        {username.slice(0, 2).toLocaleUpperCase("tr")}
       </Text>
     </View>
   );

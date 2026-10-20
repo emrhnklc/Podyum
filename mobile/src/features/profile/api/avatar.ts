@@ -33,6 +33,32 @@ export async function uploadMedia(
 ) {
   const check = accountGuard(client);
   check();
+  // Expo 57 fetch, multipart içinde React Native'in { uri, name, type }
+  // nesnesini kodlayamaz. Bütün platformlarda gerçek Blob gönderilir.
+  let blob: Blob;
+  try {
+    blob = file instanceof Blob ? file : await (await fetch(file.uri)).blob();
+  } catch {
+    throw new ApiError(
+      0,
+      "LOCAL_IMAGE_READ_FAILED",
+      "Seçilen fotoğraf okunamadı. Galeriden yeniden seçip tekrar dene.",
+    );
+  }
+  check();
+  if (!blob.size || blob.size !== byteSize)
+    throw new ApiError(
+      0,
+      "LOCAL_IMAGE_CHANGED",
+      "Fotoğraf dosyası değişti. Galeriden yeniden seçip tekrar dene.",
+    );
+  if (blob.type !== mimeType) blob = blob.slice(0, blob.size, mimeType);
+  const data = new FormData();
+  data.append(
+    "file",
+    blob,
+    file instanceof Blob ? purpose.toLowerCase() : file.name,
+  );
   const grant = await client.request<{
     asset: AvatarAsset;
     upload: { path: `/${string}`; token: string };
@@ -46,10 +72,6 @@ export async function uploadMedia(
     }),
   });
   check();
-  const data = new FormData();
-  // Native FormData yerel URI nesnesini, web ise Blob'u kabul eder.
-  if (file instanceof Blob) data.append("file", file, purpose.toLowerCase());
-  else data.append("file", file as unknown as Blob);
   await client.response(grant.upload.path, {
     method: "POST",
     headers: { "X-Upload-Token": grant.upload.token },

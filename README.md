@@ -15,7 +15,7 @@ Podyum is an in-development full-stack mobile application where users share outf
 - **Challenges:** Backend support for timed fashion challenges and private QR-invite lobbies.
 - **Engineering:** Modular APIs, input validation, moderation, API tests, and database tests.
 
-Some mobile features are currently demo-only, including parts of trends, profile views, and games. Full mobile-to-backend integration, production-ready OAuth/email delivery, and cloud media infrastructure are still in progress.
+The main social, profile, publishing, settings, notifications, and challenge screens use real APIs. Trends and product details also use the shared catalog and filtered trends API. Demo previews remain available; production-ready OAuth/email delivery and cloud media infrastructure are still in progress.
 
 ## Tech Stack
 
@@ -28,12 +28,16 @@ Some mobile features are currently demo-only, including parts of trends, profile
 
 ## Project Structure
 
+Current progress: [Backend implementation plan](backend/docs/backend-implementation-plan-2026-10-19.md) · [Mobile API integration](mobile/docs/connected-screens-integration.md) · [Filtered trends API](backend/docs/trends-api-development.md). As of October 20, maintenance, game timing, catalog tagging, trend projections, and the mobile trends integration are implemented.
+
 ```text
 Podyum/
 ├── mobile/        # React Native / Expo mobile app
 ├── backend/       # NestJS API, database schema, services and tests
 └── package.json   # Shared development commands
 ```
+
+`backend/` and `mobile/` manage their own packages, lockfiles, dependencies, and TypeScript configuration. Mobile uses Expo Router with routes in `src/app`, feature screens in `features`, and shared components, hooks, clients, and theme modules.
 
 Detailed documentation: [Mobile](mobile/README.md) · [Backend](backend/README.md) · [Architecture](backend/docs/architecture.md)
 

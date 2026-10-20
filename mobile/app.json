@@ -4,6 +4,7 @@
     "slug": "podyum",
     "scheme": "podyum",
     "version": "0.1.0",
+    "icon": "./assets/brand/icon.png",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "plugins": [
@@ -15,6 +16,15 @@
           "photosPermission": "Kombin fotoğrafını seçebilmen için galerine erişmemiz gerekiyor.",
           "cameraPermission": "Defile'de kombinini çekebilmen için kameraya erişmemiz gerekiyor."
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/splash-logo.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#F3ECE6"
+        }
       ]
     ],
     "experiments": {
@@ -23,13 +33,19 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "name": "Podyum"
+      "name": "Podyum",
+      "favicon": "./assets/brand/favicon.png"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "predictiveBackGestureEnabled": true
+      "predictiveBackGestureEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/adaptive-icon.png",
+        "monochromeImage": "./assets/brand/monochrome-icon.png",
+        "backgroundColor": "#D90B2D"
+      }
     }
   }
 }

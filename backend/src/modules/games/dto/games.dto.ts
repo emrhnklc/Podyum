@@ -179,12 +179,15 @@ export class GameTurnDto {
   @ApiProperty() index!: number;
   @ApiProperty() total!: number;
   @ApiProperty() turnSeconds!: number;
+  @ApiProperty() cycle!: number;
+  @ApiProperty({ format: "date-time" }) votingEndsAt!: Date;
+  @ApiProperty() remainingSeconds!: number;
   @ApiProperty({ type: String, format: "date-time" }) serverNow!: Date;
   @ApiProperty({ type: String, format: "date-time" }) turnEndsAt!: Date;
   @ApiProperty({ type: GameTurnEntryDto, nullable: true, description: "Engelli yazarın kombininde null." }) current!: GameTurnEntryDto | null;
   @ApiProperty() votedCount!: number;
   @ApiProperty({ description: "Gösterilen kombine oy verebilecek aktif üye sayısı (yazar hariç)." }) voterCount!: number;
-  @ApiProperty({ type: Number, nullable: true, description: "Kendi kombinine kaç tur kaldı; geçtiyse veya yoksa null." }) myTurnIn!: number | null;
+  @ApiProperty({ type: Number, nullable: true, description: "Bir sonraki kendi kombinine kaç tur kaldı; şu an kendi kombinindeyse veya yoksa null." }) myTurnIn!: number | null;
   @ApiProperty({ type: Number, nullable: true }) nextNumber!: number | null;
 }
 

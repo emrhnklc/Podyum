@@ -1,5 +1,7 @@
 # Günlük podyum ve QR lobileri — güncel oyun tasarımı
 
+> **20 Ekim güncellemesi:** Günlük 30+30 ve özel `votingSeconds` artık kodda uygulanır. 10 sn yalnız sunum turudur; kartlar toplam süre boyunca döner. Günlük erken kapanmaz, lobi tüm oylar tamamlanınca kapanabilir. ADMIN tema/takvim API'si, mobil oyun ve temel lig vardır. Aşağıdaki 10 Ekim önerileri tarihsel tasarım kaydıdır; güncel çalışan davranış için [oyun rehberi](games-development.md) esastır. Kesin günlük saat, asgari oy ve sezon politikası hâlâ seçilmedi.
+
 10 Ekim 2026, kullanıcının son kapsam değişikliği. **Oyun artık Faz 2'yi beklemiyor; aktif backend planına alındı.** Önceki 10 dakika hazırlık, 3–8 kişi, ortak 20 saniyelik turlar ve zorunlu hızlı eşleşme ilk oyunun temeli değildir. Bu belge tasarım kaynağıdır.
 
 **Uygulama durumu:** Günlük etkinlik ve özel QR lobisi API'si çalışır; uçlar, sınırlar ve kalanlar [oyun rehberinde](games-development.md). Aşağıdaki "öneri" ve "planlanan" ifadeleri tasarım anındaki halidir; uygulanan davranış için rehber esastır. [Yetkili Socket.IO aboneliği](game-realtime-development.md) çalışır; dağıtık fan-out, ödül/lig ve mobil ekran henüz yoktur.
@@ -72,6 +74,6 @@ Hızlı eşleşme, profil ödülü/lig ve haftalık/sponsorlu yarışma (21–23
 
 **Seçildi:** değerlendirme yöntemi (yalnız yıldız), fotoğrafsız üyenin oy hakkı (var), özel QR'da arkadaşlık (aranmaz). **Geliştirme varsayımıyla uygulandı, değiştirilebilir:** lobi süre sınırları/kapasite, katılım bitişi, host ayrılması, engel davranışı; ayrıntı [rehberde](games-development.md).
 
-**Hâlâ açık:** günlük kesin saat/saat dilimi, tema yönetimi, minimum oy eşiği ve resmî kazanan, moderasyonla oyun iptali, oyunlar arası eşzamanlı üyelik sınırı.
+**Hâlâ açık:** günlük kesin saat/saat dilimi, nihai minimum oy/beraberlik ve sezon politikası, büyük katılım/yük kabulü. Tema/takvim yönetimi, moderasyonla iptal ve tek aktif üyelik uygulanmıştır.
 
 Tasarım anındaki tam liste: Günlük kesin saat/saat dilimi, katılımcının oy hakkı için geçerli fotoğraf gerekip gerekmediği, tema yönetimi, özel QR'da arkadaşlık/host onayı, lobi süre sınırları/kapasite, başlangıç/katılım bitişi, değerlendirme yöntemi, dengeli gösterim/minimum oy, moderasyon/engel, host ayrılması ve oyunlar arası eşzamanlı üyelik. Genel etkinlikte katılımcı olmayanlara oy kapalıdır; bu karar kesinleşti. Diğer kararlar saat veya hak uydurmadan ilgili uygulama adımında seçilecek.

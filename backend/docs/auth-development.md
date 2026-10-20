@@ -1,6 +1,6 @@
 # Çalışan auth akışı
 
-E-posta/şifre ve sunucuda saklanan oturumlar çalışır. E-posta teslimi yerel dosyadır; Google/Apple yalnızca geliştirme mock'udur. Gerçek OAuth ve gerçek e-posta gönderimi tamamlanmadı.
+E-posta/şifre ve sunucuda saklanan oturumlar çalışır. Kayıt, giriş ve şifre sıfırlamada parola sınırı 8–128 karakterdir; parola kırpılmaz. E-posta teslimi yerel dosyadır; Google/Apple yalnızca geliştirme mock'udur. Gerçek OAuth ve gerçek e-posta gönderimi tamamlanmadı.
 
 ## Çalıştır
 
@@ -58,7 +58,7 @@ Access token JWT değildir; istemci içeriğini çözmeye çalışmaz. Sonraki i
 
 Refresh eski token çiftini kapatır. Mobil aynı oturum için tek bir refresh isteği yürütmeli ve yeni çifti birlikte saklamalıdır. Kullanılmış refresh yeniden sunulursa aynı cihazın oturumu iptal edilir; diğer cihazlar etkilenmez. Yenileme yanıtı kaybolursa otomatik eski token tekrarı yerine yeniden giriş gerekir. Bu davranış idempotent POST komutlarından farklıdır.
 
-Askıya alınmış hesap `403 ACCOUNT_SUSPENDED`, silinmiş hesap/geçersiz veya süresi dolmuş oturum `401 INVALID_SESSION` alır. Doğru şifreyle henüz doğrulanmamış e-posta `403 EMAIL_NOT_VERIFIED` alır. Yanlış e-posta/şifre `401 INVALID_CREDENTIALS` olur. Hatalar ortak `{error:{code,message,requestId,fields?}}` şeklindedir.
+Askıya alınmış hesap `403 ACCOUNT_SUSPENDED`, silinmiş hesap/geçersiz veya süresi dolmuş oturum `401 INVALID_SESSION` alır. E-posta onayı etkinse doğru şifreyle henüz doğrulanmamış e-posta `403 EMAIL_NOT_VERIFIED` alır. Yanlış e-posta/şifre `401 INVALID_CREDENTIALS` olur. Hatalar ortak `{error:{code,message,requestId,fields?}}` şeklindedir.
 
 ## Sınırlar
 

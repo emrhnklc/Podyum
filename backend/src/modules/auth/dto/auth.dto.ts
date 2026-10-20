@@ -12,7 +12,7 @@ export class EmailDto {
 }
 
 export class LoginDto extends EmailDto {
-  @ApiProperty({ minLength: 15, maxLength: 128, format: "password" })
+  @ApiProperty({ minLength: AUTH_RULES.passwordMinLength, maxLength: AUTH_RULES.passwordMaxLength, format: "password" })
   @IsString()
   @MinLength(AUTH_RULES.passwordMinLength)
   @MaxLength(AUTH_RULES.passwordMaxLength)
@@ -39,9 +39,9 @@ export class ActionTokenDto {
 }
 
 export class ResetPasswordDto extends ActionTokenDto {
-  @ApiProperty({ minLength: 15, maxLength: 128, format: "password" })
+  @ApiProperty({ minLength: AUTH_RULES.passwordMinLength, maxLength: AUTH_RULES.passwordMaxLength, format: "password" })
   @IsString()
-  @Length(15, 128)
+  @Length(AUTH_RULES.passwordMinLength, AUTH_RULES.passwordMaxLength)
   password!: string;
 }
 

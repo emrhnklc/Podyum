@@ -1,4 +1,5 @@
 @origin = http://127.0.0.1:3000
+@catalogProductId = REPLACE_CATALOG_PRODUCT_UUID
 @accessToken = REPLACE_ACCESS_TOKEN
 @pollId = REPLACE_POLL_UUID
 @mediaA = REPLACE_OWN_POLL_MEDIA_UUID_A
@@ -79,3 +80,20 @@ Content-Type: application/json
 DELETE {{origin}}/v1/polls/{{pollId}}?expectedVersion={{version}}
 Authorization: Bearer {{accessToken}}
 Idempotency-Key: example-delete-20261010-001
+
+### Katalog ürünüyle taslak. Kanonik URL otomatik alınır; title/brand/priceMinor/currency gönderilmez.
+POST {{origin}}/v1/polls
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: catalog-tag-create-20261020-001
+Content-Type: application/json
+
+{
+  "question": "Bu gömlekle hangi kombin?",
+  "options": [
+    { "position": 1, "mediaId": "{{mediaA}}", "products": [{ "catalogProductId": "{{catalogProductId}}" }] },
+    { "position": 2, "mediaId": "{{mediaB}}", "products": [] }
+  ]
+}
+
+# Özgün ürün/affiliate linki de verilebilir; aynı katalog ürününe eşleşmeli.
+# Yayında ürün/fiyat/kaynak snapshot'ı sunucuda alınır. Ücretli affiliate hakkı bu örnekle açılmaz.

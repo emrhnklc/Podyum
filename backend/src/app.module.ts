@@ -1,3 +1,6 @@
+import { CatalogModule } from "./modules/catalog/catalog.module.js";
+import { TrendsModule } from "./modules/trends/trends.module.js";
+import { MaintenanceModule } from "./modules/maintenance/maintenance.module.js";
 import { Module } from "@nestjs/common";
 import { DatabaseModule } from "./database/database.module.js";
 import { HealthModule } from "./modules/health/health.module.js";
@@ -13,6 +16,6 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { AccountsModule } from "./modules/accounts/accounts.module.js";
 
 @Module({
-  imports: [DatabaseModule, HealthModule, AuthModule, SocialModule, UsersModule, MediaModule, PollsModule, FeedModule, GamesModule, ModerationModule, NotificationsModule, AccountsModule],
+  imports: [DatabaseModule, HealthModule, AuthModule, SocialModule, UsersModule, MediaModule, PollsModule, FeedModule, GamesModule, ModerationModule, NotificationsModule, AccountsModule, MaintenanceModule, CatalogModule, TrendsModule],
 })
 export class AppModule {}

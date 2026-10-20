@@ -26,10 +26,29 @@ const sections: { title: string; rows: Row[] }[] = [
   {
     title: "Hesap",
     rows: [
-      { label: "Profil Bilgileri", icon: "person-outline" },
-      { label: "Hesap ve Güvenlik", icon: "key-outline" },
-      { label: "Bildirimler", icon: "notifications-outline", href: "/bildirimler" },
-      { label: "Gizlilik", icon: "shield-checkmark-outline" },
+      {
+        label: "Profil Bilgileri",
+        icon: "person-outline",
+        href: "/profile/edit",
+      },
+      {
+        label: "Hesap ve Güvenlik",
+        icon: "key-outline",
+        href: "/settings/security",
+      },
+      {
+        label: "Bildirimler",
+        icon: "notifications-outline",
+        href: "/bildirimler",
+      },
+      {
+        label: "Gizlilik",
+        icon: "shield-checkmark-outline",
+        href: {
+          pathname: "/settings/preferences",
+          params: { section: "privacy" },
+        },
+      },
     ],
   },
   {
@@ -37,8 +56,22 @@ const sections: { title: string; rows: Row[] }[] = [
     rows: [
       { label: "Tema", icon: "brush-outline", value: "Podyum Kahve" },
       { label: "Dil", icon: "globe-outline", value: "Türkçe" },
-      { label: "Keşfet Tercihleri", icon: "options-outline" },
-      { label: "Konum Tercihleri", icon: "location-outline" },
+      {
+        label: "Keşfet Tercihleri",
+        icon: "options-outline",
+        href: {
+          pathname: "/settings/preferences",
+          params: { section: "feed" },
+        },
+      },
+      {
+        label: "Konum Tercihleri",
+        icon: "location-outline",
+        href: {
+          pathname: "/settings/preferences",
+          params: { section: "location" },
+        },
+      },
     ],
   },
   {
@@ -65,11 +98,19 @@ export function SettingsScreen() {
   const open = (row: Row) =>
     row.href
       ? router.push(row.href)
-      : message(`${row.label} sıradaki adımlarda açılacak.`);
+      : router.push({
+          pathname: "/settings/info",
+          params: { title: row.label },
+        });
   const signOut = async () => {
-    try { await client.logout(); }
-    catch (error) { message(errorMessage(error)); }
-    finally { resetWelcomed(); router.replace("/auth"); }
+    try {
+      await client.logout();
+    } catch (error) {
+      message(errorMessage(error));
+    } finally {
+      resetWelcomed();
+      router.replace("/auth");
+    }
   };
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>

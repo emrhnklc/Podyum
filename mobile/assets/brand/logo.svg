@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 256 256">
+  <rect id="tile" width="256" height="256" rx="64" fill="#D90B2D"/>
+  <g id="mark">
+    <rect x="56" y="136" width="62" height="76" rx="18" fill="#ED8295"/>
+    <rect x="138" y="96" width="62" height="116" rx="18" fill="#FFFFFF"/>
+    <path d="M169 40C172 54 175 57 189 60C175 63 172 66 169 80C166 66 163 63 149 60C163 57 166 54 169 40Z" fill="#FFFFFF"/>
+  </g>
+</svg>

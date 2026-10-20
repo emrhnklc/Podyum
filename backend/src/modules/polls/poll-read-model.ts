@@ -40,7 +40,7 @@ export function presentPoll(poll: PollRow, viewerId: string, now: Date, myOption
       products: option.products.map((product) => ({
         id: product.id, title: product.title, brand: product.brand, priceMinor: product.priceMinor,
         currency: product.currency, externalUrl: product.externalUrl, priceRecordedAt: product.priceRecordedAt,
-        source: "USER_ENTERED" as const,
+        source: product.source, catalogProductId: product.catalogProductId, catalogSnapshot: product.catalogSnapshot,
       })),
     })),
   };

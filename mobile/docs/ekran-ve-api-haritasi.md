@@ -1,54 +1,42 @@
 # Ekran ve API haritası
 
-10 Ekim 2026. Mobile Expo + React Native + Expo Router kullanır. [Çalıştırma ve sınırlar](../README.md). Girişten sonraki Keşfet, gerçek detay ve yorumlar API'ye bağlıdır; diğer ekranlar demo önizlemesidir. [İlk ana ekran bağlantısı ve kontroller](home-api-integration.md). [Kayıt ve profil kurulumu](registration-api-integration.md). Backend'in uçları [API sözleşmesinde](../../backend/docs/api-contract.md) belgelenir.
+11 Ekim 2026. Expo + React Native + Expo Router. Keşfet, kayıt, profil, sosyal ekranlar, bildirim/tercihler, paylaşım ve Defile gerçek API kullanır. Trendler gerçek API ve katalog detayı kullanır; [bağlantı sözleşmesi](trends-api-integration.md). [Bağlantı ayrıntıları, sınırlar ve testler](connected-screens-integration.md), [ana ekran](home-api-integration.md), [kayıt](registration-api-integration.md), [backend API sözleşmesi](../../backend/docs/api-contract.md).
 
 ## Route ve feature
 
-| Route | Feature ekranı | Şimdiki davranış |
+| Route | Feature | Davranış |
 | --- | --- | --- |
-| `/` | feed/FeedScreen | Girişten sonra gerçek akış/tercih/kaydetme; girişsiz açıkça işaretlenmiş demo |
-| `/trendler` | trends/TrendsScreen | Dönem, kategori, tercih yapanlar ve fiyat filtreleri |
-| `/paylas` | polls/CreatePollScreen | API: 2–4 fotoğraf yükle → son hali onayla → taslak → yayın; Herkes/Arkadaşlar görünürlüğü. Ürün etiketi ve yüz bölgesi seçimi henüz yok |
-| `/bildirimler` | notifications/NotificationsScreen | Boş durum (sekme çubuğunda gizli) |
-| `/defile` | games/GamesScreen | Defile: lig, canlı Podyum, haftalık tema, arkadaş sıralaması, Podyum Turu (demo) |
-| `/profil` | profile/ProfileScreen | "Profilim": konum, takipçi/takip, Profili Düzenle, öne çıkanlar, Gönderiler/Kombinler/Oylamalar/Kaydedilenler (demo) |
-| `/u/:username` | profile/ProfileScreen | "Profil": lig rozeti, Takip Et/Mesaj, öne çıkanlar; bilinmeyen kullanıcı için boş durum |
-| `/polls/:id` | polls/PollDetailScreen | UUID için gerçek detay/sonuç; demo kimliği için demo detay |
-| `/profile/edit` | profile/EditProfileScreen | Profili Düzenle: kapak/avatar seçimi, ad, bio, konum, stil etiketleri, sosyal hesaplar; Kaydet bellekte tutar |
-| `/auth/register` | auth/RegisterScreen | Gerçek kayıt; arada e-posta doğrulama, sonra profil/avatar/stil kurulumu |
-| `/settings` | settings/SettingsScreen | Gerçek çıkış ve yerel oturum temizliği; bildirim rotası açılır, diğer ayarlar henüz bağlı değil |
-| `/people` | people/PeopleScreen | Kişiler: arama, stil filtreleri, öne çıkanlar, önerilen profiller (demo) |
-| `/friends` | friends/FriendsScreen | Örnek arkadaş listesi |
-| `/games/:id` | games/GameRoomScreen | Defile odası: bekleme (QR davet, başlat), kombin yükleme, Podyum Turu (herkes aynı yarışmacıyı 10 sn görür, dokununca oy gider), sonuç (podyum, oy sayısı; herkese açıkta lig kartı ve puan, davetli odada yalnız kazanan) |
-| `/games/new` | games/CreateRoomScreen | Yeni oda kur: tema, 2–50 katılımcı (kaydırmalı), süre, başlangıç saati veya elle başlatma, herkese açık/davetle |
-| `/games/join?token=` | games/JoinRoomScreen | QR/davet linki: oda özeti ve katıl; giriş yoksa girişten sonra geri döner |
-| `/games` | → `/defile` | Eski bağlantılar Defile sekmesine yönlenir |
-| `/auth` | auth/AuthScreen | Karşılama: Başla önizlemeye, Giriş yap gerçek e-posta girişine gider; Apple/Google bekliyor |
-| `/auth/verify-email` | auth/VerifyEmailScreen | Yerel posta anahtarıyla doğrulama, yeniden isteme ve girişe devam |
-| `/auth/login` | auth/LoginScreen | Mevcut doğrulanmış e-posta hesabıyla gerçek giriş |
-| `/comments/:pollId` | polls/CommentsScreen | Sayfalı gerçek yorumlar, ekleme/silme |
-| bilinmeyen route | +not-found | Güvenli Keşfet'e dönüş |
+| `/` | feed | Gerçek akış, tercih/sonuç/kaydetme, kategori ve arkadaş filtresi; kişi arama ve bildirim erişimi |
+| `/trendler` | trends | Gerçek filtreli API, cursor/yenileme, boş/yetersiz/hata ve katalog detayı |
+| `/paylas` | polls | Fotoğraf yükleme → son görüntü/onay → taslak → yayın; kullanıcı varsayılanları |
+| `/polls/:id` | polls | Gerçek detay/sonuç/neden; sahibine taslak yayınla/sil, iptal ve yorum ayarı; diğerine şikâyet |
+| `/comments/:pollId` | polls | Gerçek sayfalı yorumlar, ekle/sil, yazar profili, şikâyet |
+| `/people` | people | Kullanıcı adı önekiyle gerçek arama, profil ve arkadaşlık işlemleri |
+| `/friends` | friends | Arkadaşlar, gelen/giden istekler ve yönetimi |
+| `/profil`, `/u/:username` | profile | Gerçek profil ve paylaşımlar; kendinde kaydedilenler/defile geçmişi; diğerinde arkadaşlık/engel/şikâyet |
+| `/profile/edit` | profile | Kullanıcı adı, ad, bio, stil, avatar onayı ve kalıcı kayıt |
+| `/bildirimler` | notifications | Gerçek liste/okunmamış/okundu/ilgili içerik ve tercihler; sekme çubuğunda gizli |
+| `/settings` | settings | Alt ayarlar ve gerçek çıkış |
+| `/settings/preferences` | settings | `section=feed/privacy/location/notifications`: sunucuda kalıcı tercihler |
+| `/settings/blocked` | settings | Gerçek engellenenler ve engeli kaldırma |
+| `/settings/security` | settings | Şifre sıfırlama, tüm oturumlardan çıkış ve onaylı hesap silme |
+| `/settings/info` | settings | Tema/dil/destek/hukuki içeriklerin mevcut durumu; henüz sunulmamış hizmet için başarı göstermez |
+| `/reports/new` | moderation | USER/POLL/COMMENT hedefi ve gerekçesiyle gerçek şikâyet |
+| `/defile` | games | Görseller korunur; gerçek lig, hızlı eşleş, davetli oda, Sonbahar temalı odalar, arkadaşlar ve geçmiş |
+| `/games/browse` | games | Açık/günlük odalar, tema araması, katılım ve oda oluşturma |
+| `/games/history`, `/games/league` | games | Katılım geçmişi ve gerçek lig puanları |
+| `/games/new` | games | Tema, katılımcı sayısı, süre, planlı/elle başlangıç, herkese açık/davetli oda |
+| `/games/:id` | games | Oda, QR, başlat/erken bitir/ayrıl, fotoğraf önizleme/onay/teslim, 1–5 yıldız turu, sonuç |
+| `/games/join?token=` | games | Davet önizleme → giriş → davete dön → kullanıcı onayıyla katıl |
+| `/games` | yönlendirme | `/defile` |
+| `/auth`, `/auth/login` | auth | Karşılama ve gerçek e-posta girişi; Google/Apple kurulumu bekliyor |
+| `/auth/register`, `/auth/verify-email` | auth | Gerçek kayıt/doğrulama/profil/avatar/stil kurulumu |
+| `/auth/reset-password` | auth | Sıfırlama talebi ve anahtarla yeni şifre; e-posta teslimi yerel |
+| bilinmeyen route | +not-found | Keşfet'e dönüş |
 
-Alt menü Keşfet, Trendler, Paylaş, Defile, Profil içerir. Günlük podyum ve oyunlar Defile sekmesindedir; `/bildirimler` rotası durur ama sekmede gizlidir. `src/app/` dosyaları route/layout/parametreyle sınırlı, UI ve davranış feature'ların içindedir.
+Alt menü Keşfet, Trendler, Paylaş, Defile, Profil. `src/app/` yalnız route/layout/parametre taşır. İş akışları feature'larda, oturum kontrollü HTTP `lib/api` altında, odak/iptal/sayfalama hook'ları `hooks/use-api-query.ts` içindedir.
 
-## İlk gerçek API bağlantısı
-
-| Kullanım | Backend karşılığı | Durum |
-| --- | --- | --- |
-| Oturum | `/auth/login`, `/auth/me`, `/auth/refresh`, `/auth/logout` | Kayıt/doğrulama/giriş/yenileme/çıkış bağlı; yerel posta, gerçek OAuth bekliyor |
-| Kendi/başka profil | Users API | Kayıt profil kurulumu bağlı; profil sekmesi/başka profiller henüz demo |
-| Arkadaş/engel | Social API | Backend hazır; frontend bağlanmadı |
-| Keşfet listesi | `GET /v1/feed` | Bağlı: scope/category/cursor/yenileme |
-| Kombin detayı | `GET /v1/polls/:id` | UUID route'u bağlı; demo kimlikleri demo ekranı |
-| Tercih | `PUT /v1/polls/:id/vote` `{ optionId }` | Gerçek kart UUID gönderir; sunucunun tek tercih kuralı geçerli |
-| Sonuç | `GET /v1/polls/:id/results` | Bağlı; gerçek demografi henüz yok |
-| Fotoğraf | Medya upload/process/approve API'leri | Kayıtta avatar yükleme/önizleme/onay bağlı; Paylaş'ta galeriden seçim çalışır (yalnız cihazda). Yükleme hattı oturum, blur bölgesi seçimi ve önizleme onayı ekranlarını bekliyor |
-| Taslak/yayın | Polls oluştur/düzenle/publish API'leri | Backend hazır; form henüz API kullanmaz |
-| Kaydet/yorum/bildirim | Sosyal etkileşim uçları | Ana ekran kaydet/kaldır ve yorumlar bağlı; bildirim ekranı bekliyor |
-| Trendler | Trend API | Arkadaşın backend kolu; henüz yok |
-| Günlük oyun/QR lobi | Games API | Backend hazır; mobil bağlantısı bekliyor |
-
-Gerçek oy bağlanınca sunucu `myOptionId`, `canVote`, `canViewResults` ve toplamları belirler. İstemci tahmin/puan üretmez. FRIENDS görünürlüğü istemci filtresiyle güvenceye alınmaz; backend erişimi şarttır. Demo arkadaş filtresi yalnız örnek listeden seçim yapar, gerçek arkadaşlık veya özel içerik yetkisi vermez.
+Gerçek kartlarda sonucu ve erişimi sunucu belirler; demografi/puan uydurulmaz. FRIENDS görünürlüğünü backend uygular. Aşağıdaki demo kuralları eski örnek ekranlar içindir, gerçek işlemleri değiştirmez.
 
 ## Demo davranışı ve ürün kararları
 
@@ -56,7 +44,7 @@ Bu bölüm demo ekranlar içindir. Gerçek kartta tercih değişmez; gerçek son
 
 Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı paylaşımda tekrar gezinmek yeniden oy üretmez; kendi paylaşımı ve bitmiş oylamada oy kapalıdır. Gösterilen oranlar örnek oy sayılarına tek demo tercih eklenerek hesaplanır. Tercih/kaydetme yalnız bellekte, yenilemeyle sıfırlanır.
 
-**Açık ürün kararı — tercih değiştirme:** Ürün sahibi, yanlışlıkla dokunmaya karşı oylama açıkken tercihin değiştirilebilmesini istiyor. Demo artık böyle davranır: diğer seçeneğe dokunmak önceki tercihin yerine geçer, toplam oy değişmez. Backend bugün ilk oyu sabit tutar (`PUT /v1/polls/:id/vote` farklı seçenekte `409 VOTE_ALREADY_CAST`). Gerçek oy bağlanmadan önce kuralın değişmesi ya da arayüzün eski davranışa dönmesi gerekir; trend tarafındaki tercih olayının tekilleştirilmesi de bundan etkilenir.
+**Açık ürün kararı — tercih değiştirme:** Ürün sahibi, yanlışlıkla dokunmaya karşı oylama açıkken tercihin değiştirilebilmesini istiyor. Demo artık böyle davranır: diğer seçeneğe dokunmak önceki tercihin yerine geçer, toplam oy değişmez. Backend bugün ilk oyu sabit tutar (`PUT /v1/polls/:id/vote` farklı seçenekte `409 VOTE_ALREADY_CAST`). Gerçek ekran sunucunun değişmez tercih kuralını uygular; kural değişikliği ayrıca ürün/backend kararı gerektirir; trend tarafındaki tercih olayının tekilleştirilmesi de bundan etkilenir.
 
 **Sonuç detayları:** Oy verildikten sonra detay ekranı toplam oyu, seçenek başına oyu ve oy verenlerin cinsiyet/yaş dağılımını gösterir. Dağılımlar gönderi kimliğinden türetilen mock değerlerdir (`features/polls/data/demo-demographics.ts`). Backend'in ilk sonuç sözleşmesinde demografik kırılım yoktur; bağlanırken izin ve küçük grup eşiği sunucuda uygulanmalıdır.
 
@@ -64,13 +52,14 @@ Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı 
 
 **Keşfet düzeni:** Kahve/krem tasarımda oylama tek bir kart içindedir: yazar, serif soru, yan yana 9:16 seçenekler ve kartın içinde Geç/Kaydet/yorum eylemleri. Kartın altında parçalar listelenir. Kategori filtreleri sağ üstteki filtre tuşuyla açılır; arama çubuğu Kişiler ekranına gider. "Senin oylaman" şeridi Keşfet'te yoktur; kendi oylamalarına Profil'den ulaşılır.
 
-Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş filtreleri ve gerçek katalog kimliği ayrıca bağlanacak.
+Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş/marka/para birimi filtreleri ve gerçek katalog kimliği 20 Ekim’de bağlandı; mevcut ekran demo hesap kullanmaz.
 
-Günlük oyun 30 dakika fotoğraf + 30 dakika oy, yalnız etkinlik üyeleri oy verebilir. Özel QR lobisinde süreler ayarlanır ve host fotoğraf aşamasını erken bitirebilir. Saat, puan/lig ve diğer açık kararlar [oyun tasarımında](../../backend/docs/game-design.md); bu önizlemede katılım/QR veya ödül açılmaz.
+Günlük oyun 30 dakika fotoğraf + 30 dakika oy, yalnız etkinlik üyeleri oy verebilir. Özel QR lobisinde süreler ayarlanır ve host fotoğraf aşamasını erken bitirebilir. Saat, puan/lig ve diğer açık kararlar [oyun tasarımında](../../backend/docs/game-design.md); gerçek mobil oda/QR/yıldız/sonuç akışı bağlıdır. Günlük saat ayarlanmamışsa yalnız açık/davetli odalar kullanılabilir.
 
 ## Sonraki sıra
 
-1. Ana ekran/kombin detayının tasarımını cihazda gözden geçir.
-2. Ana ekran ve kayıt/doğrulama/profil kurulumu hazır; gerçek profil sekmesini ve sosyal ekranları bağla.
-3. Medya seçme/önizleme/onay ve gerçek paylaş formunu bağla.
-4. Sosyal uçlar, trend kolu ve oyun/QR teslimleriyle entegrasyona devam et.
+1. Fiziksel cihazda kayıt, galeri/kamera, QR, paylaşım ve oturum dönüşünü kontrol et.
+2. Trendler ve katalog detayının gerçek API bağlantısı tamamlandı; fiziksel cihaz kabulünü yap.
+3. Gerçek e-posta/push, OAuth, Plus/ödeme ve haftalık etkinlik uçlarını hazır oldukça bağla.
+
+20 Ekim 2026: Defile turn yanıtı `cycle`, `votingEndsAt`, `remainingSeconds` taşır; kartlar 10 sn döner, toplam süre günlükte 30 dk, lobide seçilen süredir. Backend katalog ve ADMIN tema/takvim/bakım uçları hazır; mobil ürün seçimi/kombin etiketi de bağlandı. [Güncel sözleşme](connected-screens-integration.md).
