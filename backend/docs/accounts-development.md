@@ -81,3 +81,7 @@ npm run test:accounts
 ## Sırada kalanlar
 
 Genel saklama süreleri ve süresi dolmuş oturum/action/idempotency/bildirim/outbox işlerini düzenli temizleme; yedeklerin saklama/silme davranışı; yönetim gerekçeleri için redaksiyon; gerekirse kullanıcı verisi dışa aktarımı; askıdaki hesabın silme başvurusu. Özel lobiden tek oyuncu çıkarma ve ticari modüllerin yönetimi ayrıca açıktır. Bunlar bu hesabı kapatma/yerel temizlik tesliminden ayrı takip edilir.
+
+19 Ekim devamı: süresi dolmuş oturum/token/idempotency ve eski yayımlanmış outbox için ayrı [teknik DB bakımı](technical-retention.md) eklendi. AccountDeletion, oy/oyun sonuçları veya genel içerik/bildirim/audit geçmişi silinmez; genel saklama işinin bütünü kapanmış sayılmaz.
+
+20 Ekim katalog ek teslimi: hesap anonimleştirme transaction'ı kullanıcıya özel `CatalogSuggestion` kayıtlarını da siler; özgün öneri URL'si/ürün beyanı kalmaz. Yönetici incelemeli ortak katalog ürünü korunur. Mevcut oy/oyun sonuçlarını anonim koruma kararı değişmez.

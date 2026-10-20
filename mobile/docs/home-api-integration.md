@@ -1,11 +1,12 @@
 # Ana ekranın ilk gerçek API bağlantısı
 
-10 Ekim 2026. Kapsam: doğrulanmış mevcut e-posta hesabıyla giriş, Keşfet, tercih/sonuç/detay, ürün linkleri ve yorumlar. Kayıt/doğrulama ve profil/stil/avatar kurulumu da bağlandı: [kayıt rehberi](registration-api-integration.md). Şifre sıfırlama, gerçek Google/Apple girişi ve diğer sekmelerin entegrasyonu sonraki işlerdir.
+11 Ekim 2026. Kapsam: doğrulanmış mevcut e-posta hesabıyla giriş, Keşfet, tercih/sonuç/detay, ürün linkleri ve yorumlar. Kayıt/doğrulama ve profil/stil/avatar kurulumu da bağlandı: [kayıt rehberi](registration-api-integration.md). Şifre sıfırlama, gerçek Google/Apple girişi ve diğer sekmelerin entegrasyonu sonraki işlerdir.
 
 ## Kullanıcı akışı
 
-- Karşılama ekranındaki **Giriş yap** `/auth/login` ekranını açar; `/auth/login` ve `/auth/me` ile gerçek oturum alınır. **Başla** eski tasarım önizlemesini açar; bu ekran açıkça önizleme olarak işaretlenir, gerçek oy/kayıt üretmez. API hatasında gerçek liste yerine sessizce demo gösterilmez.
+- Karşılamadaki **Kayıt ol** gerçek kayıt ekranını açar. Mevcut hesaplar kayıt ekranındaki **Giriş yap** bağlantısıyla `/auth/login` ekranına geçer; `/auth/login` ve `/auth/me` ile gerçek oturum alınır. **Başla** e-posta girişini açar; sekmeler oturum gerektirir. Giriş formu e-posta biçimini ve 8–128 karakter parola sınırını denetler; backend alan hatalarını e-posta/şifre açıklamasına çevirir. API hatasında gerçek liste yerine sessizce demo gösterilmez.
 - Giriş yapan kullanıcı `/feed` ile gerçek Herkes/Arkadaşlar akışını, kategorileri, sunucu cursor'ıyla devamını ve aşağı çekerek yenilemeyi kullanır. Arkadaşlık/görünürlük sunucuda denetlenir. Geç kartı yalnız eldeki listeden kaldırır; son kartta liste başa sarmaz. Sekmeye veya uygulamaya dönünce liste yeniden alınır.
+- **Ara, kişi keşfet** düğmesi gerçek ve önizleme Keşfet ekranlarında `/people` sayfasını açar. Kişiler sayfasındaki öneriler, profil bağlantıları ve arkadaş ekleme davranışı mevcut demo tasarımıdır; gerçek kullanıcı araması/arkadaşlık entegrasyonu ayrı iştir.
 - Gerçek kart 2–4 seçenek destekler. Tercih UUID ile `/polls/:id/vote` ucuna gönderilir; başarı makbuzundan önce seçilmiş gibi gösterilmez. Backend bugün ilk tercihi sabit tutar; gerçek kart başka tercihe geçiş açmaz. Demo tercihin değiştirilebilir olması backend kuralını değiştirmez.
 - Sonuçlar yalnız `/polls/:id/results` yanıtından gelir. İstemci oy/yüzde/demografi uydurmaz. Backend'in henüz sağlamadığı yaş/cinsiyet dağılımları gerçek detayda gösterilmez. UUID detay route'u gerçek API'ye, eski demo kimlikleri demo detayına gider.
 - Kaydet/kaldır sunucu makbuzuyla güncellenir. Feed isSaved verir; doğrudan açılan detay bu alanı vermediği için ilk **Kaydet** idempotent PUT yapar, makbuzdan sonra kaldırma açılır. Profilin demo Kaydedilenler sekmesi henüz gerçek kaydetmelerin listesi değildir.

@@ -1,6 +1,6 @@
 # API ve canlı bağlantı sözleşmesi — taslak
 
-**Kapsam güncellemesi:** Günlük podyum/QR lobisi REST API'si ve yetkili Socket.IO aboneliği çalışır. [Oyun tasarımı](game-design.md), [canlı bağlantı sözleşmesi](game-realtime-development.md). Trend, affiliate ve reklam API'leri ilgili Faz 1 adımında tasarlanacak; henüz çalışan endpoint değildir. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
+**Kapsam güncellemesi:** Günlük podyum/QR lobisi REST API'si ve yetkili Socket.IO aboneliği çalışır. [Oyun tasarımı](game-design.md), [canlı bağlantı sözleşmesi](game-realtime-development.md). [Trendler API'si](trends-api-development.md) gerçek dönem/ürün/demografi/fiyat filtreleriyle çalışır; mobil Trendler ve katalog detayı da gerçek API kullanır. Affiliate ve reklam API'leri henüz yoktur. [Mentör görüşmesi](mentor-notes-2026-10-10.md).
 
 Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama endpoint'leri çalışır. Controller/DTO'lardan üretilen güncel OpenAPI `/v1/openapi.json`, Swagger `/v1/docs` altındadır. Çalışan akışlar: [Auth](auth-development.md), [profil/ayar](users-development.md), [sosyal](social-development.md), [medya](media-development.md), [oylama](polls-development.md), [tercih/sonuç](poll-votes-development.md), [akış](feed-development.md), [etkileşim/şikâyet](interactions-development.md), [bildirim](notifications-development.md), [oyun](games-development.md) ve [yönetim](moderation-development.md). Socket protokolü OpenAPI'nin dışında aşağıda belgelenir. Mobil tip üretimi teslim adımında yapılacak.
 
@@ -107,7 +107,7 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 | GET | `/polls/:id/reasons` | Çalışır: seçenek başına neden sayıları; sonuçla aynı görünürlük |
 | POST | `/reports` | Çalışır: görünen paylaşım/yorum/kullanıcı şikâyeti; hedef başına tek kayıt |
 
-Taslak/yayın yönetim yazma uçları Idempotency-Key ister; PUT oy doğal kullanıcı/oylama anahtarıyla çalışır, bu başlığı istemez; oluşturma dışındaki komutlarda expectedVersion gerekir (DELETE query, diğerleri body). options gönderilirse bütün liste ve ürünler değiştirilir, yeni kimlikler üretilir; yayın sonrası bu alanlar sabittir. Süre 1800/7200/86400 saniye; yayın anında başlar. Ürünler USER_ENTERED beyanıdır, ortak katalog eşleşmesi henüz yoktur. Detay status yanında serverNow/closesAt/effectiveStatus/remainingSeconds içerir; süresi dolan OPEN okuma sırasında CLOSED görünür, kalıcı kapanış tarayıcısı API açılışında ve varsayılan 15 saniyede bir çalışır; oy son sürede doğrudan durur. [Çalışan sözleşme](polls-development.md), [HTTP örnekleri](../examples/polls.http).
+Taslak/yayın yönetim yazma uçları Idempotency-Key ister; PUT oy doğal kullanıcı/oylama anahtarıyla çalışır, bu başlığı istemez; oluşturma dışındaki komutlarda expectedVersion gerekir (DELETE query, diğerleri body). options gönderilirse bütün liste ve ürünler değiştirilir, yeni kimlikler üretilir; yayın sonrası bu alanlar sabittir. Süre 1800/7200/86400 saniye; yayın anında başlar. Ürünler USER_ENTERED beyanı veya catalogProductId ile sunucudan alınan CATALOG snapshot'ıdır; yayın anında sabitlenir. [Katalog bağlantısı](poll-catalog-integration.md). Detay status yanında serverNow/closesAt/effectiveStatus/remainingSeconds içerir; süresi dolan OPEN okuma sırasında CLOSED görünür, kalıcı kapanış tarayıcısı API açılışında ve varsayılan 15 saniyede bir çalışır; oy son sürede doğrudan durur. [Çalışan sözleşme](polls-development.md), [HTTP örnekleri](../examples/polls.http).
 
 Tercih/sonuç, organik akış ve yorum/kaydetme/neden/şikâyet davranışları uygulanmıştır: [etkileşim rehberi](interactions-development.md), [örnek HTTP](../examples/interactions.http). Akışta açık PUBLIC oylamalar ile izleyicinin görebildiği FRIENDS oylamalar vardır; Friends sekmesi yazarın arkadaş olmasını da zorunlu kılar. Kapanmış oylamalar profil (`/users/:id/polls`) ve kaydedilenler üzerinden görülür. `Geç` ilk sürümde oturum içi UI davranışıdır; kalıcı ilgi modeli gerektirmez. [Akış sözleşmesi ve sayfalama davranışı](feed-development.md), [örnek HTTP](../examples/feed.http).
 
@@ -217,3 +217,19 @@ Karar ile hedef yaptırımı/audit/outbox/makbuz aynı transaction'dadır. Rol a
 ## 10. Hesap silme — çalışan yerel teslim
 
 DELETE /me/account yalnız {confirmDeletion:true} ve son 15 dakika içinde yeni giriş ister; 202 silme kabulü/erişim kapanışıdır. İşlem sonrası oturumlar kaldırıldığı için replay endpoint'i veya Idempotency-Key zorunluluğu yoktur; userId doğal tekilliktir. GET /admin/users/:id/deletion yalnız yöneticiye PENDING/COMPLETED ve pendingMedia verir. [Kimlik/içerik/dosya temizliği, mobil timeout davranışı ve geçmiş sonuç politikası](accounts-development.md), [HTTP örnekleri](../examples/accounts.http).
+
+## 20 Ekim 2026 ek teslimi
+
+[Katalog sözleşmesi](catalog-development.md): oturumlu `/catalog/*` arama/çözümleme/özel öneri; ADMIN `/admin/catalog/*` mağaza/ürün/öneri inceleme ve birleştirme. Yönetim yazmalarında sürüm/gerekçe/Idempotency-Key. Ortak ürünlerin ProductTag ve mobil ürün seçimi bağlantısı da hazırdır.
+
+[Oyun sözleşmesi](games-development.md): ADMIN `/admin/games/themes` ve `/admin/games/daily-schedule`; günlük tam 30 dk ve özel seçilen oy süresi, 10 sn döngüsel sunumdan ayrıdır. Turn yanıtına `cycle`, `votingEndsAt`, `remainingSeconds` eklendi.
+
+[Bakım sözleşmesi](technical-retention.md): ADMIN `GET /admin/maintenance` güvenli durum raporu; zamanlayıcı varsayılan yalnız rapor, silme açık ayar/CLI ile. Bütün ek uçlar OpenAPI'de tanımlıdır.
+
+## Trend veri hattı — HTTP öncesi 6. adım
+
+`poll.vote.cast` tüketimi, katalog snapshot'ından tekil katkı üretir; `TrendEligibleContribution` güncel görünürlük/izin/kimlik birleştirmelerini denetler. `TrendDailySignal` kullanıcı/ürün/İstanbul takvim günü başına ilk uygun tercihi kullanır. Kaynak ledger veya bireysel demografi HTTP'ye açılmaz. `trends:rebuild` rapor/apply ve kapsamlı cursor ile kaçan olayları onarır. [Tam sözleşme](trend-pipeline-development.md).
+
+## Trendler — 7. adım
+
+Oturumlu `GET /trends`: period DAY/WEEK/MONTH, İstanbul takvim tarihi, yayın anı kategori/marka/fiyatı, tek para birimi ve izinli oy anı yaş/cinsiyet filtreleri. Ürün başına en az 5 ayrı hesap; NO_DATA / INSUFFICIENT_SAMPLE / READY durumları. Puan günlük tekil katkı toplamıdır. Sıra score/ayrı hesap azalan, UUID artan; cursor kapsamlı ve 15 dk süreli. İzin/görünürlük/katalog değişikliği toplamı etkilerse 409 ile ilk sayfaya dönüş. Ham kaynak kimliği yok; no-store. [İstek/yanıt, fiyat ve tazelik sözleşmesi](trends-api-development.md), [HTTP örnekleri](../examples/trends.http). OpenAPI tüm filtreleri ve yanıt DTO'larını içerir.

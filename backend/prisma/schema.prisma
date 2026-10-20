@@ -168,6 +168,7 @@ model User {
   credential         AuthCredential?
   sessions           AuthSession[]
   authActions        AuthActionToken[]
+  catalogSuggestions CatalogSuggestion[]
   deletion           AccountDeletion?
 }
 
@@ -384,32 +385,40 @@ model PollOption {
 }
 
 model ProductTag {
-  id              String     @id @default(uuid()) @db.Uuid
-  optionId        String     @db.Uuid
-  title           String     @db.VarChar(150)
-  brand           String?    @db.VarChar(100)
-  priceMinor      Int?
-  currency        String     @default("TRY") @db.Char(3)
-  externalUrl     String     @db.VarChar(2048)
-  priceRecordedAt DateTime?  @db.Timestamptz(3)
-  option          PollOption @relation(fields: [optionId], references: [id], onDelete: Restrict)
+  id                 String              @id @default(uuid()) @db.Uuid
+  optionId           String              @db.Uuid
+  title              String              @db.VarChar(150)
+  brand              String?             @db.VarChar(100)
+  priceMinor         Int?
+  currency           String              @default("TRY") @db.Char(3)
+  externalUrl        String              @db.VarChar(2048)
+  priceRecordedAt    DateTime?           @db.Timestamptz(3)
+  source             String              @default("USER_ENTERED") @db.VarChar(30)
+  catalogProductId   String?             @db.Uuid
+  catalogSnapshot    Json?
+  catalogProduct     CatalogProduct?     @relation(fields: [catalogProductId], references: [id], onDelete: Restrict)
+  trendContributions TrendContribution[]
+  option             PollOption          @relation(fields: [optionId], references: [id], onDelete: Restrict)
 
+  @@unique([optionId, catalogProductId])
   @@index([optionId])
+  @@index([catalogProductId])
 }
 
 model PollVote {
-  pollId                  String          @db.Uuid
-  voterId                 String          @db.Uuid
-  optionId                String          @db.Uuid
+  pollId                  String              @db.Uuid
+  voterId                 String              @db.Uuid
+  optionId                String              @db.Uuid
   genderAtVote            Gender?
   ageBandAtVote           AgeBand?
-  analyticsConsentAtVote  DateTime?       @db.Timestamptz(3)
+  analyticsConsentAtVote  DateTime?           @db.Timestamptz(3)
   analyticsRevisionAtVote Int?
-  createdAt               DateTime        @default(now()) @db.Timestamptz(3)
-  poll                    Poll            @relation(fields: [pollId], references: [id], onDelete: Restrict)
-  voter                   User            @relation(fields: [voterId], references: [id], onDelete: Restrict)
-  option                  PollOption      @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
+  createdAt               DateTime            @default(now()) @db.Timestamptz(3)
+  poll                    Poll                @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  voter                   User                @relation(fields: [voterId], references: [id], onDelete: Restrict)
+  option                  PollOption          @relation(fields: [optionId, pollId], references: [id, pollId], onDelete: Restrict)
   reason                  PollVoteReason?
+  trendContributions      TrendContribution[]
 
   @@id([pollId, voterId])
   @@index([pollId, optionId])
@@ -530,6 +539,15 @@ enum ModerationAction {
   USER_SUSPENDED
   USER_RESTORED
   GAME_CANCELLED
+  GAME_THEME_CREATED
+  GAME_THEME_UPDATED
+  GAME_SCHEDULE_UPDATED
+  CATALOG_STORE_CREATED
+  CATALOG_STORE_UPDATED
+  CATALOG_PRODUCT_CREATED
+  CATALOG_PRODUCT_UPDATED
+  CATALOG_PRODUCT_MERGED
+  CATALOG_SUGGESTION_REVIEWED
 }
 
 enum AdminResourceType {
@@ -538,6 +556,11 @@ enum AdminResourceType {
   COMMENT
   REPORT
   GAME
+  GAME_THEME
+  GAME_SCHEDULE
+  CATALOG_STORE
+  CATALOG_PRODUCT
+  CATALOG_SUGGESTION
 }
 
 // Uygulama yalnız ekler/okur; düzenleme veya silme API'si yoktur.
@@ -601,12 +624,14 @@ model DeviceToken {
 }
 
 model Theme {
-  id       String        @id @default(uuid()) @db.Uuid
-  slug     String        @unique @db.VarChar(80)
-  title    String        @db.VarChar(120)
-  active   Boolean       @default(true)
-  rooms    GameRoom[]
-  sessions GameSession[]
+  id             String              @id @default(uuid()) @db.Uuid
+  slug           String              @unique @db.VarChar(80)
+  title          String              @db.VarChar(120)
+  active         Boolean             @default(true)
+  rooms          GameRoom[]
+  sessions       GameSession[]
+  version        Int                 @default(0)
+  dailySchedules GameDailySchedule[]
 }
 
 model GameRoom {
@@ -958,4 +983,148 @@ model GameLeaguePoint {
   @@unique([userId, sessionId])
   @@index([userId])
   @@index([sessionId])
+}
+
+// Teknik bakımın son sonucu ve süreçler arası kira; içerik veya token kopyası tutmaz.
+model MaintenanceState {
+  key                 String    @id @db.VarChar(40)
+  runToken            String?   @db.Uuid
+  leaseUntil          DateTime? @db.Timestamptz(3)
+  startedAt           DateTime? @db.Timestamptz(3)
+  finishedAt          DateTime? @db.Timestamptz(3)
+  lastSuccessAt       DateTime? @db.Timestamptz(3)
+  lastFailureAt       DateTime? @db.Timestamptz(3)
+  status              String    @default("IDLE") @db.VarChar(20)
+  consecutiveFailures Int       @default(0)
+  report              Json?
+  fileCursors         Json?
+}
+
+model GameDailySchedule {
+  id        String   @id @db.Uuid
+  enabled   Boolean  @default(false)
+  startTime String?  @db.VarChar(5)
+  timeZone  String?  @db.VarChar(80)
+  themeId   String?  @db.Uuid
+  version   Int      @default(0)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  theme     Theme?   @relation(fields: [themeId], references: [id], onDelete: Restrict)
+
+  @@index([themeId])
+}
+
+enum CatalogProductStatus {
+  ACTIVE
+  ARCHIVED
+  MERGED
+}
+
+enum CatalogSuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model CatalogStore {
+  id                 String           @id @default(uuid()) @db.Uuid
+  name               String           @db.VarChar(100)
+  domain             String           @unique @db.VarChar(253)
+  trackingParameters String[]         @default([])
+  active             Boolean          @default(true)
+  version            Int              @default(0)
+  createdAt          DateTime         @default(now()) @db.Timestamptz(3)
+  products           CatalogProduct[]
+}
+
+model CatalogProduct {
+  id                 String               @id @default(uuid()) @db.Uuid
+  storeId            String?              @db.Uuid
+  externalId         String?              @db.VarChar(120)
+  variantKey         String               @default("") @db.VarChar(120)
+  title              String               @db.VarChar(150)
+  normalizedTitle    String               @db.VarChar(450)
+  brand              String?              @db.VarChar(100)
+  category           PollCategory
+  canonicalUrl       String?              @db.VarChar(2048)
+  source             String               @default("ADMIN_REVIEWED") @db.VarChar(30)
+  status             CatalogProductStatus @default(ACTIVE)
+  priceMinor         Int?
+  currency           String               @default("TRY") @db.Char(3)
+  priceRecordedAt    DateTime?            @db.Timestamptz(3)
+  version            Int                  @default(0)
+  mergedIntoId       String?              @db.Uuid
+  createdAt          DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime             @updatedAt @db.Timestamptz(3)
+  store              CatalogStore?        @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  urls               CatalogProductUrl[]
+  suggestions        CatalogSuggestion[]
+  mergedInto         CatalogProduct?      @relation("CatalogMerge", fields: [mergedIntoId], references: [id], onDelete: Restrict)
+  mergedFrom         CatalogProduct[]     @relation("CatalogMerge")
+  productTags        ProductTag[]
+  trendContributions TrendContribution[]
+
+  @@unique([storeId, externalId, variantKey])
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([normalizedTitle])
+  @@index([mergedIntoId])
+}
+
+model CatalogProductUrl {
+  id            String         @id @default(uuid()) @db.Uuid
+  productId     String         @db.Uuid
+  normalizedUrl String         @unique @db.VarChar(2048)
+  createdAt     DateTime       @default(now()) @db.Timestamptz(3)
+  product       CatalogProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+}
+
+model CatalogSuggestion {
+  id                String                  @id @default(uuid()) @db.Uuid
+  submittedById     String                  @db.Uuid
+  fingerprint       String                  @db.Char(64)
+  title             String                  @db.VarChar(150)
+  brand             String?                 @db.VarChar(100)
+  category          PollCategory
+  originalUrl       String?                 @db.VarChar(2048)
+  normalizedUrl     String?                 @db.VarChar(2048)
+  priceMinor        Int?
+  currency          String                  @default("TRY") @db.Char(3)
+  priceRecordedAt   DateTime?               @db.Timestamptz(3)
+  status            CatalogSuggestionStatus @default(PENDING)
+  resolvedProductId String?                 @db.Uuid
+  decisionReason    String?                 @db.VarChar(500)
+  version           Int                     @default(0)
+  createdAt         DateTime                @default(now()) @db.Timestamptz(3)
+  submittedBy       User                    @relation(fields: [submittedById], references: [id], onDelete: Restrict)
+  resolvedProduct   CatalogProduct?         @relation(fields: [resolvedProductId], references: [id], onDelete: Restrict)
+
+  @@unique([submittedById, fingerprint])
+  @@index([submittedById, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([resolvedProductId])
+}
+
+model TrendContribution {
+  pollId                 String         @db.Uuid
+  voterId                String         @db.Uuid
+  sourceCatalogProductId String         @db.Uuid
+  productTagId           String         @db.Uuid
+  votedAt                DateTime       @db.Timestamptz(3)
+  category               PollCategory
+  brand                  String?        @db.VarChar(100)
+  priceMinor             Int?
+  currency               String         @db.Char(3)
+  priceRecordedAt        DateTime?      @db.Timestamptz(3)
+  catalogVersion         Int
+  catalogSource          String         @db.VarChar(30)
+  projectionVersion      Int            @default(1)
+  vote                   PollVote       @relation(fields: [pollId, voterId], references: [pollId, voterId], onDelete: Cascade, map: "TrendContribution_vote_fkey")
+  productTag             ProductTag     @relation(fields: [productTagId], references: [id], onDelete: Cascade, map: "TrendContribution_tag_fkey")
+  product                CatalogProduct @relation(fields: [sourceCatalogProductId], references: [id], onDelete: Restrict, map: "TrendContribution_product_fkey")
+
+  @@id([pollId, voterId, sourceCatalogProductId])
+  @@index([productTagId])
+  @@index([votedAt, sourceCatalogProductId])
+  @@index([sourceCatalogProductId, votedAt])
 }

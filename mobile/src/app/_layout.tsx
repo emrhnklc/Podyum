@@ -15,6 +15,7 @@ import { DemoPollsProvider } from "@/features/polls/hooks/use-demo-polls";
 import { ProfileEditsProvider } from "@/features/profile/hooks/use-profile-edits";
 import { AuthProvider } from "@/features/auth/hooks/use-auth";
 import { colors } from "@/theme";
+import { AppLogo } from "@/components/ui/AppLogo";
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -32,9 +33,11 @@ export default function RootLayout() {
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
+          gap: 16,
           backgroundColor: colors.background,
         }}
       >
+        <AppLogo size={96} />
         <ActivityIndicator color={colors.accent} />
         <Text>Podyum</Text>
       </View>
@@ -42,17 +45,17 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-      <DemoPollsProvider>
-        <ProfileEditsProvider>
-          <StatusBar style="dark" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: colors.background },
-            }}
-          />
-        </ProfileEditsProvider>
-      </DemoPollsProvider>
+        <DemoPollsProvider>
+          <ProfileEditsProvider>
+            <StatusBar style="dark" />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.background },
+              }}
+            />
+          </ProfileEditsProvider>
+        </DemoPollsProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

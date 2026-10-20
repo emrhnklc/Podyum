@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -6,22 +6,30 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import * as Linking from "expo-linking";
 import QRCode from "react-native-qrcode-svg";
 import { Ionicons } from "@expo/vector-icons";
 import { Text } from "@/components/ui/Text";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { errorMessage } from "@/lib/api/client";
 import { brand, colors, fonts } from "@/theme";
-import { rotateInvite, type GameInvite, type GameState } from "../api/games";
+import {
+  getGame,
+  rotateInvite,
+  type GameInvite,
+  type GameState,
+} from "../api/games";
 
 // Oda sahibinin QR daveti. Davet edilenin arkadaş olması gerekmez; yeni QR
 // eskisini geçersiz kılar. Ham davet yalnız bu ekranda tutulur.
 export function InviteCard({
   game,
   autoCreate,
+  onChanged,
 }: {
   game: GameState;
   autoCreate: boolean;
+  onChanged: () => Promise<void>;
 }) {
   const { client } = useAuth();
   const [invite, setInvite] = useState<GameInvite | null>(null);
@@ -29,25 +37,32 @@ export function InviteCard({
   const [error, setError] = useState<string | null>(null);
   const created = useRef(false);
 
-  async function create() {
+  const lock = useRef(false);
+  const create = useCallback(async () => {
+    if (lock.current) return;
+    lock.current = true;
     setBusy(true);
     setError(null);
     try {
-      setInvite(await rotateInvite(client, game));
+      setInvite(await rotateInvite(client, await getGame(client, game.id)));
+      await onChanged();
     } catch (failure) {
       setError(errorMessage(failure));
     } finally {
       setBusy(false);
+      lock.current = false;
     }
-  }
+  }, [client, game.id, onChanged]);
   // Oda yeni kurulduysa davet bir kez kendiliğinden hazırlanır.
   useEffect(() => {
     if (!autoCreate || created.current) return;
     created.current = true;
-    void rotateInvite(client, game)
-      .then(setInvite)
-      .catch((failure) => setError(errorMessage(failure)));
-  }, [autoCreate, client, game]);
+    void create();
+  }, [autoCreate, create]);
+
+  const inviteUrl = invite
+    ? Linking.createURL("games/join", { queryParams: { token: invite.token } })
+    : "";
 
   return (
     <View style={styles.card}>
@@ -61,7 +76,7 @@ export function InviteCard({
         <>
           <View style={styles.qr} accessibilityLabel="Davet QR kodu">
             <QRCode
-              value={invite.deepLink}
+              value={inviteUrl}
               size={190}
               color={colors.text}
               backgroundColor={brand.card}
@@ -76,8 +91,8 @@ export function InviteCard({
               accessibilityRole="button"
               onPress={() =>
                 void Share.share({
-                  message: `Podyum defileme katıl: ${invite.deepLink}`,
-                })
+                  message: `Podyum defileme katıl: ${inviteUrl}`,
+                }).catch((failure) => setError(errorMessage(failure)))
               }
               style={[styles.button, styles.primary]}
             >

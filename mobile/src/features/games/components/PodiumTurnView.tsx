@@ -35,6 +35,7 @@ export function PodiumTurnView({
   const [sending, setSending] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const deadline = useRef<number | null>(null);
+  const rateLock = useRef(false);
 
   const load = useCallback(async () => {
     try {
@@ -71,13 +72,14 @@ export function PodiumTurnView({
 
   async function rate(stars: number) {
     const entry = turn?.current;
-    if (!entry || entry.mine || entry.myStars || sending) return;
+    if (!entry || entry.mine || entry.myStars || rateLock.current) return;
+    rateLock.current = true;
     setSending(stars);
     setError(null);
     try {
       await rateSubmission(client, gameId, entry.id, stars);
       setTurn((previous) =>
-        previous?.current
+        previous?.current?.id === entry.id
           ? {
               ...previous,
               votedCount: previous.votedCount + 1,
@@ -88,6 +90,7 @@ export function PodiumTurnView({
     } catch (failure) {
       setError(errorMessage(failure));
     } finally {
+      rateLock.current = false;
       setSending(null);
     }
   }
@@ -217,6 +220,27 @@ export function PodiumTurnView({
           </Text>
         )}
 
+        {turn && (
+          <Text
+            style={{ color: colors.muted, textAlign: "center", fontSize: 12 }}
+          >
+            Oylama:{" "}
+            {Math.floor(
+              Math.max(
+                0,
+                (Date.parse(turn.votingEndsAt) - (now + offset)) / 1000,
+              ) / 60,
+            )}{" "}
+            dk{" "}
+            {Math.floor(
+              Math.max(
+                0,
+                (Date.parse(turn.votingEndsAt) - (now + offset)) / 1000,
+              ) % 60,
+            )}{" "}
+            sn kaldı · {turn.cycle}. tur dizisi
+          </Text>
+        )}
         {turn && (
           <View style={styles.footer}>
             <Ionicons name="people" size={22} color={brand.accent} />

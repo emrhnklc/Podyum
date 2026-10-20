@@ -1,5 +1,7 @@
 # Backend çalışma planı
 
+> **20 Ekim 2026:** Bundan sonraki sıra [güncel uygulama planında](backend-implementation-plan-2026-10-19.md). Bakım otomasyonu, oyun süre uyumu/tema-takvim yönetimi ve ortak katalog ilk teslimi hazırdır. Sıradaki adım ürün etiketlerini kataloğa bağlamaktır. Bu eski listenin adım kimlikleri kapsam referansıdır.
+
 10 Ekim 2026. Amaç: sosyal kombin, günlük podyum/QR lobileri, ürün trendleri ve gelir özelliklerinin backend'ini tamamlayıp frontend'e teslim etmek. Oyun artık aktif ilk teslim kapsamındadır; rekabet genişlemeleri ayrıca seçilir. Bu belge yapılacak iş listesidir; kutuların boş olması işlevin henüz tamamlanmadığı anlamına gelir. Mimari ayrıntılar ayrı belgelerde kalır.
 
 **Son kullanıcı revizyonu:** Günlük oyun 30 dk fotoğraf + 30 dk oylama; yalnız etkinlik katılımcıları oy verir. Özel lobi QR davetiyle, ayarlanabilir teslim/oy süreleri ve hostun teslimi erken bitirme komutuyla çalışır. Oyun Faz 2 beklemez. [Güncel oyun tasarımı](game-design.md); trend/gelir notları [mentör kaydında](mentor-notes-2026-10-10.md).
@@ -22,15 +24,15 @@ Dosya sahipliği, servis sözleşmeleri ve önceki katalog görevi: [iki kişili
 ## Mevcut durum
 
 - [x] NestJS başlangıcı, health endpoint'leri ve özellik klasörleri.
-- [x] Prisma şeması, yerel veritabanı, on sekiz migration ve demo kayıtları.
+- [x] Prisma şeması, yerel veritabanı, yirmi migration ve demo kayıtları.
 - [x] Veritabanı hedef kontrolü, 14 ilişkisel bütünlük testi ve HTTP sağlık kontrolü.
 - [x] Yerel e-posta/şifre ve oturum akışları; Google/Apple mock.
 - [x] Auth/ortak API, profil/ayar ve sosyal HTTP testleri; mevcut 14 DB testi ve bootstrap kontrolü.
 - [x] Temel profil, stil seçimi, özel bilgiler/analiz izni, ayarlar ve avatar; sekme listeleri oylama modülüne bağlı.
 - [x] Kullanıcı arama, arkadaş isteği/kabul/red/iptal, arkadaş listesi/kaldırma, engelleme ve ortak sosyal erişim servisi.
 - [x] Yerel özel fotoğraf yükleme/işleme/önizleme/manuel blur/erişim ve avatar; otomatik yüz tespiti ve bulut deposu bekliyor.
-- [x] Organik herkes/arkadaşlar ana akışı, kategori, erişim/oy/süre filtreleri ve publishedAt/id cursor; mobil ekran henüz demo veri kullanır.
-- [x] Kaydet/kaldır, kaydedilenler, başkasının görünür paylaşımları, yorum ekleme/listeleme/kaldırma, oy sonrası hazır neden ve şikâyet kaydı; 16 HTTP testi. Bildirim tüketicisi ve yönetim tarafı bekliyor.
+- [x] Organik herkes/arkadaşlar ana akışı, kategori, erişim/oy/süre filtreleri ve publishedAt/id cursor; mobil ana ekran gerçek API kullanır.
+- [x] Kaydet/kaldır, kaydedilenler, başkasının görünür paylaşımları, yorum ekleme/listeleme/kaldırma, oy sonrası hazır neden ve şikâyet kaydı; 16 HTTP testi. Bildirim tüketicisi ve yönetim ilk teslimi hazır.
 - [x] Olay kuyruğu işçisi, uygulama içi bildirimler (arkadaşlık, yorum, oylama sonucu, oyun), okundu/sayaç, cihaz kaydı ve push teslimi (yerel sağlayıcı + Expo); 13 HTTP testi. Gerçek cihaz teslimi mobil bağlanınca doğrulanacak.
 - [ ] Faz 1 ürün/trend ve gelir akışları.
 - [ ] Gerçek OAuth/e-posta teslimi ve diğer harici entegrasyonlar.
@@ -298,7 +300,8 @@ Paket/fiyat/sağlayıcı kararı gelene kadar hak sözleşmesi ve testler ilerle
 - [x] Hesap askıya alma/geri açma, oturum/cihaz kesme, paylaşım gizleme/geri açma, yorum kaldırma ve gerekçeli denetim kayıtları.
 - [ ] Kategori/stil etiketi, ürün, reklam kampanyası ve abonelik/hak yönetimi; alanın sahibi kendi API'sini yazar, ortak yönetici yetkisini kullanır.
 - [x] Hesap silme: erişimi kapatma, kimlik/oturum/cihaz/özel veri temizliği, yeniden denenebilir içerik/yerel medya işi. Kullanıcı kararıyla geçmiş tercih/yıldız toplamları kişisel profil olmadan korunur. [Rehber](accounts-development.md), 13 senaryo.
-- [ ] Veri saklama ve kullanılmayan dosya/oturum/bildirim/iş kaydı temizleme görevleri.
+- [x] Teknik DB bakımı: dry-run, açık apply, oturum/token/makbuz ve eski yayımlanmış outbox; [rehber](technical-retention.md), 6 rollback testi.
+- [ ] Genel saklama: yerel dosyalar, bildirim/audit/yedek politikası ve otomasyon.
 - [ ] Gerekirse kullanıcı veri dışa aktarımı ve izin geri alma; demografik snapshot'ları da kapsama.
 - [x] Günlük etkinlik/lobi yönetici iptali; sürüm, süre, davet kapatma ve canlı durum kontrolü.
 - [ ] Tek oyundan oyuncu çıkarma ve değerlendirme/sonuç etkisi; hesap askıya alma ile aynı işlem değildir.
@@ -449,12 +452,10 @@ Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması at
 
 ## Uygulama sırası
 
-**Bizim aktif sıra:** 9 tercih/sonuç, 10 ana akış, 11 yorum/kaydetme/neden/şikâyet kaydı, 12 bildirim, 19 günlük podyum/QR lobileri ve 20'nin tek süreçte zamanlayıcı/state/canlı abonelik kısmı tamam → **16 yönetim ve hesap silme tamam → genel saklama/süreli temizlik** → oyun dahil 17 doğrulama → 18 frontend teslimi.
+**Güncel sıra ve bitiş koşulları:** [19 Ekim uygulama planı](backend-implementation-plan-2026-10-19.md). Eski 1–23 kimlikleri kapsam referansıdır; eski sonraki-iş cümleleri güncel planın yerine kullanılmaz.
 
-**Arkadaşın güncel işi:** Mobil tema ve ekran tasarımı; `mobile/` dosyalarının sahibi arkadaş, `backend/` bizim sorumluluğumuzdadır. Katalog → trendler → Plus/affiliate → reklam backend işleri önceki planda arkadaş kolundaydı; aktif işe dönüşlerinde yeniden paylaştırılacak. API sözleşmesi gerektiren ekran ihtiyacı backend belgelerinde koordine edilir.
+Yerel auth/profil/sosyal/medya, kombin/oy/akış/etkileşim/bildirim, oyun/QR/canlı backend ve yönetim/hesap silme vardır. Temel açık oda/lig de eklendi. Mobilde ana ekranın yanında diğer ana ekranlar da API kullanır. Teknik süreli DB bakımının ilk teslimi hazır; genel saklama ve otomasyon açık kalır.
 
-**Sonraki genişleme adayları:** 21 hızlı eşleşme → 22 puan/lig → 23 haftalık/sponsorlu yarışma. Bunlar günlük etkinlik ve QR lobisini Faz 2'ye ertelemez. Mevcut oyun tabloları yeni akışa doğrudan uygun sayılmaz; aktif oyun adımında migration ile gözden geçirilir.
+**Yakın sıra:** bakımın dosya/otomasyon kalanları → günlük/özel oylama süresini kullanıcı kararıyla uyumlu hale getir → ortak katalog → ürün etiketleri → izinli trend ölçümü/API → gerçek Trendler ekranı.
 
-Bir sonraki ürün işi bizim tarafta **16 genel saklama/süreli temizlik** (yönetim ve hesap silme yerel teslimi hazır), arkadaş tarafında **mobil tema**. Bildirim ve yorum/kaydetme/neden/şikâyet backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Günlük oyun/QR lobisi backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Organik ana akış backend teslimi hazırdır; mobilde bağlanması ayrıca yapılır. Yerel profil/sosyal/medya ve manuel ürünlerle taslak/yayın akışları hazır; ortak ürün eşleştirme, otomatik yüz tespiti, bulut medya ve diğer gerçek sağlayıcı entegrasyonları ayrıca takip edilir. Ürün/oy/izin sözleşmeleri erken birlikte netleştirilir. Açık ürün kararları ilgili özellikten önce seçilir.
-
-**Son kullanıcı önceliği:** Mobil ana ekranın API bağlantısı ilk teslimini aldı. Kayıt/doğrulama ve profil kurulumu bağlandı; sırada gerçek profil sekmesi ve paylaşım hattı var; diğer ekranlar ve backend genel saklama işleri açık kalır. [Ana ekran kapsamı](../../mobile/docs/home-api-integration.md).
+Gerçek e-posta/OAuth, bulut medya ve cihaz push kabulü sağlayıcı ayarlarıyla tamamlanır. Plus/affiliate/reklam ayrı teslimdir; haftalık/sponsorlu yarışmalar canlı oyundan ayrı kalır. Arkadaş frontend temasını paralel ilerletebilir; ikinci backend kolu dönerse ortak DTO/şema sınırlarıyla yeniden paylaşılır.

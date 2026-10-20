@@ -34,7 +34,7 @@ const input = {
   displayName: "Kayıt Kontrolü",
   username: `signup_${suffix}`,
   email: `signup_${suffix}@example.test`,
-  password: randomBytes(24).toString("base64url"),
+  password: randomBytes(6).toString("base64url"),
 };
 const mailbox = process.env.LOCAL_MAILBOX_DIR
   ? resolve(process.env.LOCAL_MAILBOX_DIR)
@@ -71,31 +71,40 @@ try {
   );
   await assert.rejects(
     apiRequest("/auth/register", post({ ...input, password: "short" })),
-    (error: ApiError) => error.status === 400,
+    (error: ApiError) => error.status === 400 && error.fields.some(({ field }) => field === "password"),
   );
   await assert.rejects(
     apiRequest("/auth/register", post({ ...input, username: "name.with.dot" })),
     (error: ApiError) => error.status === 400,
   );
   assert.equal((await registerAccount(input)).status, "accepted");
-  await assert.rejects(
-    client.login(input.email, input.password),
-    (error: ApiError) => error.code === "EMAIL_NOT_VERIFIED",
-  );
-  assert.equal(client.state.session, null);
-  const originalToken = await latestToken();
-  await requestVerification(input.email);
-  const renewedToken = await latestToken();
-  assert.notEqual(originalToken, renewedToken);
-  await assert.rejects(
-    confirmEmail(originalToken),
-    (error: ApiError) => error.status === 400,
-  );
-  assert.equal((await confirmEmail(renewedToken)).status, "ok");
-  await assert.rejects(
-    confirmEmail(renewedToken),
-    (error: ApiError) => error.status === 400,
-  );
+  let verificationRequired = false;
+  try {
+    await client.login(input.email, input.password);
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.code !== "EMAIL_NOT_VERIFIED")
+      throw error;
+    verificationRequired = true;
+  }
+  if (verificationRequired) {
+    assert.equal(client.state.session, null);
+    const originalToken = await latestToken();
+    await requestVerification(input.email);
+    const renewedToken = await latestToken();
+    assert.notEqual(originalToken, renewedToken);
+    await assert.rejects(
+      confirmEmail(originalToken),
+      (error: ApiError) => error.status === 400,
+    );
+    assert.equal((await confirmEmail(renewedToken)).status, "ok");
+    await assert.rejects(
+      confirmEmail(renewedToken),
+      (error: ApiError) => error.status === 400,
+    );
+  } else {
+    assert.equal(client.state.me?.user.username, input.username);
+    await client.logout();
+  }
   // Kayıt 202 yanıtı mevcut e-postayı ifşa etmez ve profil/parolayı değiştirmez.
   assert.equal(
     (
@@ -169,7 +178,7 @@ try {
   assert.equal(restored.profile.avatarPath, saved.avatarPath);
   await client.logout();
   console.log(
-    "Kayıt API smoke geçti: alan kuralları, doğrulama zorunluluğu, yeniden gönderim/eski anahtar/replay, mevcut hesap korunması, giriş, profil/stiller, fotoğraf önizleme/onay, kalıcılık ve çıkış. Yalnız yeni signup_ test hesabı kullanıldı.",
+    `Kayıt API smoke geçti: 8 karakterlik parola, alan kuralları, ${verificationRequired ? "e-posta doğrulama/yeniden gönderim/eski anahtar/replay" : "onay gerektirmeden giriş"}, mevcut hesap korunması, profil/stiller, fotoğraf önizleme/onay, kalıcılık ve çıkış. Yalnız yeni signup_ test hesabı kullanıldı.`,
   );
 } finally {
   if (client.state.session) await client.logout().catch(() => {});

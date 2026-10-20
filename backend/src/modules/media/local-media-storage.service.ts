@@ -31,9 +31,11 @@ export class LocalMediaStorage {
     await rm(this.path(id), { recursive: true, force: true });
   }
 
-  async oldAssetDirectories(before: Date) {
-    await mkdir(this.root, { recursive: true, mode: 0o700 });
-    const entries = await readdir(this.root, { withFileTypes: true });
+  async oldAssetDirectories(before: Date, createRoot = true) {
+    if (createRoot) await mkdir(this.root, { recursive: true, mode: 0o700 });
+    let entries;
+    try { entries = await readdir(this.root, { withFileTypes: true }); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code === "ENOENT") return []; throw error; }
     const ids: string[] = [];
     for (const entry of entries) {
       if (!entry.isDirectory() || !/^[0-9a-f-]{36}$/.test(entry.name)) continue;

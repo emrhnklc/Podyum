@@ -1,5 +1,9 @@
 # İlk geliştirme kararları
 
+**20 Ekim — onaylı trend katkı kuralı:** Aynı kullanıcı hesabı aynı ürüne İstanbul takvim günü başına en fazla 1 trend katkısı verir; farklı kombinlerdeki gerçek tercihleri korunur. İlk uygun tercih bağlamı kullanılır. Trend genel tercih sayısı değildir; seçilen kombinlerdeki ürünlere ait günlük tekil katkıdır. [Çalışan veri hattı](trend-pipeline-development.md).
+
+**20 Ekim — 7. adım geliştirme politikası:** [Trendler API'si](trends-api-development.md) İstanbul takvim günü/pazartesi haftası/takvim ayını, filtrelenmiş ürün başına en az 5 ayrı hesabı uygular. Günlük tekilleştirme filtrelerden öncedir. Fiyat/marka/kategori yayın snapshot'ından, kart güncel katalogdan gelir; para birimleri birleşmez. Puan → ayrı hesap sayısı → UUID sırası ve 15 dk cursor; güncel kaynak/izin değişince 409 ile yenileme. Bunlar ilk teknik politikadır; kullanıcı tarafından açıkça seçilen karar günlük 1 katkıdır. Filtreler Plus'a kilitlenmedi.
+
 10 Ekim 2026. Bu dosya ilk adımın karar kaydıdır. **Onaylı**, kullanıcı tarafından belirtilen karardır. **Geliştirme varsayımı**, yerelde ilerlemek için seçilmiş ve değiştirilebilir davranıştır. Açık ürün kararlarını tamamlanmış saymayız.
 
 ## Onaylı
@@ -22,8 +26,8 @@
 | --- | --- |
 | Kullanıcı adı | 3–30 karakter; `a-z`, `0-9`, `_`; küçük harfe normalize edilir, tekildir |
 | Görünen ad | Kırpıldıktan sonra 1–80 karakter |
-| Parola | 15–128 karakter; kırpılmaz; scrypt ile salt'lı hash; body/log/yanıtta geri dönmez |
-| E-posta | Kırpılır ve küçük harfe normalize edilir; tekildir; girişten önce doğrulanır |
+| Parola | 8–128 karakter; kırpılmaz; scrypt ile salt'lı hash; body/log/yanıtta geri dönmez |
+| E-posta | Kırpılır ve küçük harfe normalize edilir; tekildir; e-posta onayı `AUTH_EMAIL_VERIFICATION_REQUIRED` ile ayarlanır (şimdilik kapalı) |
 | Oturum | Opaque Bearer access token 15 dakika; refresh 30 gün mutlak süre; DB'de sadece hash'leri |
 | Yenileme | Access ve refresh değişir; önceki access kapanır; kullanılmış refresh yeniden sunulursa aynı cihazın oturumu iptal olur |
 | İstemci tekrarı | Aynı oturumu yenileyen istekler istemcide sıraya alınır; refresh otomatik olarak aynı token'la tekrar edilmez |
@@ -44,7 +48,7 @@
 | Blur ve önizleme | Otomatik tespit yok; manuel seçilen bölgeler veya açık yüz-yok doğrulaması; READY sonrası kullanıcı onayı olmadan avatar/yayın bağlanamaz |
 | Medya değişmezliği | Kaynak sürümü/checksum sabit; READY çıktı değiştirilemez. Aynı complete parametresi tekrar güvenli; geç işleme silinen kaydı canlandıramaz |
 | Avatar ve erişim | Onaylı AVATAR purpose kendi profile bağlanır; eski avatar başkasına kapanır. Medya her istekte sosyal erişimi kontrol eder, orijinal dışarı açılmaz |
-| Medya temizlik | Süresi dolan yüklenmemiş veya 24 saati geçen kullanılmayan dosyalar yerel komutla silinir; bağlantılı dosyalar korunur. Cron/bulut/worker henüz yok |
+| Medya temizlik | Süresi dolan yüklenmemiş veya 24 saati geçen kullanılmayan dosyalar yerel komutla silinir; bağlantılı dosyalar korunur. Ortak bakım işçisi varsayılan rapor modunda; bulut deposu henüz yok |
 | Oylama taslağı | Boş soru ve 0–4 farklı kendi POLL medyası; options güncellemesi bütün liste/ürünleri yeni kimliklerle değiştirir; expectedVersion zorunlu |
 | Yayın | Soru + ardışık 2–4 READY/onaylı görsel; 1800/7200/86400 saniye yayın anında DB saatinden başlar; gelişmiş hedefleme kapalı |
 | Yayın sonrası | Soru/seçenek/ürün/süre/görünürlük sabit; yorum izni ayrı sürümlü endpoint'ten değişir; yorum API'si hazır |
@@ -79,7 +83,7 @@ Sosyal API ve ortak erişim servisi çalışır; profil/medya/oylama detay uçla
 
 Bu kararlar API temelini ve yerel auth'u engellemez. Henüz seçilmemiş ödül/Plus kuralları etkinmiş gibi davranan kod yazılmayacak.
 
-Güncel sahiplik: biz backend, arkadaş mobile teması. Günlük oyun/QR, canlı bağlantı ve yönetim ilk teslimi hazır; hesap silme de hazır; sonraki backend işi genel saklama/süreli temizliktir. Katalog/trend/gelir kolu yeniden atanacak. [İki kişilik plan](two-developer-plan.md), [güncel Claude metni](friend-claude-task.md).
+Güncel sahiplik: biz backend, arkadaş mobile teması. Günlük oyun/QR, canlı bağlantı ve yönetim ilk teslimi hazır; hesap silme de hazır; teknik DB bakımı ilk teslimi hazır; dosya/otomasyon ve oyun süre uyumu ile katalog ilk teslimi hazırdır; nihai saklama süreleri ve üretim alarmı ayrıdır. [Güncel sıra](backend-implementation-plan-2026-10-19.md). Katalog/trend/gelir kolu yeniden atanacak. [İki kişilik plan](two-developer-plan.md), [güncel Claude metni](friend-claude-task.md).
 
 ## Harici entegrasyon listesi
 
@@ -103,3 +107,15 @@ Bunlar yerel geliştirme davranışlarıdır; hesap silme ayrı AccountsModule t
 ## Onaylı hesap silme kararı
 
 Kullanıcı seçimi: geçmiş sonuçlar anonim kalsın. Hesap silinince kimlik/profil/demografi/fotoğraflar temizlenir; eski tercihler ve oyun yıldızları başkalarının toplamlarını değiştirmez. FK geçmişi kişisel alanları kaldırılmış UUID tombstone'uyla korunur; geri açma yoktur. Geliştirme varsayımı: son 15 dakika içinde yeni giriş ve açık onay; ADMIN hesabın rolü önce kaldırılır. [Çalışan akış ve teknik sınırlar](accounts-development.md).
+
+## 19 Ekim 2026 — teknik bakım ve ilerleme revizyonu
+
+`maintenance:technical` varsayılan dry-run; yalnız açık `--apply` sınırlı transaction temizliği yapar. Süresi/iptali üzerinden 7 gün geçmiş oturumlar ve FK çocukları, süresi dolalı 7 gün geçmiş action/replay/idempotency kayıtları ile 30 gün önce başarıyla yayımlanmış etkin lease altında olmayan outbox kayıtları kapsamdadır. Süreler yerel teknik varsayımlardır; bildirim/audit/içerik/yedek için saklama politikası değildir. Oy/oyun/lig sonuçları korunur. Mevcut veride yalnız rapor çalıştırıldı; uygulama testleri rollback eder. [Bakım sözleşmesi](technical-retention.md).
+
+## 20 Ekim 2026 — üç sonraki adım
+
+Teknik DB/mail/push/medya bakımı ortak zamanlayıcı, kalıcı lease/imleç ve ADMIN durum raporuna bağlandı. Varsayılan otomatik rapor, `MAINTENANCE_APPLY=false`; gerçek silme CLI `--apply` veya ayarla açılır. Bildirim/audit/yedekler bu toplu temizliğe dahil edilmez; nihai süreleri ayrıca seçilecek. Harici alarm/üretim geri yükleme kabulü ayrı iştir.
+
+Günlük oyun 30 dk fotoğraf + tam 30 dk oy; özel lobi seçilen oy süresiyle çalışır ve tüm oylar tamamlanırsa erken kapanabilir. Kartların 10 sn sunumu toplam süreyi kısaltmaz; döngü halinde tekrar eder. ADMIN tema/takvim API'si hazır; saat seçilmeden yeni günlük etkinlik oluşturulmaz. Temel 50/30/20 ve lig eşikleri değişmedi, nihai sezon/ödül politikası seçilmiş sayılmaz.
+
+Ortak katalog ADMIN incelemeli ürün/mağaza/URL kimliğini tutar. İsim yalnız aday; katalogdaki tekil URL kesin eşleşmedir. Kullanıcı beyanı özel öneri olur, ortak ürünü değiştirmez. Yönetici düzeltme/birleştirme gerekçe/sürüm/audit ister. Fiyat, para birimi ve kayıt zamanı ayrıdır. Gerçek mağaza taraması/affiliate doğrulaması ve `ProductTag` ilişkisi bu teslim değildir. [Katalog sözleşmesi](catalog-development.md).

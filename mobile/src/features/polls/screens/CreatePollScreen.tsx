@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -15,6 +15,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
 import { PillChip } from "@/components/ui/PillChip";
 import { PreviewImage } from "@/components/media/PreviewImage";
+import { ApiImage } from "@/components/media/ApiImage";
+import { Button } from "@/components/ui/Button";
+import { ApiStatus } from "@/components/ui/ApiStatus";
+import { useApiQuery } from "@/hooks/use-api-query";
 import {
   CATEGORY_ICON,
   CATEGORY_LABEL,
@@ -24,9 +28,12 @@ import { brand, colors, common, fonts, serif } from "@/theme";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { errorMessage } from "@/lib/api/client";
+import { ProductTagEditor } from "../components/ProductTagEditor";
+import { productTitle, type ProductTagDraft } from "../product-tags";
 import {
   newProgress,
   publishPoll,
+  preparePollPhotos,
   type PickedPhoto,
   type PublishProgress,
 } from "../api/publish-poll";
@@ -47,7 +54,7 @@ const DURATIONS = [
   { value: 86400, label: "24 saat" },
 ];
 
-type Option = { id: number; photo?: PickedPhoto };
+type Option = { id: number; photo?: PickedPhoto; products?: ProductTagDraft[] };
 
 export function CreatePollScreen() {
   const [options, setOptions] = useState<Option[]>([{ id: 1 }, { id: 2 }]);
@@ -61,7 +68,26 @@ export function CreatePollScreen() {
   const [noFaces, setNoFaces] = useState(false);
   const [busyStep, setBusyStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingProducts, setEditingProducts] = useState<number | null>(null);
   const { client } = useAuth();
+  const defaults = useApiQuery<{
+    defaultPollVisibility: "PUBLIC" | "FRIENDS";
+    defaultCommentsEnabled: boolean;
+    defaultBlurFace: boolean;
+  }>("/me/settings");
+  const initialized = useRef(false);
+  const [defaultsReady, setDefaultsReady] = useState(false);
+  useEffect(() => {
+    if (!defaults.data || initialized.current) return;
+    initialized.current = true;
+    setFriendsOnly(defaults.data.defaultPollVisibility === "FRIENDS");
+    setComments(defaults.data.defaultCommentsEnabled);
+    setBlur(defaults.data.defaultBlurFace);
+    setDefaultsReady(true);
+  }, [defaults.data]);
+  const [previewIds, setPreviewIds] = useState<string[] | null>(null);
+  const [loadedPreviews, setLoadedPreviews] = useState<string[]>([]);
+  const publishing = useRef(false);
   const message = usePreviewMessage();
   // Yarıda kalan yayın; form değişirse sıfırlanır ki eski fotoğraf/taslak
   // yeni içerikle karışmasın.
@@ -71,13 +97,17 @@ export function CreatePollScreen() {
   const busy = busyStep !== null;
   const canPublish =
     !busy &&
+    defaultsReady &&
+    !defaults.loading &&
+    !defaults.error &&
     options.length >= 2 &&
     options.every((option) => option.photo) &&
     question.trim().length > 0 &&
     (!blur || noFaces);
 
-  async function publish() {
-    if (!canPublish) return;
+  async function publish(confirmed = false) {
+    if (!canPublish || publishing.current) return;
+    publishing.current = true;
     const input = {
       question,
       category,
@@ -87,6 +117,7 @@ export function CreatePollScreen() {
       blur,
       confirmNoFaces: blur && noFaces,
       photos: options.map((option) => option.photo!),
+      products: options.map((option) => option.products ?? []),
     };
     const signature = JSON.stringify(input);
     if (progress.current?.signature !== signature)
@@ -94,6 +125,18 @@ export function CreatePollScreen() {
     setError(null);
     setBusyStep("Hazırlanıyor");
     try {
+      if (!confirmed) {
+        await preparePollPhotos(
+          client,
+          input,
+          progress.current.value,
+          setBusyStep,
+        );
+        setLoadedPreviews([]);
+        setPreviewIds(progress.current.value.mediaIds as string[]);
+        return;
+      }
+      progress.current.value.previewApproved = true;
       const id = await publishPoll(
         client,
         input,
@@ -105,11 +148,13 @@ export function CreatePollScreen() {
       setNextId(3);
       setQuestion("");
       setNoFaces(false);
+      setPreviewIds(null);
       router.push({ pathname: "/polls/[id]", params: { id } });
     } catch (failure) {
       setError(errorMessage(failure));
     } finally {
       setBusyStep(null);
+      publishing.current = false;
     }
   }
 
@@ -153,6 +198,67 @@ export function CreatePollScreen() {
     else router.replace("/");
   }
 
+  if (!defaultsReady)
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={[styles.page, { padding: 20, gap: 16 }]}>
+          <Button title="Vazgeç" variant="outline" onPress={cancel} />
+          <ApiStatus
+            loading={defaults.loading}
+            error={defaults.error}
+            retry={defaults.refresh}
+          />
+        </View>
+      </SafeAreaView>
+    );
+
+  if (previewIds)
+    return (
+      <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
+        <ScrollView
+          style={styles.page}
+          contentContainerStyle={[styles.content, { gap: 16 }]}
+        >
+          <Text style={styles.title}>Fotoğrafları kontrol et</Text>
+          <Text>
+            Fotoğraflarının son halini kontrol edip yayınlamayı onayla.
+          </Text>
+          <ApiStatus loading={busy} error={error} />
+          {previewIds.map((id) => (
+            <View
+              key={id}
+              style={{ height: 360, overflow: "hidden", borderRadius: 20 }}
+            >
+              <ApiImage
+                path={`/v1/media/${id}/content`}
+                retryable
+                onLoad={() =>
+                  setLoadedPreviews((old) =>
+                    old.includes(id) ? old : [...old, id],
+                  )
+                }
+              />
+            </View>
+          ))}
+          <Button
+            title="Fotoğrafları onayla ve yayınla"
+            disabled={busy || loadedPreviews.length !== previewIds.length}
+            onPress={() => void publish(true)}
+          />
+          <Button
+            title="Düzenlemeye dön"
+            variant="outline"
+            disabled={busy}
+            onPress={() => {
+              setPreviewIds(null);
+              if (progress.current)
+                progress.current.value.previewApproved = false;
+            }}
+          />
+        </ScrollView>
+      </SafeAreaView>
+    );
+
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
       <ScrollView
@@ -176,7 +282,35 @@ export function CreatePollScreen() {
             Yeni oylama
           </Text>
         </View>
+        <ApiStatus
+          loading={defaults.loading}
+          error={defaults.error}
+          retry={defaults.refresh}
+        />
 
+        {editingProducts !== null &&
+          options.some((option) => option.id === editingProducts) && (
+            <ProductTagEditor
+              key={editingProducts}
+              label={`${LETTERS[options.findIndex((option) => option.id === editingProducts)]} Kombini`}
+              initial={
+                options.find((option) => option.id === editingProducts)
+                  ?.products ?? []
+              }
+              category={category}
+              onClose={() => setEditingProducts(null)}
+              onSave={(products) => {
+                setOptions((current) =>
+                  current.map((option) =>
+                    option.id === editingProducts
+                      ? { ...option, products }
+                      : option,
+                  ),
+                );
+                setEditingProducts(null);
+              }}
+            />
+          )}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -185,50 +319,88 @@ export function CreatePollScreen() {
           {options.map((option, index) => (
             // Kaldır düğmesi fotoğraf düğmesinin içinde değil yanında durur;
             // iç içe düğme web'de geçersiz HTML üretir.
-            <View key={option.id} style={styles.tile}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={
-                  option.photo
-                    ? `${LETTERS[index]} fotoğrafını değiştir`
-                    : `${LETTERS[index]} fotoğrafı ekle`
-                }
-                onPress={() => pick(option.id)}
-                style={styles.tilePress}
-              >
-                <PreviewImage uri={option.photo?.uri} tone={TONES[index]} />
-                {!option.photo && (
-                  <Text style={styles.tileHint}>Fotoğraf ekle</Text>
-                )}
-                <View
-                  style={[
-                    styles.badge,
-                    { backgroundColor: BADGE_TONES[index] },
-                  ]}
+            <View key={option.id} style={{ gap: 8, width: 132 }}>
+              <View style={styles.tile}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    option.photo
+                      ? `${LETTERS[index]} fotoğrafını değiştir`
+                      : `${LETTERS[index]} fotoğrafı ekle`
+                  }
+                  onPress={() => pick(option.id)}
+                  style={styles.tilePress}
                 >
-                  <Text
-                    style={{ fontFamily: fonts.bold, color: colors.onAccent }}
+                  <PreviewImage uri={option.photo?.uri} tone={TONES[index]} />
+                  {!option.photo && (
+                    <Text style={styles.tileHint}>Fotoğraf ekle</Text>
+                  )}
+                  <View
+                    style={[
+                      styles.badge,
+                      { backgroundColor: BADGE_TONES[index] },
+                    ]}
                   >
-                    {LETTERS[index]}
-                  </Text>
-                </View>
-                {option.photo && (
-                  <View style={styles.products}>
-                    <Text style={{ fontSize: 13, fontFamily: fonts.semibold }}>
-                      Değiştir
+                    <Text
+                      style={{ fontFamily: fonts.bold, color: colors.onAccent }}
+                    >
+                      {LETTERS[index]}
                     </Text>
                   </View>
-                )}
-              </Pressable>
+                  {option.photo && (
+                    <View style={styles.products}>
+                      <Text
+                        style={{ fontSize: 13, fontFamily: fonts.semibold }}
+                      >
+                        Değiştir
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${LETTERS[index]} seçeneğini kaldır`}
+                  onPress={() => removeOption(option.id)}
+                  hitSlop={6}
+                  style={styles.remove}
+                >
+                  <Ionicons name="close" size={18} color={colors.text} />
+                </Pressable>
+              </View>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`${LETTERS[index]} seçeneğini kaldır`}
-                onPress={() => removeOption(option.id)}
-                hitSlop={6}
-                style={styles.remove}
+                accessibilityLabel={`${LETTERS[index]} ürünlerini düzenle`}
+                disabled={busy}
+                onPress={() => setEditingProducts(option.id)}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 8,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: brand.line,
+                  backgroundColor: brand.surface,
+                }}
               >
-                <Ionicons name="close" size={18} color={colors.text} />
+                <Text
+                  style={{
+                    textAlign: "center",
+                    fontFamily: fonts.semibold,
+                    fontSize: 13,
+                  }}
+                >
+                  {option.products?.length
+                    ? `${option.products.length} ürün · Düzenle`
+                    : "+ Ürün etiketle"}
+                </Text>
               </Pressable>
+              {!!option.products?.length && (
+                <Text
+                  style={{ fontSize: 12, color: colors.muted }}
+                  numberOfLines={2}
+                >
+                  {option.products.map(productTitle).join(", ")}
+                </Text>
+              )}
             </View>
           ))}
           {options.length < MAX_OPTIONS && (
@@ -410,8 +582,8 @@ export function CreatePollScreen() {
         <Text
           style={{ fontSize: 12, color: colors.muted, textAlign: "center" }}
         >
-          Yayına al&apos;a basarak fotoğraflarının son halini onaylamış olursun.
-          Yayından sonra fotoğraf ve soru değiştirilemez.
+          Yayına al&apos;dan sonra işlenmiş fotoğrafları görüp son hallerini
+          onaylarsın. Yayından sonra fotoğraf ve soru değiştirilemez.
         </Text>
       </ScrollView>
     </SafeAreaView>

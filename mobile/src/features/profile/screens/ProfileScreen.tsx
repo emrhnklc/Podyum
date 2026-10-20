@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, ScrollView, Share, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,310 +6,309 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { PreviewImage } from "@/components/media/PreviewImage";
-import { brand, colors, common, fonts, serif } from "@/theme";
-import { ME } from "@/constants/demo";
+import { ApiStatus } from "@/components/ui/ApiStatus";
+import { ApiImage } from "@/components/media/ApiImage";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { useApiList, useApiQuery } from "@/hooks/use-api-query";
+import { RelationshipActions } from "@/features/people/components/RelationshipActions";
+import type { Relationship, SocialPage } from "@/features/people/api/social";
+import type { ApiPoll } from "@/features/polls/api/types";
+import { initialsOf, type MyProfile, type PublicProfile } from "../api/profile";
 import { compactCount } from "@/lib/format";
-import { useProfileUser } from "../hooks/use-profile-edits";
-import {
-  myHighlights,
-  otherHighlights,
-  type DemoHighlight,
-} from "../data/demo-highlights";
-import type { DemoUser } from "../types";
-import { posts, postsOf } from "@/features/polls/data/demo-polls";
-import { useDemoPolls } from "@/features/polls/hooks/use-demo-polls";
-import { leagueFor } from "@/features/games/data/league";
-import { usePreviewMessage } from "@/hooks/use-preview-message";
+import { confirmAction } from "@/lib/confirm";
+import { errorMessage } from "@/lib/api/client";
+import { brand, colors, common, fonts, serif } from "@/theme";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type Tab = "POSTS" | "POLLS" | "SAVED";
+type ProfilePoll = Pick<ApiPoll, "id" | "question" | "effectiveStatus"> & {
+  thumbnailPath?: string | null;
+  options?: ApiPoll["options"];
+};
 
-// Kendi profilin "Profilim", başkasınınki "Profil" düzeninde açılır.
-export function ProfileScreen({ username = ME }: { username?: string }) {
+export function ProfileScreen({
+  username,
+  userId,
+}: {
+  username?: string;
+  userId?: string;
+}) {
+  const { client, me } = useAuth();
+  const mine =
+    !username || username === me?.user.username || userId === me?.user.id;
   const [tab, setTab] = useState<Tab>("POSTS");
-  const [following, setFollowing] = useState(false);
-  const { saved } = useDemoPolls();
-  const message = usePreviewMessage();
-  const { user, handle } = useProfileUser(username);
-  const mine = username === ME;
-  const back = () => (router.canGoBack() ? router.back() : router.replace("/"));
-
-  if (!user)
-    return (
-      <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
-        <View style={[styles.content, { flex: 1 }]}>
-          <EmptyState
-            title="Profil bulunamadı"
-            message="Bu kullanıcı demo listesinde yok."
-          />
-          <Button title="Keşfet'e dön" onPress={() => router.replace("/")} />
-        </View>
-      </SafeAreaView>
-    );
-
-  const own = postsOf(username);
+  const [menu, setMenu] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
+  const lookup = useApiQuery<SocialPage>(
+    !mine && !userId && username && /^[a-z0-9_]{3,30}$/.test(username)
+      ? `/users/search?q=${username}&limit=50`
+      : null,
+  );
+  const targetId = mine
+    ? me?.user.id
+    : (userId ??
+      lookup.data?.items.find((item) => item.user.username === username)?.user
+        .id);
+  const profileQuery = useApiQuery<MyProfile | PublicProfile>(
+    targetId ? (mine ? "/me" : `/users/${targetId}`) : null,
+  );
+  const user = profileQuery.data
+    ? "profile" in profileQuery.data
+      ? profileQuery.data.profile
+      : profileQuery.data
+    : undefined;
+  const relationship = useApiQuery<{ state: Relationship }>(
+    targetId && !mine ? `/users/${targetId}/relationship` : null,
+  );
+  const list = useApiList<ProfilePoll>(
+    targetId
+      ? tab === "SAVED" && mine
+        ? "/me/saved-polls?limit=20"
+        : mine
+          ? `/me/polls?limit=20${tab === "POLLS" ? "&status=OPEN" : ""}`
+          : `/users/${targetId}/polls?limit=20`
+      : null,
+  );
   const rows =
-    tab === "SAVED"
-      ? posts.filter((post) => saved.includes(post.id))
-      : tab === "POLLS"
-        ? own.filter((post) => post.timeLeft !== "bitti")
-        : own;
-  const tabs: { value: Tab; label: string; icon: IconName }[] = [
-    { value: "POSTS", label: "Gönderiler", icon: "grid-outline" },
-    { value: "POLLS", label: "Oylamalar", icon: "stats-chart-outline" },
+    tab === "POLLS"
+      ? list.items.filter((post) => post.effectiveStatus === "OPEN")
+      : list.items;
+  const back = () => (router.canGoBack() ? router.back() : router.replace("/"));
+  async function block() {
+    if (lock.current || !targetId) return;
+    lock.current = true;
+    try {
+      if (
+        !(await confirmAction(
+          "Kullanıcıyı engelle",
+          "Arkadaşlık ve bekleyen istekler kaldırılır; birbirinizin içeriklerini göremezsiniz.",
+          "Engelle",
+        ))
+      )
+        return;
+      setBusy(true);
+      setActionError(null);
+      await client.request(`/blocks/${targetId}`, { method: "PUT" });
+      router.replace("/people");
+    } catch (error) {
+      setActionError(errorMessage(error));
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
+  }
+  const tabs = [
+    {
+      value: "POSTS" as const,
+      label: "Gönderiler",
+      icon: "grid-outline" as const,
+    },
+    {
+      value: "POLLS" as const,
+      label: "Oylamalar",
+      icon: "stats-chart-outline" as const,
+    },
     ...(mine
-      ? [{ value: "SAVED" as const, label: "Kaydedilenler", icon: "bookmark-outline" as const }]
+      ? [
+          {
+            value: "SAVED" as const,
+            label: "Kaydedilenler",
+            icon: "bookmark-outline" as const,
+          },
+        ]
       : []),
   ];
-  const shareProfile = () =>
-    Share.share({ message: `Podyum'da @${handle} profiline göz at!` });
-
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        style={styles.page}
-        contentContainerStyle={styles.content}
-      >
+      <ScrollView style={styles.page} contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          {mine ? (
-            // Ayarlar sağdaki menüden açılır; başlık ortada kalsın diye boşluk.
-            <View style={styles.iconButton} />
-          ) : (
-            <IconButton label="Geri" icon="chevron-back" onPress={back} />
-          )}
+          <IconButton
+            label={mine ? "Bildirimler" : "Geri"}
+            icon={mine ? "notifications-outline" : "chevron-back"}
+            onPress={mine ? () => router.push("/bildirimler") : back}
+          />
           <Text style={styles.headerTitle} accessibilityRole="header">
             {mine ? "Profilim" : "Profil"}
           </Text>
           <View style={{ flexDirection: "row" }}>
-            {mine ? (
-              <>
-                <IconButton
-                  label="Profili paylaş"
-                  icon="share-outline"
-                  onPress={shareProfile}
-                />
-                <IconButton
-                  label="Menü"
-                  icon="menu-outline"
-                  onPress={() => router.push("/settings")}
-                />
-              </>
-            ) : (
-              <IconButton
-                label="Daha fazla"
-                icon="ellipsis-vertical"
-                onPress={() =>
-                  message(
-                    "Şikâyet ve engelleme seçenekleri sıradaki adımlarda açılacak.",
-                  )
-                }
-              />
-            )}
-          </View>
-        </View>
-
-        <View style={styles.identity}>
-          <View>
-            <Avatar user={user} />
-            {mine && (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Profil fotoğrafını düzenle"
-                onPress={() => router.push("/profile/edit")}
-                style={styles.avatarEdit}
-              >
-                <Ionicons name="pencil" size={16} color={colors.text} />
-              </Pressable>
-            )}
-          </View>
-          <View style={{ flex: 1, gap: 4 }}>
-            <View style={[common.row, { gap: 6 }]}>
-              <Text style={styles.username} numberOfLines={1}>
-                {handle}
-              </Text>
-              {user.verified && (
-                <Ionicons
-                  name="checkmark-circle"
-                  size={22}
-                  color={brand.accent}
-                  accessibilityLabel="Onaylı hesap"
-                />
-              )}
-            </View>
-            <Text style={{ color: colors.muted }}>@{handle}</Text>
-            {user.location && (
-              <View style={[common.row, { gap: 4 }]}>
-                <Ionicons name="location-outline" size={15} color={colors.muted} />
-                <Text style={{ fontSize: 14, color: colors.muted }}>
-                  {user.location}
-                </Text>
-              </View>
-            )}
-            {!mine && <LeaguePill stars={user.counts.stars} />}
-            <View style={styles.stats}>
-              {[
-                { label: "Gönderi", value: user.counts.polls },
-                { label: "Takipçi", value: user.counts.followers },
-                { label: "Takip", value: user.counts.following },
-              ].map((count, index) => (
-                <View
-                  key={count.label}
-                  accessible
-                  accessibilityLabel={`${count.value} ${count.label}`}
-                  style={[styles.stat, index > 0 && styles.statDivider]}
-                >
-                  <Text style={styles.statValue}>
-                    {compactCount(count.value)}
-                  </Text>
-                  <Text style={{ fontSize: 13, color: colors.muted }}>
-                    {count.label}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
-
-        <Text style={styles.bio}>{user.bio ?? user.styles.join(" · ")}</Text>
-
-        {mine ? (
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Profili Düzenle"
-              onPress={() => router.push("/profile/edit")}
-              style={({ pressed }) => [
-                styles.primary,
-                { opacity: pressed ? 0.85 : 1 },
-              ]}
-            >
-              <Text style={styles.primaryText}>Profili Düzenle</Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Kişi ekle"
-              onPress={() => router.push("/people")}
-              style={styles.squareButton}
-            >
-              <Ionicons name="person-add-outline" size={22} color={colors.text} />
-            </Pressable>
-          </View>
-        ) : (
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={following ? "Takibi bırak" : "Takip et"}
-              onPress={() => setFollowing((value) => !value)}
-              style={({ pressed }) => [
-                styles.primary,
-                following && styles.primaryMuted,
-                { opacity: pressed ? 0.85 : 1 },
-              ]}
-            >
-              <Text
-                style={[styles.primaryText, following && { color: brand.accentDark }]}
-              >
-                {following ? "Takip ediliyor" : "Takip Et"}
-              </Text>
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Mesaj"
-              onPress={() => message("Mesajlar sıradaki adımlarda açılacak.")}
-              style={({ pressed }) => [
-                styles.secondary,
-                { opacity: pressed ? 0.85 : 1 },
-              ]}
-            >
-              <Ionicons name="paper-plane-outline" size={20} color={brand.accentDark} />
-              <Text style={{ fontFamily: fonts.bold, color: brand.accentDark }}>
-                Mesaj
-              </Text>
-            </Pressable>
-          </View>
-        )}
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ gap: 14, paddingVertical: 2 }}
-        >
-          {(mine ? myHighlights : otherHighlights).map((item) => (
-            <Highlight
-              key={item.label}
-              item={item}
+            <IconButton
+              label="Profili paylaş"
+              icon="share-outline"
               onPress={() =>
-                message("Öne çıkanlar sıradaki adımlarda açılacak.")
+                void Share.share({
+                  message: `Podyum'da @${user?.username ?? username} profiline göz at!`,
+                }).catch((error) => setActionError(errorMessage(error)))
               }
             />
-          ))}
-          {mine && (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Yeni öne çıkan ekle"
-              onPress={() =>
-                message("Öne çıkanlar sıradaki adımlarda açılacak.")
+            <IconButton
+              label={mine ? "Menü" : "Daha fazla"}
+              icon={mine ? "menu-outline" : "ellipsis-vertical"}
+              onPress={
+                mine
+                  ? () => router.push("/settings")
+                  : () => setMenu((value) => !value)
               }
-              style={styles.highlight}
-            >
-              <View style={[styles.highlightRing, styles.highlightNew]}>
-                <Ionicons name="add" size={28} color={colors.text} />
+            />
+          </View>
+        </View>
+        <ApiStatus
+          loading={lookup.loading || profileQuery.loading}
+          error={lookup.error ?? profileQuery.error}
+          retry={() => {
+            void lookup.refresh();
+            void profileQuery.refresh();
+          }}
+        />
+        {user && (
+          <>
+            <View style={styles.identity}>
+              <View>
+                <View style={styles.avatar}>
+                  {user.avatarPath ? (
+                    <ApiImage path={user.avatarPath} />
+                  ) : (
+                    <Text style={styles.initials}>
+                      {initialsOf(user.displayName)}
+                    </Text>
+                  )}
+                </View>
+                {mine && (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Profil fotoğrafını düzenle"
+                    onPress={() => router.push("/profile/edit")}
+                    style={styles.avatarEdit}
+                  >
+                    <Ionicons name="pencil" size={16} color={colors.text} />
+                  </Pressable>
+                )}
               </View>
-              <Text style={styles.highlightLabel}>Yeni</Text>
-            </Pressable>
-          )}
-        </ScrollView>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabs}
-          contentContainerStyle={{ flexGrow: 1 }}
-        >
-          {tabs.map((option) => {
-            const active = tab === option.value;
-            return (
-              <Pressable
-                key={option.value}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                onPress={() => setTab(option.value)}
-                style={[styles.tab, active && styles.tabActive]}
-              >
-                <Ionicons
-                  name={option.icon}
-                  size={18}
-                  color={active ? brand.accentDark : colors.muted}
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={styles.username}>{user.displayName}</Text>
+                <Text style={{ color: colors.muted }}>@{user.username}</Text>
+                <View style={styles.stats}>
+                  {[
+                    { label: "Gönderi", value: user.counts.polls },
+                    { label: "Arkadaş", value: user.counts.friends },
+                  ].map((count, index) => (
+                    <Pressable
+                      key={count.label}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${count.value} ${count.label}`}
+                      disabled={!mine || count.label !== "Arkadaş"}
+                      onPress={() => router.push("/friends")}
+                      style={[styles.stat, index > 0 && styles.statDivider]}
+                    >
+                      <Text style={styles.statValue}>
+                        {compactCount(count.value)}
+                      </Text>
+                      <Text style={{ fontSize: 13, color: colors.muted }}>
+                        {count.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+            </View>
+            {!!user.bio && <Text style={styles.bio}>{user.bio}</Text>}
+            {!!user.styles.length && (
+              <Text style={common.subtitle}>
+                {user.styles.map((style) => style.label).join(" · ")}
+              </Text>
+            )}
+            {mine ? (
+              <View style={{ gap: 10 }}>
+                <Button
+                  title="Profili Düzenle"
+                  onPress={() => router.push("/profile/edit")}
                 />
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontFamily: active ? fonts.bold : fonts.medium,
-                    color: active ? brand.accentDark : colors.muted,
-                  }}
-                  numberOfLines={1}
+                <View style={common.row}>
+                  <Button
+                    title="Kişi ekle"
+                    variant="outline"
+                    onPress={() => router.push("/people")}
+                  />
+                  <Button
+                    title="Defilelerim"
+                    variant="outline"
+                    onPress={() => router.push("/games/history")}
+                  />
+                </View>
+              </View>
+            ) : (
+              <>
+                <ApiStatus
+                  loading={relationship.loading}
+                  error={relationship.error}
+                  retry={relationship.refresh}
+                />
+                {relationship.data && (
+                  <RelationshipActions
+                    userId={user.id}
+                    state={relationship.data.state}
+                    onChanged={() => {
+                      void profileQuery.refresh();
+                      return relationship.refresh();
+                    }}
+                  />
+                )}
+                {menu && (
+                  <View style={{ gap: 8 }}>
+                    <Button
+                      title="Kullanıcıyı engelle"
+                      disabled={busy}
+                      variant="outline"
+                      onPress={() => void block()}
+                    />
+                    <Button
+                      title="Kullanıcıyı şikâyet et"
+                      variant="outline"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/reports/new",
+                          params: { type: "USER", id: user.id },
+                        })
+                      }
+                    />
+                  </View>
+                )}
+              </>
+            )}
+            {actionError && (
+              <Text accessibilityRole="alert">{actionError}</Text>
+            )}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.tabs}
+              contentContainerStyle={{ flexGrow: 1 }}
+            >
+              {tabs.map((option) => (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: tab === option.value }}
+                  onPress={() => setTab(option.value)}
+                  style={[styles.tab, tab === option.value && styles.tabActive]}
                 >
-                  {option.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {rows.length ? (
-          <View style={styles.grid}>
-            {rows.map((post) => {
-              const leading =
-                post.options[0].percent >= post.options[1].percent
-                  ? post.options[0]
-                  : post.options[1];
-              return (
+                  <Ionicons name={option.icon} size={18} color={colors.text} />
+                  <Text>{option.label}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+            <ApiStatus
+              loading={list.loading}
+              error={list.error}
+              retry={list.refresh}
+            />
+            <View style={styles.grid}>
+              {rows.map((post) => (
                 <Pressable
                   key={post.id}
                   accessibilityRole="button"
-                  accessibilityLabel={post.question}
+                  accessibilityLabel={post.question || "Taslak"}
                   onPress={() =>
                     router.push({
                       pathname: "/polls/[id]",
@@ -318,38 +317,55 @@ export function ProfileScreen({ username = ME }: { username?: string }) {
                   }
                   style={styles.tile}
                 >
-                  <PreviewImage uri={leading.image} tone={leading.tone} />
+                  <ApiImage
+                    path={
+                      post.thumbnailPath ??
+                      post.options?.[0]?.media.thumbnailPath ??
+                      post.options?.[0]?.media.displayPath ??
+                      null
+                    }
+                  />
                   <View style={styles.likes}>
-                    <Ionicons name="heart" size={12} color={brand.accent} />
-                    <Text style={{ fontSize: 11, fontFamily: fonts.semibold }}>
-                      {compactCount(post.totalVotes)}
+                    <Text style={{ fontSize: 11 }}>
+                      {post.effectiveStatus === "DRAFT"
+                        ? "Taslak"
+                        : post.question}
                     </Text>
                   </View>
                 </Pressable>
-              );
-            })}
-          </View>
-        ) : (
-          <EmptyState
-            icon={tab === "SAVED" ? "bookmark-outline" : "albums-outline"}
-            title={
-              tab === "SAVED"
-                ? "Henüz kaydedilen yok"
-                : tab === "POLLS"
-                  ? "Açık oylama yok"
-                  : "Henüz gönderi yok"
-            }
-            message={
-              tab === "SAVED"
-                ? "Keşfet'te kaydettiğin kombinler burada görünür."
-                : tab === "POLLS"
-                  ? "Şu an oylamaya açık paylaşım yok."
-                  : mine
-                    ? "İlk kombinini paylaştığında burada görünür."
-                    : "Henüz bir kombin paylaşmadı."
-            }
-          />
+              ))}
+            </View>
+            {!list.loading && !list.error && !rows.length && (
+              <EmptyState
+                title={
+                  tab === "SAVED" ? "Henüz kaydedilen yok" : "Henüz gönderi yok"
+                }
+                message={
+                  tab === "SAVED"
+                    ? "Keşfet'te kaydettiğin kombinler burada görünür."
+                    : "Paylaşılan kombinler burada görünecek."
+                }
+              />
+            )}
+            {list.hasMore && (
+              <Button
+                title="Daha fazla kombin"
+                disabled={list.loading}
+                onPress={() => void list.loadMore()}
+              />
+            )}
+          </>
         )}
+        {!user &&
+          !lookup.loading &&
+          !profileQuery.loading &&
+          !lookup.error &&
+          !profileQuery.error && (
+            <EmptyState
+              title="Profil bulunamadı"
+              message="Bu profil artık erişilebilir olmayabilir."
+            />
+          )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -370,64 +386,9 @@ function IconButton({
       accessibilityLabel={label}
       onPress={onPress}
       hitSlop={6}
-      style={({ pressed }) => [styles.iconButton, { opacity: pressed ? 0.5 : 1 }]}
+      style={styles.iconButton}
     >
       <Ionicons name={icon} size={26} color={colors.text} />
-    </Pressable>
-  );
-}
-
-function Avatar({ user }: { user: DemoUser }) {
-  return (
-    <View style={styles.avatar}>
-      {user.avatar ? (
-        <PreviewImage uri={user.avatar} tone={brand.accentSoft} icon="person-outline" />
-      ) : (
-        <Text style={styles.initials}>{user.initials}</Text>
-      )}
-    </View>
-  );
-}
-
-function LeaguePill({ stars }: { stars: number }) {
-  const league = leagueFor(stars);
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={league.name}
-      onPress={() => router.push("/defile")}
-      style={styles.league}
-    >
-      <Ionicons name="trophy-outline" size={16} color={brand.accentDark} />
-      <Text style={{ fontFamily: fonts.semibold, fontSize: 13, color: brand.accentDark }}>
-        {league.name}
-      </Text>
-    </Pressable>
-  );
-}
-
-function Highlight({
-  item,
-  onPress,
-}: {
-  item: DemoHighlight;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={item.label}
-      onPress={onPress}
-      style={styles.highlight}
-    >
-      <View style={styles.highlightRing}>
-        <View style={[styles.highlightInner, { backgroundColor: item.tone }]}>
-          <Ionicons name={item.icon} size={26} color={colors.text} />
-        </View>
-      </View>
-      <Text style={styles.highlightLabel} numberOfLines={1}>
-        {item.label}
-      </Text>
     </Pressable>
   );
 }
@@ -475,7 +436,11 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 4 },
   },
-  initials: { fontFamily: fonts.extraBold, fontSize: 36, color: brand.accentDark },
+  initials: {
+    fontFamily: fonts.extraBold,
+    fontSize: 36,
+    color: brand.accentDark,
+  },
   avatarEdit: {
     position: "absolute",
     right: 0,

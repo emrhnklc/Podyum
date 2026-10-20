@@ -26,7 +26,9 @@ export class ProductTagResponseDto {
   @ApiProperty() currency!: string;
   @ApiProperty() externalUrl!: string;
   @ApiProperty({ type: String, format: "date-time", nullable: true, description: "Fiyat beyanının kayda alındığı zaman; mağazada doğrulanmış fiyat tarihi değildir." }) priceRecordedAt!: Date | null;
-  @ApiProperty({ enum: ["USER_ENTERED"] }) source!: "USER_ENTERED";
+  @ApiProperty({ enum: ["USER_ENTERED", "CATALOG"] }) source!: "USER_ENTERED" | "CATALOG";
+  @ApiProperty({ type: String, format: "uuid", nullable: true }) catalogProductId!: string | null;
+  @ApiProperty({ type: Object, nullable: true, description: "Sunucunun yayın anında sabitlediği katalog kimliği, sürümü, ürün ve fiyat bilgisi; elle etikette null." }) catalogSnapshot!: object | null;
 }
 
 export class PollOptionResponseDto {

@@ -14,6 +14,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
+import { AppLogo } from "@/components/ui/AppLogo";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 import { colors, fonts, sand, serif } from "@/theme";
 
@@ -74,14 +75,11 @@ export function AuthScreen() {
         style={styles.page}
       >
         <View style={styles.logoRow}>
+          <AppLogo size={56} />
           <View>
             <Text style={styles.logo} accessibilityRole="header">
               Podyum
             </Text>
-            <Sticker
-              source={STICKERS.sparkleBrown}
-              style={{ top: -2, right: -20, width: 26, height: 26 }}
-            />
           </View>
         </View>
         <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
@@ -95,7 +93,12 @@ export function AuthScreen() {
                 style={[
                   styles.frame,
                   styles.frameLeft,
-                  { width: frameWidth, height: frameHeight, left: leftX, top: topY },
+                  {
+                    width: frameWidth,
+                    height: frameHeight,
+                    left: leftX,
+                    top: topY,
+                  },
                 ]}
               >
                 <Image source={WOMAN} resizeMode="cover" style={styles.photo} />
@@ -129,7 +132,12 @@ export function AuthScreen() {
               </View>
               <Sticker
                 source={STICKERS.sparkleCream}
-                style={{ top: topY - 6, left: leftX + 6, width: 28, height: 36 }}
+                style={{
+                  top: topY - 6,
+                  left: leftX + 6,
+                  width: 28,
+                  height: 36,
+                }}
               />
               <Sticker
                 source={STICKERS.crown}
@@ -146,7 +154,7 @@ export function AuthScreen() {
                   { top: topY + frameHeight + 4, left: Math.max(4, leftX) },
                 ]}
               >
-                More Style{"\n"}  Together
+                More Style{"\n"} Together
               </Text>
             </>
           )}
@@ -286,7 +294,12 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     gap: 12,
   },
-  logoRow: { flexDirection: "row", justifyContent: "center" },
+  logoRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 12,
+  },
   logo: {
     fontFamily: serif,
     fontStyle: "italic",

@@ -1,5 +1,7 @@
 # Geliştirme sırası ve kabul koşulları
 
+> 20 Ekim 2026: Bakım otomasyonu, oyun süre uyumu ve ortak katalog ilk teslimi hazır; sırada ProductTag bağlantısı. Güncel durum ve çalışma sırası [yeni uygulama planında](backend-implementation-plan-2026-10-19.md). Bu belgedeki aşamalar kabul referansıdır; başlangıç tarihli ilerleme paragrafları güncel durum listesi değildir.
+
 Günlük uygulama sırası ve tüm ekran özelliklerini kapsayan ayrıntılı iş listesi [Backend çalışma planı](backend-roadmap.md) belgesindedir. Bu belge aşama ve doğrulama ölçütlerini destekler.
 
 Adım kimlikleri korunur: 19–20 günlük podyum/QR lobi ve canlı durum artık aktif ilk teslimdir; 21–23 genişleme adaylarıdır. Buradaki aşamalar ayrıntılı adımları gruplar. [İki kişilik planda](two-developer-plan.md) biz kullanıcı/kombin, arkadaş katalog/trend/gelir kolunu paralel geliştirir; profil ve katalog aynı anda başlayabilir.

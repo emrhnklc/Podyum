@@ -1,3 +1,4 @@
+import { DAILY_SCHEDULE_ID } from "./game-management.service.js";
 import { Injectable } from "@nestjs/common";
 import { readEnvironment } from "../../common/config/environment.js";
 import { PrismaService } from "../../database/prisma.service.js";
@@ -29,15 +30,22 @@ export class GameSchedulerService {
     });
   }
 
+  async configuredSchedule() {
+    const row = await this.prisma.gameDailySchedule.findUnique({ where: { id: DAILY_SCHEDULE_ID }, include: { theme: true } });
+    if (!row) return readEnvironment().dailyGameSchedule;
+    if (!row.enabled || !row.theme?.active || !row.startTime || !row.timeZone) return null;
+    return { startTime: row.startTime, timeZone: row.timeZone, themeSlug: row.theme.slug };
+  }
+
   async ensureToday() {
-    const schedule = readEnvironment().dailyGameSchedule;
+    const schedule = await this.configuredSchedule();
     if (!schedule) return null;
     const now = await this.prisma.$transaction(gameNow);
     return this.ensureDaily(gameLocalDay(now, schedule.timeZone), schedule);
   }
 
   async current() {
-    const schedule = readEnvironment().dailyGameSchedule;
+    const schedule = await this.configuredSchedule();
     const row = await this.ensureToday();
     if (!row) return { scheduleConfigured: false, event: null };
     return this.prisma.$transaction(async (tx) => {

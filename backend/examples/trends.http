@@ -1,0 +1,18 @@
+@base = http://127.0.0.1:3000/v1
+@token = ACCESS_TOKEN
+
+### Bu haftanın TRY ürünleri; takvim haftası, doğrudan ürün oyu değil
+GET {{base}}/trends?period=WEEK&currency=TRY&limit=20
+Authorization: Bearer {{token}}
+
+### İzinli 18–24 kadın tercihleri; 100–2000 TL yayın fiyatı
+GET {{base}}/trends?period=MONTH&category=SHOES&gender=WOMAN&ageBand=AGE_18_24&currency=TRY&minPriceMinor=10000&maxPriceMinor=200000
+Authorization: Bearer {{token}}
+
+### Belirli bir takvim günü
+GET {{base}}/trends?period=DAY&date=2026-10-19&currency=TRY
+Authorization: Bearer {{token}}
+
+### Aynı filtrelerle sonraki sayfa; 409 olursa cursor kaldırıp yenile
+GET {{base}}/trends?period=WEEK&currency=TRY&limit=20&cursor=PREVIOUS_NEXT_CURSOR
+Authorization: Bearer {{token}}

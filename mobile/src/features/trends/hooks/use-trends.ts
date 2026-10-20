@@ -1,53 +1,66 @@
-import { useState } from "react";
-import type { PollCategory } from "@/constants/poll-categories";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { AppState } from "react-native";
+import { useFocusEffect } from "expo-router";
+import { useAuth } from "@/features/auth/hooks/use-auth";
+import { trendsPath } from "../api/trends";
+import { TrendList } from "../trend-list";
 import {
-  trendProducts,
-  TREND_LIMIT,
-  TREND_MIN_PICKS,
-} from "../data/demo-products";
-import type { PriceBand, TrendPeriod, TrendVoter } from "../types";
-
-function inPriceBand(priceMinor: number, band: PriceBand) {
-  if (band === "UNDER_750") return priceMinor < 75000;
-  if (band === "FROM_750_TO_2000")
-    return priceMinor >= 75000 && priceMinor <= 200000;
-  if (band === "OVER_2000") return priceMinor > 200000;
-  return true;
-}
+  DEFAULT_TREND_FILTERS,
+  type TrendFilters,
+  type TrendsPage,
+} from "../types";
 
 export function useTrends() {
-  const [period, setPeriod] = useState<TrendPeriod>("WEEK");
-  const [category, setCategory] = useState<"ALL" | PollCategory>("ALL");
-  const [voter, setVoter] = useState<TrendVoter>("ANY");
-  const [price, setPrice] = useState<PriceBand>("ALL");
-  // Dönem her zaman seçilidir; diğer üçü varsayılandan farklıysa sayılır.
-  const activeCount =
-    (category === "ALL" ? 0 : 1) +
-    (voter === "ANY" ? 0 : 1) +
-    (price === "ALL" ? 0 : 1);
-  const rows = trendProducts
-    .filter((product) => category === "ALL" || product.category === category)
-    .filter((product) => inPriceBand(product.priceMinor, price))
-    .map((product) => ({ product, picks: product.picks[period][voter] }))
-    .filter((row) => row.picks >= TREND_MIN_PICKS)
-    .sort((a, b) => b.picks - a.picks)
-    .slice(0, TREND_LIMIT);
-  function reset() {
-    setCategory("ALL");
-    setVoter("ANY");
-    setPrice("ALL");
-  }
+  const { client, session } = useAuth();
+  const [filters, setFilters] = useState<TrendFilters>(DEFAULT_TREND_FILTERS);
+  const path = trendsPath(filters);
+  const sessionId = session?.sessionId;
+  const list = useMemo(
+    () =>
+      new TrendList(
+        (url, options) => client.request<TrendsPage>(url, options),
+        sessionId ? path : "/trends",
+      ),
+    [client, path, sessionId],
+  );
+  const state = useSyncExternalStore(
+    list.subscribe,
+    list.snapshot,
+    list.snapshot,
+  );
+  useFocusEffect(
+    useCallback(() => {
+      if (!sessionId) return;
+      if (AppState.currentState === "active") void list.refresh();
+      const listener = AppState.addEventListener("change", (next) => {
+        if (next === "active") void list.refresh();
+        else list.cancel();
+      });
+      return () => {
+        listener.remove();
+        list.cancel();
+      };
+    }, [list, sessionId]),
+  );
+  const set = <K extends keyof TrendFilters>(key: K, value: TrendFilters[K]) =>
+    setFilters((old) => ({ ...old, [key]: value }));
   return {
-    period,
-    setPeriod,
-    category,
-    setCategory,
-    voter,
-    setVoter,
-    price,
-    setPrice,
-    rows,
-    activeCount,
-    reset,
+    ...state,
+    filters,
+    rows: state.page?.items ?? [],
+    authenticated: !!sessionId,
+    set,
+    refresh: list.refresh,
+    loadMore: list.loadMore,
+    hasMore: !!state.page?.nextCursor,
+    activeCount:
+      Number(filters.category !== "ALL") +
+      Number(filters.voter !== "ANY") +
+      Number(filters.age !== "ANY") +
+      Number(!!filters.brand) +
+      Number(filters.price !== "ALL") +
+      Number(filters.currency !== "TRY"),
+    reset: () =>
+      setFilters((old) => ({ ...DEFAULT_TREND_FILTERS, period: old.period })),
   };
 }

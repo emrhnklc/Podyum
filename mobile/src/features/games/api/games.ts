@@ -37,7 +37,7 @@ export type GameState = GameSummary & {
 export const getGame = (client: SessionManager, id: string) =>
   client.request<GameState>(`/games/${id}`);
 
-const joinOpen = (client: SessionManager, id: string) =>
+export const joinOpen = (client: SessionManager, id: string) =>
   client.request<GameState>(`/games/${id}/join`, {
     method: "POST",
     headers: { "Idempotency-Key": Crypto.randomUUID() },
@@ -106,19 +106,38 @@ export const startNow = (client: SessionManager, game: GameState) =>
     body: JSON.stringify({ expectedVersion: game.version }),
   });
 
-// Oyun fotoğrafı: GAME amacıyla yüklenir, son hali onaylanır ve teslim edilir.
-// Süre içinde yeni fotoğrafla değiştirilebilir; yarışmacı numarası korunur.
-export async function submitGamePhoto(
+export const endSubmission = (client: SessionManager, game: GameState) =>
+  client.request<GameState>(`/games/${game.id}/end-submission`, {
+    method: "POST",
+    headers: { "Idempotency-Key": Crypto.randomUUID() },
+    body: JSON.stringify({ expectedVersion: game.version }),
+  });
+
+export const leaveGame = (client: SessionManager, game: GameState) =>
+  client.request(`/games/${game.id}/leave`, {
+    method: "POST",
+    headers: { "Idempotency-Key": Crypto.randomUUID() },
+    body: "{}",
+  });
+
+// Önce sunucudaki son görüntü gösterilir; teslim ayrı kullanıcı onayıyla yapılır.
+export async function prepareGamePhoto(
   client: SessionManager,
-  gameId: string,
   photo: PickedPhoto,
 ) {
   const { file, byteSize, mimeType } = await readPhoto(photo);
-  const asset = await uploadMedia(client, file, byteSize, mimeType, "GAME");
-  await acceptPreview(client, asset.id);
+  return uploadMedia(client, file, byteSize, mimeType, "GAME");
+}
+
+export async function submitPreparedGamePhoto(
+  client: SessionManager,
+  gameId: string,
+  mediaId: string,
+) {
+  await acceptPreview(client, mediaId);
   return client.request<{ mediaId: string }>(`/games/${gameId}/submission`, {
     method: "PUT",
-    body: JSON.stringify({ mediaId: asset.id }),
+    body: JSON.stringify({ mediaId }),
   });
 }
 
@@ -185,6 +204,9 @@ export type GameTurn = {
   index: number;
   total: number;
   turnSeconds: number;
+  cycle: number;
+  votingEndsAt: string;
+  remainingSeconds: number;
   serverNow: string;
   turnEndsAt: string;
   current: (BallotCard & { mine: boolean; myStars: number | null }) | null;

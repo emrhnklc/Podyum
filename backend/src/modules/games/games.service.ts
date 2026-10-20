@@ -360,7 +360,10 @@ export class GamesService {
       const entries = await tx.gameSubmission.findMany({ where: { sessionId: id, status: "FROZEN" }, orderBy: { position: "asc" },
         select: { id: true, position: true, mediaId: true, userId: true } });
       const start = session.votingStartsAt!.getTime();
-      const index = Math.min(entries.length - 1, Math.max(0, Math.floor((now.getTime() - start) / (TURN_SECONDS * 1000))));
+      if (!entries.length) throw gameConflict("VOTING_CLOSED", "Gösterilebilecek kombin kalmadı.");
+      const slot = Math.max(0, Math.floor((now.getTime() - start) / (TURN_SECONDS * 1000)));
+      const index = slot % entries.length;
+      const turnEnd = Math.min(start + (slot + 1) * TURN_SECONDS * 1000, session.votingEndsAt!.getTime());
       const entry = entries[index];
       const mine = entry.userId === userId;
       // Engelli yazarın kombini bu kullanıcıya gösterilmez; tur yine sayılır.
@@ -369,13 +372,13 @@ export class GamesService {
       const members = await tx.gameMembership.count({ where: { sessionId: id, status: "ACTIVE", user: { status: "ACTIVE" } } });
       const myIndex = entries.findIndex((row) => row.userId === userId);
       return {
-        index, total: entries.length, turnSeconds: TURN_SECONDS, serverNow: now,
-        turnEndsAt: new Date(start + (index + 1) * TURN_SECONDS * 1000),
+        index, total: entries.length, cycle: Math.floor(slot / entries.length) + 1, turnSeconds: Math.min(TURN_SECONDS, Math.max(0, (turnEnd - (start + slot * TURN_SECONDS * 1000)) / 1000)), serverNow: now,
+        turnEndsAt: new Date(turnEnd), votingEndsAt: session.votingEndsAt, remainingSeconds: Math.max(0, Math.ceil((session.votingEndsAt!.getTime() - now.getTime()) / 1000)),
         current: visible ? { ...this.card(entry), mine, myStars: myScore?.stars ?? null } : null,
         votedCount: await tx.gameScore.count({ where: { submissionId: entry.id } }),
         voterCount: Math.max(0, members - 1),
-        myTurnIn: myIndex > index ? myIndex - index : null,
-        nextNumber: entries[index + 1]?.position ?? null,
+        myTurnIn: myIndex >= 0 && myIndex !== index ? (myIndex - index + entries.length) % entries.length : null,
+        nextNumber: turnEnd < session.votingEndsAt!.getTime() ? entries[(index + 1) % entries.length].position : null,
       };
     }, { timeout: 30000 });
   }

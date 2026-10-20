@@ -1,6 +1,6 @@
 # Günlük podyum ve QR lobileri — çalışan API
 
-10 Ekim 2026. Yol haritasının 19. adımı ve 20. adımın zamanlayıcı/state/canlı abonelik kısmı. `/v1` altında Bearer oturumu gerekir. [Tasarım ve kararlar](game-design.md), [HTTP örnekleri](../examples/games.http). Socket.IO aboneliği ve yenileme sinyalleri çalışır: [canlı bağlantı sözleşmesi](game-realtime-development.md). Mobil ekran henüz bağlanmadı; durum REST ile okunur. Oylama başlayınca ve sonuç açıklanınca etkin üyelere bildirim/push gider: [bildirim rehberi](notifications-development.md).
+10 Ekim 2026. Yol haritasının 19. adımı ve 20. adımın zamanlayıcı/state/canlı abonelik kısmı. `/v1` altında Bearer oturumu gerekir. [Tasarım ve kararlar](game-design.md), [HTTP örnekleri](../examples/games.http). Socket.IO aboneliği ve yenileme sinyalleri çalışır: [canlı bağlantı sözleşmesi](game-realtime-development.md). Mobil Defile ekranları REST/state ve yetkili canlı bağlantıyı kullanır. Oylama başlayınca ve sonuç açıklanınca etkin üyelere bildirim/push gider: [bildirim rehberi](notifications-development.md).
 
 ## Uygulanan kullanıcı kararları
 
@@ -82,7 +82,7 @@ Değerlendirme teslim başına tek ve değişmezdir: aynı yıldızın tekrarı 
 
 ## Sonuç
 
-Sonuçlar oylama tamamlanana kadar `409 RESULTS_NOT_AVAILABLE` döner. Tamamlanınca her teslim için `ratingCount`, `ratingSum`, `averageStars` (hiç oy yoksa `null`) ve yazarın `id`, `username`, `displayName` alanları açılır. Liste yarışmacı numarası sırasındadır; sunucu kazanan ilan etmez, eşitlik bozmaz. `official: false` ve `awardedPoints: 0` sabittir: profil puanı, lig ve ödül politikası seçilmediği için hiçbir sonuç PointsLedger kaydı üretmez.
+Sonuçlar oylama tamamlanana kadar `409 RESULTS_NOT_AVAILABLE` döner. Tamamlanınca `ratingCount`, `ratingSum`, `averageStars` (oy yoksa null) ve yazar kimliği açılır. Sonuçlar aşağıdaki temel lig/sıralama kurallarına göre döner; genel/davetli oda ayrımı korunur. Eski PointsLedger kullanılmaz.
 
 ## Zamanlayıcı ve toparlanma
 
@@ -114,15 +114,15 @@ On birinci migration `GameSession`, `GameMembership`, `GameSubmission`, `GameSco
 
 ## Doğrulama ve kalanlar
 
-`npm run test:games`: 24 HTTP/servis testi. Oturum/DTO, lobi oluşturma, davet yenileme/iptal/süre, QR ile katılım ve kapasite, engel, ayar/başlatma sürümü, teslim ve değiştirme, fotoğraf erişimi, erken geçiş, yetersiz teslimde iptal, günlük takvim tekilliği, fotoğrafsız üyenin oyu, değişmez değerlendirme, kart sayfalama, sonuç, geç işçi, teslim/geçiş yarışı, süre sonrası oy, hata sonrası geri alma, host ayrılması, geçmiş, takvim ayarı ve OpenAPI kontrol edilir. `npm run test:api` bütün modüllerle birlikte çalıştırır.
+`npm run test:games`: oyun ve yönetim HTTP/servis testleri; süre döngüsü ve takvim yönetimi dahil. Oturum/DTO, lobi oluşturma, davet yenileme/iptal/süre, QR ile katılım ve kapasite, engel, ayar/başlatma sürümü, teslim ve değiştirme, fotoğraf erişimi, erken geçiş, yetersiz teslimde iptal, günlük takvim tekilliği, fotoğrafsız üyenin oyu, değişmez değerlendirme, kart sayfalama, sonuç, geç işçi, teslim/geçiş yarışı, süre sonrası oy, hata sonrası geri alma, host ayrılması, geçmiş, takvim ayarı ve OpenAPI kontrol edilir. `npm run test:api` bütün modüllerle birlikte çalıştırır.
 
 Henüz yok:
 
 - Dağıtık Socket.IO fan-out. Tek API sürecindeki abonelik/güncelleme hazır; ayrı süreçler için ortak taşıyıcı henüz yok. "Oylama başladı" ve "sonuç açıklandı" bildirimleri bağlandı; QR daveti kişiye hedefli olmadığından davet bildirimi yoktur.
 - Gerçek çok bağlantılı PostgreSQL'de iki işçi ve geçiş yarışı testleri. Yerel PGlite tek bağlantılıdır.
-- Günlük saatin ürün kararı ve tema yönetimi API'si; tema şimdilik `Theme` tablosundan ayarla seçilir.
-- Minimum oy eşiği, resmî kazanan, ödül/lig ve moderasyonla oyun iptali.
-- Mobil oyun ekranı; `mobile/` hâlâ hazırlık ekranı gösterir.
+- Günlük kesin saatin ürün kararı. Tema/takvim yönetim API'si aşağıda hazırdır; saat otomatik seçilmez.
+- Nihai minimum oy, beraberlik ve sezon/ödül politikası. Temel 50/30/20 lig puanı ve yönetici iptali aşağıdaki geliştirme kurallarıyla hazırdır.
+- Fiziksel telefonda arka plan/ağ değişimi ve büyük katılım kabulü.
 
 ## Yönetici yaptırımları
 
@@ -146,13 +146,31 @@ Migration `20261011000200_game_public_scheduled_lobby` yalnız `GameSession.isPu
 - **Herkese açık defile** (günlük etkinlik veya `isPublic` lobi): ilk üçe sırasıyla 50, 30, 20 lig puanı verilir; hiç oy almayan kombin puan almaz. Puan `GameLeaguePoint` tablosuna oyun başına kullanıcıya tek kayıt olarak yazılır ve `GameOutcome.awardedPoints` alanında da durur. Sonuç yanıtı `official: true`, isteyen kullanıcının `myRank`, `awardedPoints`, `totalPoints` ve `league` bilgisini içerir.
 - **Davetli oda** (arkadaşlarla, `isPublic: false`): yalnız sıralama vardır; `official: false`, `awardedPoints: 0`, `totalPoints` ve `league` null. Puan yazılmaz.
 - Lig kademeleri `league.ts`: Bronz 0, Gümüş 500, Altın 1000, Platin 2000, Elmas 3500 (mobil `features/games/data/league.ts` ile aynı). Eski `PointsLedger` eski `GameRoom` tablosuna bağlı olduğu için kullanılmaz.
-- **Erken bitiş:** her yıldızdan sonra, odadaki her aktif üye kendi oy kartındaki bütün kombinleri oyladıysa oylama süreyi beklemeden kapanır ve sonuçlar açılır (`votingEndsAt` o an olur). Hiç oy vermemiş bir üye varsa süre beklenir.
+- **Erken bitiş (20 Ekim):** yalnız `PRIVATE` türündeki lobilerde (açık veya davetli), bütün aktif üyeler bütün uygun kartlarını oyladıysa sonuç erken açılır. Günlük `DAILY` etkinlik herkes oy verse bile sabit 30 dakikayı bekler. Hostun `end-submission` komutu yalnız fotoğraf aşamasını bitirir; keyfî oy bitirme komutu değildir.
 
 Migration `20261011000300_game_ranking_league_points`: `GameOutcome.rank`, `GameOutcome.awardedPoints` ve `GameLeaguePoint` tablosu. Testlerin temizlik adımları önce `gameLeaguePoint` kayıtlarını siler.
 
 ## Podyum Turu (senkron oylama)
 
-11 Ekim 2026. Oylama, herkesin aynı yarışmacıyı aynı anda gördüğü turlarla yapılır. Kombinler yarışmacı numarası sırasıyla gösterilir; her tur `TURN_SECONDS` (10 sn, `game-lifecycle.service.ts`). Oylama penceresi `kombin sayısı x 10 sn` olur ve oylamanın planlanan başlangıcından sayılır; `votingSeconds` ayarı artık oylama süresini belirlemez. İşçi geç kalırsa geçen turlar telafi edilmez (pencere uzamaz).
+20 Ekim 2026. Kombinler yarışmacı numarası sırasıyla 10 saniyelik sunum turlarında gösterilir. **10 saniye toplam oy süresi değildir.** Günlük oylama 1800 sn; lobide `votingSeconds` geçerlidir. Son karttan sonra ilk karta dönülür; aynı teslimin ikinci kez yıldızlanması mümkün değildir. Geç çalışan işçi planlı pencereyi uzatmaz. Önceden açılmış oy pencereleri geriye dönük yeniden yazılmaz.
 
-`GET /games/:id/turn` (yalnız `VOTING`, aksi `409 VOTING_CLOSED`): `index`, `total`, `turnSeconds`, `serverNow`, `turnEndsAt`, `current` (kart + `mine` + `myStars`; engelli yazarda null), `votedCount`, `voterCount` (yazar hariç aktif üye), `myTurnIn` (kendi kombinine kaç tur kaldı), `nextNumber`. Yıldız ucu değişmedi: değerlendirme tek ve değişmezdir, sunucu kartın turda olmasını zorlamaz. Herkes bütün kartları oyladıysa oylama erken biter. "Temaya uygun mu?" alanı yoktur.
+`GET /games/:id/turn` yalnız VOTING aşamasında döner: `index` (0 tabanlı), `total`, `cycle` (1 tabanlı gösterim döngüsü), `turnSeconds`, `serverNow`, `turnEndsAt`, `votingEndsAt`, `remainingSeconds` (toplam oy penceresi), `current` (kart + `mine` + `myStars`; engelli yazarda null), `votedCount`, `voterCount`, `myTurnIn`, `nextNumber`. Tur sonu toplam bitişe kırpılır; son pencerede `nextNumber: null`, diğer döngülerde ilk karta sarar. Boş uygun liste 409 döndürür.
 
+Telefon `serverNow` ile zamanı eşler; arka plandan dönünce güncel state/turn alır. Küçük sayaç toplam kalan süreyi ve döngüyü gösterir. Canlı ve Sonbahar ana kartlarının tasarımı korunmuştur. Sunucu oyu yalnız gösterilen kartla sınırlamaz; son süre, üyelik ve tek değişmez yıldız kuralını her istekte denetler.
+
+## Günlük tema ve takvim yönetimi
+
+ADMIN uçları (tümü `/v1`):
+
+| Metot | Yol | İş |
+| --- | --- | --- |
+| GET/POST | `/admin/games/themes` | Temaları listele / `{ slug, title, reason }` yarat |
+| PUT | `/admin/games/themes/:id` | `{ expectedVersion, title, active, reason }` |
+| GET | `/admin/games/daily-schedule` | version, enabled, source, startTime, timeZone, themeSlug |
+| PUT | `/admin/games/daily-schedule` | `{ expectedVersion, enabled, startTime?, timeZone?, themeSlug?, reason }` |
+
+Yazmalarda `Idempotency-Key`, sürüm ve gerekçe zorunlu; audit/outbox/ayar aynı transaction'dadır. Etkinleştirmek için geçerli HH:MM, IANA saat dilimi ve aktif tema gerekir. Aktif takvimin teması önce takvim değiştirilmeden/kapatılmadan pasifleştirilemez.
+
+DB ayarı varsa ENV'nin önüne geçer; DB `enabled: false` ise ENV tekrar açamaz. DB satırı yoksa eski `DAILY_GAME_*` ayarları çalışır. İkisi de yoksa UNCONFIGURED ve günlük oyun oluşturulmaz. Yönetim ayarı önceden oluşturulmuş günün tema/saat snapshot'ını değiştirmez; değişiklik ilk henüz oluşturulmamış etkinlik içindir. Kesin günlük saat bu teslimde seçilmedi.
+
+Migration'lar `20261020000200_daily_schedule_management` ve öncesindeki oyun migration'ları `db:deploy` ile uygulanır; reset gerekmez.

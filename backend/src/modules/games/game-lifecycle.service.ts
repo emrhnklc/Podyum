@@ -6,7 +6,7 @@ import { gameEvent, gameNow, type GameTx } from "./game-internals.js";
 import { RANK_POINTS } from "./league.js";
 
 // Podyum Turu: oylamada kombinler yarışmacı numarası sırasıyla, herkese aynı anda
-// ve her biri bu kadar saniye gösterilir. Oylama süresi = kombin sayısı x tur.
+// ve her biri bu kadar saniye gösterilir. Sunum turu toplam oy penceresini belirlemez.
 export const TURN_SECONDS = 10;
 
 @Injectable()
@@ -54,7 +54,7 @@ export class GameLifecycleService {
     const saved = await tx.gameSession.update({ where: { id: session.id }, data: {
       phase: "VOTING", inviteHash: null, inviteExpiresAt: null, version: { increment: 1 },
       ...(early ? { submissionEndsAt: now, votingStartsAt: now } : {}),
-      votingEndsAt: new Date(from.getTime() + valid * TURN_SECONDS * 1000),
+      votingEndsAt: new Date(from.getTime() + session.votingSeconds * 1000),
     } });
     await gameEvent(tx, saved, "game.voting.opened", { early, submissionCount: valid });
     return saved;
@@ -94,9 +94,9 @@ export class GameLifecycleService {
   }
 
   // Odadaki her aktif üye kendine düşen bütün kombinleri oyladıysa oylama
-  // süresini beklemeden biter. Hiç oy vermemiş bir üye varsa beklenir.
+  // süresini beklemeden yalnız özel lobide biter. Günlük etkinlik sabit penceresini korur.
   async finishIfAllVoted(tx: GameTx, session: GameSession, now: Date, eligible: (voterId: string) => Promise<number>) {
-    if (session.phase !== "VOTING") return session;
+    if (session.phase !== "VOTING" || session.kind !== "PRIVATE") return session;
     const members = await tx.gameMembership.findMany({ where: { sessionId: session.id, status: "ACTIVE", user: { status: "ACTIVE" } }, select: { userId: true } });
     for (const { userId } of members) {
       const rated = await tx.gameScore.count({ where: { sessionId: session.id, voterId: userId } });

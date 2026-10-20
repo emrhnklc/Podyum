@@ -249,7 +249,7 @@ test("erken bitiş oylama süresini DB saatinden başlatır; tekrar süreyi/sür
   const current = await state(row.id); const key = randomUUID(); const body = { expectedVersion: current.version };
   assert.equal((await call("POST", `/games/${row.id}/end-submission`, actors[1], body)).status, 403);
   const opened = await call("POST", `/games/${row.id}/end-submission`, actors[0], body, key);
-  assert.equal(opened.body.phase, "VOTING"); assert.equal(new Date(opened.body.votingEndsAt).getTime() - new Date(opened.body.votingStartsAt).getTime(), 2 * 10000, "Oylama süresi kombin sayısı x tur süresi.");
+  assert.equal(opened.body.phase, "VOTING"); assert.equal(new Date(opened.body.votingEndsAt).getTime() - new Date(opened.body.votingStartsAt).getTime(), 120 * 1000, "Özel lobinin seçilen oy süresi korunur.");
   assert.deepEqual((await call("POST", `/games/${row.id}/end-submission`, actors[0], body, key)).body, opened.body);
   assert.equal((await command(row.id, "end-submission")).body.error.code, "SUBMISSION_CLOSED");
   assert.equal((await submit(row.id)).body.error.code, "SUBMISSION_CLOSED");
@@ -347,7 +347,7 @@ test("geç çalışan işçi kaçan fotoğraf/oy penceresini uzatmaz; sonuç ve 
   await Promise.all([lifecycle.scan(), lifecycle.scan()]);
   const saved = await db.gameSession.findUniqueOrThrow({ where: { id: row.id } });
   // Turlar planlanan oylama başlangıcından sayılır; geç işçi pencereyi uzatmaz.
-  const turnsEnd = before.votingStartsAt!.getTime() + 2 * 10000;
+  const turnsEnd = before.votingStartsAt!.getTime() + before.votingSeconds * 1000;
   assert.equal(saved.phase, "COMPLETED"); assert.equal(saved.votingEndsAt!.getTime(), turnsEnd); assert.equal(saved.finishedAt!.getTime(), turnsEnd);
   assert.equal(await db.gameOutcome.count({ where: { sessionId: row.id } }), 2);
   assert.equal(await db.outboxEvent.count({ where: { aggregateId: row.id, type: "game.completed" } }), 1);
@@ -544,6 +544,27 @@ test("Podyum Turu herkese aynı yarışmacıyı sırayla gösterir; oy sayısı 
   const shifted = new Date(Date.now() - 11000);
   await db.gameSession.update({ where: { id: row.id }, data: { startsAt: new Date(shifted.getTime() - 60000), submissionEndsAt: shifted, votingStartsAt: shifted, votingEndsAt: new Date(Date.now() + 9000) } });
   const next = await call("GET", `/games/${row.id}/turn`, actors[1]);
-  assert.equal(next.body.index, 1); assert.equal(next.body.current.mine, true); assert.equal(next.body.myTurnIn, null); assert.equal(next.body.nextNumber, null);
+  assert.equal(next.body.index, 1); assert.equal(next.body.current.mine, true); assert.equal(next.body.myTurnIn, null); assert.equal(next.body.nextNumber, null, "Son oy penceresinde sonraki tur yok.");
 });
 
+
+test("günlük oy açılınca 30 dakika korunur ve herkes oy verse de pencere kısalmaz", async () => {
+  const { row } = await daily();
+  for (const actor of actors.slice(0, 3)) assert.equal((await call("POST", `/games/${row.id}/join`, actor, {})).status, 200);
+  const end = new Date(Date.now() + 60000);
+  await db.gameSession.update({ where: { id: row.id }, data: { phase: "SUBMISSION", startsAt: new Date(end.getTime() - 1800000), submissionEndsAt: end, votingStartsAt: end, votingEndsAt: new Date(end.getTime() + 1800000) } });
+  const a = await submit(row.id, actors[0]), b = await submit(row.id, actors[1]); assert.equal(a.status, 200); assert.equal(b.status, 200);
+  const from = new Date(Date.now() - 1000);
+  await db.gameSession.update({ where: { id: row.id }, data: { submissionEndsAt: from, votingStartsAt: from, votingEndsAt: new Date(from.getTime() + 1800000) } });
+  const opened = await state(row.id); assert.equal(opened.phase, "VOTING"); assert.equal(Date.parse(opened.votingEndsAt) - Date.parse(opened.votingStartsAt), 1800000);
+  for (const [actor, targets] of [[actors[0], [b.body.submissionId]], [actors[1], [a.body.submissionId]], [actors[2], [a.body.submissionId, b.body.submissionId]]] as const)
+    for (const id of targets) assert.equal((await call("PUT", `/games/${row.id}/submissions/${id}/rating`, actor, { stars: 5 })).status, 200);
+  const final = await state(row.id); assert.equal(final.phase, "VOTING"); assert.equal(final.votingEndsAt, opened.votingEndsAt);
+});
+
+test("sunum turları pencere içinde tekrar eder, son kartta takılmaz ve son süreyi aşmaz", async () => {
+  const row = await voting(), start = new Date(Date.now() - 25000), end = new Date(start.getTime() + 120000);
+  await db.gameSession.update({ where: { id: row.id }, data: { startsAt: new Date(start.getTime() - 60000), submissionEndsAt: start, votingStartsAt: start, votingEndsAt: end } });
+  const turn = await call("GET", `/games/${row.id}/turn`, actors[0]); assert.equal(turn.status, 200); assert.equal(turn.body.index, 0); assert.equal(turn.body.cycle, 2); assert.equal(turn.body.current.mine, true); assert.ok(Date.parse(turn.body.turnEndsAt) <= end.getTime()); assert.equal(turn.body.votingEndsAt, end.toISOString());
+  assert.ok(turn.body.remainingSeconds > 80); assert.ok(turn.body.nextNumber);
+});

@@ -21,6 +21,10 @@ export interface Environment {
   localPushDir: string;
   expoPushUrl: string;
   expoAccessToken: string | null;
+  maintenanceWorkerEnabled: boolean;
+  maintenanceApply: boolean;
+  maintenanceIntervalMs: number;
+  maintenanceBatchSize: number;
 }
 
 function flag(value: string | undefined, fallback: boolean, name: string): boolean {
@@ -54,6 +58,10 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
   if (!/^\d+$/.test(gameInterval) || Number(gameInterval) < 1000 || Number(gameInterval) > 300000) throw new Error("GAME_INTERVAL_MS 1000–300000 aralığında olmalı.");
   const outboxInterval = env.OUTBOX_INTERVAL_MS ?? "3000";
   if (!/^\d+$/.test(outboxInterval) || Number(outboxInterval) < 500 || Number(outboxInterval) > 300000) throw new Error("OUTBOX_INTERVAL_MS 500–300000 aralığında olmalı.");
+  const maintenanceInterval = env.MAINTENANCE_INTERVAL_MS ?? "3600000";
+  const maintenanceBatch = env.MAINTENANCE_BATCH_SIZE ?? "100";
+  if (!/^\d+$/.test(maintenanceInterval) || Number(maintenanceInterval) < 60000 || Number(maintenanceInterval) > 86400000) throw new Error("MAINTENANCE_INTERVAL_MS 60000–86400000 aralığında olmalı.");
+  if (!/^\d+$/.test(maintenanceBatch) || Number(maintenanceBatch) < 1 || Number(maintenanceBatch) > 500) throw new Error("MAINTENANCE_BATCH_SIZE 1–500 aralığında olmalı.");
   const pushProvider = env.PUSH_PROVIDER ?? "local";
   if (pushProvider !== "local" && pushProvider !== "expo") throw new Error("PUSH_PROVIDER local veya expo olmalı.");
   const expoPushUrl = env.EXPO_PUSH_URL ?? "https://exp.host/--/api/v2/push/send";
@@ -97,5 +105,9 @@ export function readEnvironment(env: NodeJS.ProcessEnv = process.env): Environme
     localPushDir: env.LOCAL_PUSH_DIR ?? ".local/push",
     expoPushUrl,
     expoAccessToken: env.EXPO_ACCESS_TOKEN || null,
+    maintenanceWorkerEnabled: flag(env.MAINTENANCE_WORKER_ENABLED, true, "MAINTENANCE_WORKER_ENABLED"),
+    maintenanceApply: flag(env.MAINTENANCE_APPLY, false, "MAINTENANCE_APPLY"),
+    maintenanceIntervalMs: Number(maintenanceInterval),
+    maintenanceBatchSize: Number(maintenanceBatch),
   };
 }

@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import {
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -13,123 +12,120 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text } from "@/components/ui/Text";
-import { PreviewImage } from "@/components/media/PreviewImage";
-import { ME } from "@/constants/demo";
-import { usePreviewMessage } from "@/hooks/use-preview-message";
-import { brand, colors, fonts } from "@/theme";
+import { Button } from "@/components/ui/Button";
+import { ApiStatus } from "@/components/ui/ApiStatus";
+import { ApiImage } from "@/components/media/ApiImage";
+import { PillChip } from "@/components/ui/PillChip";
+import { useApiQuery } from "@/hooks/use-api-query";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import {
-  useProfileEdits,
-  useProfileUser,
-  type SocialLinks,
-} from "../hooks/use-profile-edits";
-import { HANDLE_HINT, HANDLE_PATTERN, MAX_BIO } from "../validation";
-
-const MAX_TAGS = 6;
-
-const SOCIALS: {
-  key: keyof SocialLinks;
-  label: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-  url: (handle: string) => string;
-}[] = [
-  {
-    key: "instagram",
-    label: "Instagram",
-    icon: "logo-instagram",
-    color: "#D62976",
-    url: (handle) => `https://instagram.com/${handle}`,
-  },
-  {
-    key: "tiktok",
-    label: "TikTok",
-    icon: "logo-tiktok",
-    color: "#111111",
-    url: (handle) => `https://www.tiktok.com/@${handle}`,
-  },
-  {
-    key: "youtube",
-    label: "YouTube",
-    icon: "logo-youtube",
-    color: "#FF0000",
-    url: (handle) => `https://www.youtube.com/@${handle}`,
-  },
-];
-
-const stripAt = (value: string) => value.trim().replace(/^@+/, "");
+  REGISTRATION_RULES,
+  type StyleTag,
+} from "@/features/auth/registration";
+import { readPhoto } from "@/features/polls/api/publish-poll";
+import { prepareAvatar, acceptAvatar, type AvatarAsset } from "../api/avatar";
+import { initialsOf, type MyProfile } from "../api/profile";
+import { errorMessage } from "@/lib/api/client";
+import { brand, colors, fonts } from "@/theme";
 
 export function EditProfileScreen() {
-  const { user, handle: savedHandle, edits } = useProfileUser(ME);
-  const { save } = useProfileEdits();
-  const message = usePreviewMessage();
-  const [handle, setHandle] = useState(savedHandle ?? "");
-  const [displayName, setDisplayName] = useState(user?.displayName ?? "");
-  const [bio, setBio] = useState(user?.bio ?? "");
-  const [location, setLocation] = useState(user?.location ?? "");
-  const [tags, setTags] = useState<string[]>(user?.styles ?? []);
-  const [newTag, setNewTag] = useState<string | null>(null);
-  const [avatar, setAvatar] = useState(user?.avatar);
-  const [cover, setCover] = useState(edits.cover);
-  const [socials, setSocials] = useState<SocialLinks>(
-    edits.socials ?? {
-      instagram: savedHandle ?? "",
-      tiktok: savedHandle ?? "",
-      youtube: savedHandle ?? "",
-    },
+  const profile = useApiQuery<MyProfile>("/me");
+  const tags = useApiQuery<StyleTag[]>("/style-tags");
+  return profile.data && tags.data ? (
+    <ProfileForm
+      key={profile.data.profile.id}
+      initial={profile.data}
+      tags={tags.data}
+    />
+  ) : (
+    <SafeAreaView style={styles.safe}>
+      <Button title="Geri" variant="outline" onPress={() => router.back()} />
+      <ApiStatus
+        loading={profile.loading || tags.loading}
+        error={profile.error ?? tags.error}
+        retry={() => {
+          void profile.refresh();
+          void tags.refresh();
+        }}
+      />
+    </SafeAreaView>
   );
+}
 
-  if (!user) return null;
-
-  const handleError = HANDLE_PATTERN.test(handle)
+function ProfileForm({
+  initial,
+  tags,
+}: {
+  initial: MyProfile;
+  tags: StyleTag[];
+}) {
+  const { client } = useAuth();
+  const [handle, setHandle] = useState(initial.profile.username);
+  const [displayName, setDisplayName] = useState(initial.profile.displayName);
+  const [bio, setBio] = useState(initial.profile.bio ?? "");
+  const [selected, setSelected] = useState(
+    initial.profile.styles.map((tag) => tag.id),
+  );
+  const [avatarPath, setAvatarPath] = useState(initial.profile.avatarPath);
+  const [pending, setPending] = useState<AvatarAsset | null>(null);
+  const [previewLoaded, setPreviewLoaded] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const lock = useRef(false);
+  const handleError = REGISTRATION_RULES.username.test(handle)
     ? undefined
-    : HANDLE_HINT;
-  const nameError = displayName.trim() ? undefined : "Görünen ad boş olamaz.";
-  const canSave = !handleError && !nameError;
-
+    : REGISTRATION_RULES.usernameHint;
+  const nameError =
+    displayName.trim().length > 0 && displayName.trim().length <= 80
+      ? undefined
+      : "Görünen ad 1–80 karakter olmalı.";
   const back = () =>
     router.canGoBack() ? router.back() : router.replace("/profil");
-
-  // Galeriden tek fotoğraf seçer; HEIC fotoğraflar quality ile JPEG'e çevrilir.
-  async function pick(aspect: [number, number], onPick: (uri: string) => void) {
+  async function run(action: () => Promise<void>) {
+    if (lock.current) return;
+    lock.current = true;
+    setBusy(true);
+    setError(null);
     try {
+      await action();
+    } catch (failure) {
+      setError(errorMessage(failure));
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
+  }
+  function pick() {
+    void run(async () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: "images",
         allowsEditing: true,
-        aspect,
+        aspect: [1, 1],
         quality: 0.85,
       });
-      if (!result.canceled) onPick(result.assets[0].uri);
-    } catch {
-      message("Fotoğraf seçilemedi. Galeri iznini kontrol edip tekrar dene.");
-    }
-  }
-
-  function addTag() {
-    const tag = (newTag ?? "").trim();
-    if (tag && !tags.includes(tag) && tags.length < MAX_TAGS)
-      setTags([...tags, tag]);
-    setNewTag(null);
-  }
-
-  function submit() {
-    if (!canSave) return;
-    save({
-      handle,
-      displayName: displayName.trim(),
-      bio: bio.trim() || undefined,
-      location: location.trim() || undefined,
-      styles: tags,
-      avatar,
-      cover,
-      socials: {
-        instagram: stripAt(socials.instagram),
-        tiktok: stripAt(socials.tiktok),
-        youtube: stripAt(socials.youtube),
-      },
+      if (result.canceled) return;
+      const photo = await readPhoto(result.assets[0]);
+      setPreviewLoaded(null);
+      setPending(
+        await prepareAvatar(client, photo.file, photo.byteSize, photo.mimeType),
+      );
     });
-    back();
   }
-
+  const save = () =>
+    void run(async () => {
+      if (handleError || nameError || pending) return;
+      await client.request("/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          username: handle,
+          displayName: displayName.trim(),
+          bio: bio.trim(),
+          styleIds: selected,
+        }),
+      });
+      await client.reloadMe();
+      back();
+    });
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={styles.safe}>
       <View style={styles.header}>
@@ -137,7 +133,7 @@ export function EditProfileScreen() {
           accessibilityRole="button"
           accessibilityLabel="Vazgeç"
           onPress={back}
-          hitSlop={8}
+          disabled={busy}
           style={styles.headerButton}
         >
           <Ionicons name="chevron-back" size={28} color={colors.text} />
@@ -145,192 +141,135 @@ export function EditProfileScreen() {
         <Text style={styles.headerTitle} accessibilityRole="header">
           Profili Düzenle
         </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Kaydet"
-          accessibilityState={{ disabled: !canSave }}
-          disabled={!canSave}
-          onPress={submit}
-          hitSlop={8}
-          style={[styles.headerButton, { alignItems: "flex-end" }]}
-        >
-          <Text
-            style={{
-              fontFamily: fonts.bold,
-              fontSize: 16,
-              color: canSave ? brand.accent : colors.muted,
-            }}
-          >
-            Kaydet
-          </Text>
-        </Pressable>
+        <Button
+          title="Kaydet"
+          disabled={busy || !!pending || !!handleError || !!nameError}
+          onPress={save}
+        />
       </View>
-
       <ScrollView
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
         style={styles.page}
         contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.coverWrap}>
-          <View style={styles.cover}>
-            <PreviewImage uri={cover} tone={brand.accentSoft} icon="image-outline" />
-            <CameraButton
-              label="Kapak fotoğrafını değiştir"
-              onPress={() => pick([3, 1], setCover)}
-              style={{ right: 12, bottom: 12 }}
-            />
-          </View>
+          <View style={[styles.cover, { backgroundColor: brand.accentSoft }]} />
           <View style={styles.avatar}>
-            {avatar ? (
-              <PreviewImage uri={avatar} tone={brand.accentSoft} />
+            {avatarPath ? (
+              <ApiImage path={avatarPath} />
             ) : (
-              <Text style={styles.initials}>{user.initials}</Text>
+              <Text style={styles.initials}>{initialsOf(displayName)}</Text>
             )}
           </View>
           <CameraButton
             label="Profil fotoğrafını değiştir"
-            onPress={() => pick([1, 1], setAvatar)}
+            onPress={pick}
             style={styles.avatarCamera}
           />
         </View>
-
+        <ApiStatus loading={busy} error={error} retry={() => setError(null)} />
+        {pending && (
+          <View style={{ gap: 10 }}>
+            <View style={{ height: 220, borderRadius: 20, overflow: "hidden" }}>
+              <ApiImage
+                path={pending.displayPath}
+                retryable
+                onLoad={() => setPreviewLoaded(pending.id)}
+              />
+            </View>
+            <Text>
+              Profil fotoğrafını kontrol et. Bu fotoğrafa bulanıklaştırma
+              uygulanmadı.
+            </Text>
+            <Button
+              title="Fotoğrafı onayla"
+              disabled={busy || previewLoaded !== pending.id}
+              onPress={() =>
+                void run(async () => {
+                  const saved = await acceptAvatar(client, pending);
+                  setAvatarPath(saved.avatarPath);
+                  setPending(null);
+                })
+              }
+            />
+            <Button
+              title="Bu fotoğrafı kullanma"
+              variant="outline"
+              disabled={busy}
+              onPress={() => setPending(null)}
+            />
+          </View>
+        )}
+        {!!avatarPath && (
+          <Button
+            title="Profil fotoğrafını kaldır"
+            variant="outline"
+            disabled={busy || !!pending}
+            onPress={() =>
+              void run(async () => {
+                await client.request("/me/avatar", { method: "DELETE" });
+                setAvatarPath(null);
+              })
+            }
+          />
+        )}
         <Field label="Kullanıcı Adı" error={handleError}>
           <Input
+            accessibilityLabel="Kullanıcı adı"
             value={handle}
             onChangeText={(value) => setHandle(value.toLowerCase())}
+            maxLength={30}
             autoCapitalize="none"
             autoCorrect={false}
-            maxLength={30}
-            accessibilityLabel="Kullanıcı adı"
+            editable={!busy}
           />
         </Field>
         <Field label="Görünen Ad" error={nameError}>
           <Input
+            accessibilityLabel="Görünen ad"
             value={displayName}
             onChangeText={setDisplayName}
-            maxLength={40}
-            accessibilityLabel="Görünen ad"
+            maxLength={80}
+            editable={!busy}
           />
         </Field>
         <Field label="Biyografi">
           <Input
+            accessibilityLabel="Biyografi"
             value={bio}
             onChangeText={setBio}
-            maxLength={MAX_BIO}
+            maxLength={300}
             multiline
-            accessibilityLabel="Biyografi"
-            style={{ minHeight: 64, textAlignVertical: "top" }}
+            editable={!busy}
+            style={{ minHeight: 64 }}
           />
-          <Text style={styles.counter}>
-            {bio.length}/{MAX_BIO}
-          </Text>
+          <Text style={styles.counter}>{bio.length}/300</Text>
         </Field>
-        <Field label="Konum">
-          <View style={styles.inline}>
-            <Ionicons name="location-outline" size={20} color={colors.text} />
-            <Input
-              value={location}
-              onChangeText={setLocation}
-              placeholder="Şehir, ülke"
-              maxLength={60}
-              accessibilityLabel="Konum"
-              style={{ flex: 1 }}
-            />
-          </View>
-        </Field>
-
         <Field label="Stil Etiketleri">
           <View style={styles.tags}>
             {tags.map((tag) => (
-              <Pressable
-                key={tag}
-                accessibilityRole="button"
-                accessibilityLabel={`${tag} etiketini kaldır`}
-                onPress={() => setTags(tags.filter((item) => item !== tag))}
-                style={styles.tag}
-              >
-                <Text style={styles.tagText}>{tag}</Text>
-                <Ionicons name="close" size={14} color={brand.accentDark} />
-              </Pressable>
-            ))}
-            {newTag !== null ? (
-              <TextInput
-                autoFocus
-                value={newTag}
-                onChangeText={setNewTag}
-                onSubmitEditing={addTag}
-                onBlur={addTag}
-                maxLength={20}
-                placeholder="Yeni etiket"
-                placeholderTextColor={colors.muted}
-                accessibilityLabel="Yeni stil etiketi"
-                style={[styles.tag, styles.tagInput]}
+              <PillChip
+                key={tag.id}
+                label={tag.label}
+                active={selected.includes(tag.id)}
+                onPress={() => {
+                  if (!busy)
+                    setSelected((old) =>
+                      old.includes(tag.id)
+                        ? old.filter((id) => id !== tag.id)
+                        : old.length < 5
+                          ? [...old, tag.id]
+                          : old,
+                    );
+                }}
               />
-            ) : (
-              tags.length < MAX_TAGS && (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Etiket ekle"
-                  onPress={() => setNewTag("")}
-                  style={[styles.tag, styles.tagAdd]}
-                >
-                  <Ionicons name="add" size={16} color={brand.accent} />
-                  <Text style={[styles.tagText, { color: brand.accent }]}>
-                    Etiket Ekle
-                  </Text>
-                </Pressable>
-              )
-            )}
+            ))}
           </View>
+          <Text style={styles.note}>En fazla 5 stil seçebilirsin.</Text>
         </Field>
-
-        <View style={styles.socialCard}>
-          <Text style={styles.socialTitle}>Sosyal Medya Bağlantıları</Text>
-          <View style={styles.socialList}>
-            {SOCIALS.map((social, index) => {
-              const value = socials[social.key];
-              const clean = stripAt(value);
-              return (
-                <View
-                  key={social.key}
-                  style={[styles.socialRow, index > 0 && styles.socialDivider]}
-                >
-                  <Ionicons name={social.icon} size={24} color={social.color} />
-                  <Text style={{ fontSize: 15 }}>{social.label}</Text>
-                  <TextInput
-                    value={value ? `@${clean}` : ""}
-                    onChangeText={(text) =>
-                      setSocials({ ...socials, [social.key]: stripAt(text) })
-                    }
-                    placeholder="@kullanıcıadı"
-                    placeholderTextColor={colors.muted}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    accessibilityLabel={`${social.label} kullanıcı adı`}
-                    style={styles.socialInput}
-                  />
-                  <Pressable
-                    accessibilityRole="link"
-                    accessibilityLabel={`${social.label} profilini aç`}
-                    accessibilityState={{ disabled: !clean }}
-                    disabled={!clean}
-                    onPress={() => Linking.openURL(social.url(clean))}
-                    hitSlop={8}
-                  >
-                    <Ionicons
-                      name="open-outline"
-                      size={20}
-                      color={clean ? colors.text : colors.muted}
-                    />
-                  </Pressable>
-                </View>
-              );
-            })}
-          </View>
-        </View>
         <Text style={styles.note}>
-          Değişiklikler şimdilik yalnızca bu cihazda, uygulama açıkken tutulur.
+          Konum, kapak fotoğrafı ve sosyal bağlantılar henüz kullanıma açık
+          değil.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -424,7 +363,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  initials: { fontFamily: fonts.extraBold, fontSize: 38, color: brand.accentDark },
+  initials: {
+    fontFamily: fonts.extraBold,
+    fontSize: 38,
+    color: brand.accentDark,
+  },
   camera: {
     position: "absolute",
     width: 36,
@@ -469,7 +412,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: brand.chip,
   },
-  tagText: { fontFamily: fonts.semibold, fontSize: 13, color: brand.accentDark },
+  tagText: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+    color: brand.accentDark,
+  },
   tagAdd: {
     backgroundColor: brand.card,
     borderWidth: 1,

@@ -24,7 +24,7 @@ let base: string;
 let mailbox: string;
 let marker: string;
 const originalEnv = { ...process.env };
-const password = "Test için uzun şifre 123!";
+const password = "Test123!";
 
 beforeEach(async () => {
   marker = `t_${randomUUID().replaceAll("-", "").slice(0, 16)}`;
@@ -122,7 +122,23 @@ test("DTO doğrulama bilinmeyen alanları ve kısa şifreleri reddeder; gizli de
   assert.equal(await db.authCredential.count({ where: { email: "bad" } }), 0);
 });
 
-test("kayıt → doğrulama → giriş → korumalı kimlik; hash ve tekil kullanıcı", async () => {
+test("kayıt, giriş ve şifre sıfırlama 7/129 karakterlik parolaları reddeder", async () => {
+  for (const length of [7, 129]) {
+    const body = { email: `${marker}@example.com`, password: "a".repeat(length), username: marker, displayName: "Test" };
+    for (const [path, input] of [
+      ["/auth/register", body],
+      ["/auth/login", { email: body.email, password: body.password }],
+      ["/auth/password-reset/confirm", { token: "a".repeat(43), password: body.password }],
+    ] as const) {
+      const result = await call(path, input);
+      assert.equal(result.status, 400);
+      assert.equal(result.body.error.code, "VALIDATION_ERROR");
+      assert.ok(result.body.error.fields.some((field: any) => field.field === "password"));
+    }
+  }
+});
+
+test("8 karakterle kayıt → doğrulama → giriş → korumalı kimlik; hash ve tekil kullanıcı", async () => {
   const email = await register(false);
   assert.equal((await call("/auth/me")).status, 401);
   const unverified = await call("/auth/login", { email, password });
@@ -180,7 +196,7 @@ test("şifre sıfırlama tek kullanımlıktır ve bütün oturumları kapatır",
   assert.equal(known.status, 202);
   assert.deepEqual(known.body, unknown.body);
   const token = await action("RESET_PASSWORD");
-  const newPassword = "Yeni ve uzun test şifresi 456!";
+  const newPassword = "Yeni123!";
   assert.equal((await call("/auth/password-reset/confirm", { token, password: newPassword })).status, 200);
   assert.equal((await call("/auth/me", undefined, session.accessToken)).status, 401);
   assert.equal((await call("/auth/password-reset/confirm", { token, password: newPassword })).status, 400);

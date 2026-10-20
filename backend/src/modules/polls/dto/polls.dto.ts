@@ -17,16 +17,25 @@ export class PollIdParamsDto {
 }
 
 export class ProductTagInputDto {
-  @ApiProperty({ maxLength: 150 })
+  @ApiPropertyOptional({ format: "uuid", description: "Ortak katalog kimliği. Bu modda ad/marka/fiyat sunucudan alınır." })
+  @ValidateIf(nonNull)
+  @Transform(({ value }) => typeof value === "string" ? value.toLowerCase() : value)
+  @IsUUID()
+  catalogProductId?: string | null;
+
+  @ApiPropertyOptional({ maxLength: 150, description: "Elle etiketlemede zorunlu; katalog seçiminde gönderilmez." })
   @Transform(trim)
+  @ValidateIf((object, value) => !object.catalogProductId || value !== undefined)
   @IsString()
+  @Matches(/^[^\u0000]*$/)
   @Length(1, 150)
-  title!: string;
+  title?: string;
 
   @ApiPropertyOptional({ type: String, nullable: true, maxLength: 100 })
   @Transform(trim)
   @ValidateIf(nonNull)
   @IsString()
+  @Matches(/^[^\u0000]*$/)
   @Length(1, 100)
   brand?: string | null;
 
@@ -43,13 +52,14 @@ export class ProductTagInputDto {
   @Matches(/^[A-Z]{3}$/)
   currency?: string;
 
-  @ApiProperty({ maxLength: 2048, description: "Özgün http/https ürün linki; sunucu bu linki taramaz. Ticari hak doğrulaması henüz bağlı değil." })
+  @ApiPropertyOptional({ maxLength: 2048, description: "Özgün link korunur. Elle etiketlemede zorunlu; katalogda gönderilmezse kanonik bağlantı kullanılır. Verilirse aynı ürüne eşleşmelidir." })
   @Transform(trim)
+  @ValidateIf((object, value) => !object.catalogProductId || value !== undefined)
   @IsString()
   @MaxLength(2048)
   @Matches(/^[^\s\u0000-\u001f\u007f]+$/)
   @IsUrl({ protocols: ["http", "https"], require_protocol: true, require_valid_protocol: true, disallow_auth: true })
-  externalUrl!: string;
+  externalUrl?: string;
 }
 
 export class PollOptionInputDto {

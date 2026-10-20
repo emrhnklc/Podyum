@@ -11,7 +11,8 @@ import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
-import { ApiError, errorMessage } from "@/lib/api/client";
+import { ApiError } from "@/lib/api/client";
+import { loginErrors, loginErrorMessage } from "../login";
 import { brand, colors, common, fonts } from "@/theme";
 import { useAuth } from "../hooks/use-auth";
 import { markWelcomed } from "../welcome";
@@ -32,7 +33,15 @@ export function LoginScreen() {
   const [needsVerification, setNeedsVerification] = useState(false);
   const locked = useRef(false);
   async function submit() {
-    if (locked.current || !email.trim() || !password) return;
+    if (locked.current) return;
+    const problems = Object.values(loginErrors(email, password)).filter(
+      Boolean,
+    );
+    if (problems.length) {
+      setError(problems.join("\n"));
+      setNeedsVerification(false);
+      return;
+    }
     locked.current = true;
     setBusy(true);
     setError(null);
@@ -51,7 +60,7 @@ export function LoginScreen() {
           : "/",
       );
     } catch (error) {
-      setError(errorMessage(error));
+      setError(loginErrorMessage(error));
       setNeedsVerification(
         error instanceof ApiError && error.code === "EMAIL_NOT_VERIFIED",
       );
@@ -81,7 +90,10 @@ export function LoginScreen() {
             autoComplete="email"
             textContentType="emailAddress"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(value) => {
+              setEmail(value);
+              setError(null);
+            }}
             editable={!busy}
             style={{
               padding: 16,
@@ -99,7 +111,10 @@ export function LoginScreen() {
             autoComplete="current-password"
             textContentType="password"
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(value) => {
+              setPassword(value);
+              setError(null);
+            }}
             editable={!busy}
             onSubmitEditing={() => void submit()}
             style={{
@@ -135,6 +150,12 @@ export function LoginScreen() {
             }}
           />
         )}
+        <Button
+          title="Şifremi unuttum"
+          variant="outline"
+          disabled={busy}
+          onPress={() => router.push("/auth/reset-password")}
+        />
         <Button
           title="Hesabın yok mu? Kayıt ol"
           variant="outline"

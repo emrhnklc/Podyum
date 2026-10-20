@@ -9,6 +9,7 @@ import { SocialAccessService } from "../social/social-access.service.js";
 import type { CreatePollDto, MyPollsQueryDto, PollOptionInputDto, UpdateCommentSettingsDto, UpdatePollDto } from "./dto/polls.dto.js";
 import { pollServerNow as serverNow, effectivePollStatus as effectiveStatus, writePollEvent } from "./polls-internals.js";
 import { pollDetailInclude, presentPoll } from "./poll-read-model.js";
+import { PollProductTagsService } from "./poll-product-tags.service.js";
 
 type Tx = Prisma.TransactionClient;
 const missing = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Oylama bulunamadı.");
@@ -16,7 +17,8 @@ const missing = () => new ApiError(404, "RESOURCE_NOT_FOUND", "Oylama bulunamad�
 @Injectable()
 export class PollsService {
   constructor(private readonly prisma: PrismaService, private readonly media: MediaService,
-    private readonly access: SocialAccessService, private readonly idempotency: IdempotencyService) {}
+    private readonly access: SocialAccessService, private readonly idempotency: IdempotencyService,
+    private readonly productTags: PollProductTagsService) {}
 
   private async activeActor(tx: Tx, userId: string) {
     if (!await tx.user.count({ where: { id: userId, status: "ACTIVE" } })) throw new ApiError(401, "INVALID_SESSION", "Aktif oturum gerekli.");
@@ -62,11 +64,7 @@ export class PollsService {
     for (const option of [...options].sort((a, b) => a.position - b.position)) {
       await tx.pollOption.create({ data: {
         pollId, position: option.position, mediaId: option.mediaId,
-        products: { create: (option.products ?? []).map((product) => ({
-          title: product.title, brand: product.brand ?? null, priceMinor: product.priceMinor ?? null,
-          currency: product.currency ?? "TRY", externalUrl: product.externalUrl,
-          priceRecordedAt: product.priceMinor != null ? now : null,
-        })) },
+        products: { create: await this.productTags.prepare(tx, option.products ?? [], now) },
       } });
     }
   }
@@ -127,6 +125,7 @@ export class PollsService {
         throw new ApiError(400, "UNSUPPORTED_AUDIENCE", "Gelişmiş kitle filtreleri henüz açık değil.");
       }
       const now = await serverNow(tx);
+      await this.productTags.freeze(tx, id, now);
       const saved = await tx.poll.update({ where: { id }, data: {
         status: "OPEN", publishedAt: now, closesAt: new Date(now.getTime() + poll.durationSeconds * 1000), version: { increment: 1 },
       } });

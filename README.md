@@ -2,6 +2,8 @@
 
 Kombin tercihleri, sosyal paylaşım ve günlük tema oyunları için uygulama.
 
+[Güncel backend çalışma sırası](backend/docs/backend-implementation-plan-2026-10-19.md), [mobil bağlantı durumu](mobile/docs/connected-screens-integration.md). 20 Ekim: bakım, oyun süre uyumu, katalog/kombin bağlantısı, trend veri hattı ve [filtreli Trendler API'si](backend/docs/trends-api-development.md) hazır; mobil Trendler ekranı da gerçek API’ye bağlı.
+
 ```text
 Podyum/
   backend/       NestJS API, Prisma, migration, test ve backend belgeleri
@@ -9,7 +11,7 @@ Podyum/
   package.json   İki uygulamanın kökten çalıştırma komutları
 ```
 
-`backend/` ve `mobile/` kendi `package.json`, `package-lock.json` ve `node_modules` dizinlerine sahiptir. Paket kurulumu ve TypeScript ayarları ayrı yönetilir. Mobile, Expo Router ile `src/app`, `features`, ortak `components/hooks/lib/theme` düzenini kullanır; ekranlar henüz demo verisiyle çalışır.
+`backend/` ve `mobile/` kendi `package.json`, `package-lock.json` ve `node_modules` dizinlerine sahiptir. Paket kurulumu ve TypeScript ayarları ayrı yönetilir. Mobile, Expo Router ile `src/app`, `features`, ortak `components/hooks/lib/theme` düzenini kullanır; ana sosyal/paylaşım/defile ekranları gerçek API kullanır, Trendler ve katalog detayı da gerçek API kullanır.
 
 ## Kurulum
 

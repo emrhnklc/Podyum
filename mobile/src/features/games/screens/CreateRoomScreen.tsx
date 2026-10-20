@@ -10,7 +10,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import * as Crypto from "expo-crypto";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -61,17 +61,18 @@ function startSlots(): Slot[] {
 }
 
 export function CreateRoomScreen() {
+  const params = useLocalSearchParams<{ theme?: string; private?: string }>();
   const { client } = useAuth();
   const [slots] = useState(() => [
     ...startSlots(),
     { label: "Ben başlatırım", value: null },
   ]);
-  const [theme, setTheme] = useState("90'lar");
+  const [theme, setTheme] = useState(params.theme?.slice(0, 120) || "90'lar");
   const [themesOpen, setThemesOpen] = useState(false);
   const [members, setMembers] = useState(8);
   const [minutes, setMinutes] = useState(15);
   const [start, setStart] = useState<Slot>(slots[0]);
-  const [isPublic, setIsPublic] = useState(true);
+  const [isPublic, setIsPublic] = useState(params.private !== "1");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Aynı form için tek oda: ağ hatasında tekrar aynı anahtarla gönderilir.
@@ -327,7 +328,7 @@ export function CreateRoomScreen() {
               onPress={() => setIsPublic(true)}
             />
             <Segment
-              label="Sadece arkadaşlar"
+              label="Davetle"
               active={!isPublic}
               onPress={() => setIsPublic(false)}
             />

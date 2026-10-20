@@ -2,7 +2,7 @@
 
 10 Ekim 2026. Yol haritasının 8. adımındaki yerel akış çalışır. Bütün yollar `/v1` altında ve Bearer oturumuyla korunur. [HTTP örnekleri](../examples/polls.http), Swagger `/v1/docs`, kaynak `src/modules/polls`.
 
-Tercih/sonuç ve kapanış tarayıcısı artık çalışır; [oy/sonuç rehberi](poll-votes-development.md). Keşif akışı, yorum/kaydetme henüz yok. Günlük oyun/QR lobisi aktif plandadır; [oyun tasarımı](game-design.md). Katalog servisi bu çalışma kopyasında henüz yok; ürünler kullanıcı beyanı olarak saklanır, ortak ürün eşleşmesi tamamlanmış sayılmaz.
+Tercih/sonuç, kapanış, akış, yorum ve kaydetme çalışır; [oy/sonuç rehberi](poll-votes-development.md). Günlük oyun/QR lobisi aktiftir; [oyun rehberi](games-development.md). **20 Ekim:** katalogdan ürün seçimi ve yayın snapshot'ı da hazır; [güncel ürün bağlantısı](poll-catalog-integration.md). Aşağıdaki elle etiket biçimi geriye uyumlu olarak korunur.
 
 ## Endpoint'ler
 
@@ -39,7 +39,7 @@ Bir seçenekte en fazla 10 ürün. Title ve özgün externalUrl zorunlu; brand v
 
 Sunucu `http/https` protokolünü, URL biçimini ve uzunluğu doğrular; linki açmaz/taramaz. Query ve affiliate parametreleri korunur. Başında/sonunda boşluk kırpılır, URL içinde boşluk, kontrol karakteri ve kullanıcı/parola reddedilir. Bağlantının gerçek ürün olduğunu doğrulama ve yönlendirme/affiliate tespiti katalog entegrasyonunda yapılacaktır.
 
-ProductTag.priceRecordedAt, fiyat varsa sunucunun beyanı kaydettiği zamandır. Eski etikete sahte tarih atanmaz; eski kayıtlar null kalır. Seçenek listesi değiştirildiğinde yeniden gönderilen fiyat yeni beyan sayılır. Yanıtta source=USER_ENTERED bulunur. productId istemciden kabul edilmez; bu aşamada katalog kaydı oluşturulmaz/düzeltilmez.
+Elle etiketin priceRecordedAt alanı fiyat beyanının kayıt zamanıdır; eski kayıtlara sahte tarih atanmaz. Kaynak USER_ENTERED olur. Katalog seçimi `catalogProductId` ile yapılır; source CATALOG ve sunucudan yayın snapshot'ı döner. Genel `productId`, kaynak ve snapshot istemciden alınmaz. Bir etiketi eklemek ortak katalog kaydını oluşturmaz/düzeltmez.
 
 Dokuzuncu migration yalnız nullable priceRecordedAt ekler. Diğer bilgisayarda `npm ci`, `npm run db:deploy`, `npm run db:generate` çalıştırılır; reset gerekmez. Arkadaşın ortak ürün/store/eşleşme şeması ayrıca koordine edilecek. Billing servisi henüz yok; ticari affiliate kullanımı doğrulanmış/ücretlendirilmiş sayılmaz.
 

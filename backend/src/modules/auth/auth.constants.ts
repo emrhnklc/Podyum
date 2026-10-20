@@ -5,6 +5,6 @@ export const AUTH_RULES = Object.freeze({
   resetSeconds: 30 * 60,
   // Geliştirme varsayımları; kullanıcı adı saklanırken küçük harfe çevrilir.
   usernamePattern: /^[a-z0-9_]{3,30}$/,
-  passwordMinLength: 15,
+  passwordMinLength: 8,
   passwordMaxLength: 128,
 });
