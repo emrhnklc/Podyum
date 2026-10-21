@@ -9,6 +9,24 @@ export type SocialItem = {
   createdAt: string;
 };
 export type SocialPage = { items: SocialItem[]; nextCursor: string | null };
+// Takip arkadaşlıktan ayrıdır; FRIENDS paylaşımlarını açmaz.
+export type FollowItem = {
+  user: SocialUser;
+  followedAt: string;
+  isFollowing: boolean;
+  isSelf: boolean;
+};
+export type FollowReceipt = {
+  userId: string;
+  isFollowing: boolean;
+  followerCount: number;
+};
+export type RelationshipDetail = {
+  userId: string;
+  state: Relationship;
+  isFollowing: boolean;
+  followsYou: boolean;
+};
 
 export function openUser(user: SocialUser) {
   router.push({

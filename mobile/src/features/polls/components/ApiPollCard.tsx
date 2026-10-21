@@ -129,6 +129,22 @@ export function ApiPollCard({
       if (alive.current)
         setPoll((row) => ({ ...row, isSaved: receipt.isSaved }));
     });
+  // Beğeni tercih oyundan ayrıdır; sayaç sunucu makbuzundan gelir.
+  const like = () =>
+    action(async () => {
+      const receipt = await client.request<{
+        isLiked: boolean;
+        likeCount: number;
+      }>(`/polls/${poll.id}/like`, {
+        method: poll.isLiked ? "DELETE" : "PUT",
+      });
+      if (alive.current)
+        setPoll((row) => ({
+          ...row,
+          isLiked: receipt.isLiked,
+          likeCount: receipt.likeCount,
+        }));
+    });
   const remaining = Math.max(0, Math.ceil((deadline - now) / 1000));
   const time = expired
     ? "Sona erdi"
@@ -257,6 +273,14 @@ export function ApiPollCard({
           </Text>
         </View>
         <IconAction
+          label={`${poll.isLiked ? "Beğeniyi kaldır" : "Beğen"}${poll.likeCount !== undefined ? `, ${poll.likeCount} beğeni` : ""}`}
+          icon={poll.isLiked ? "heart" : "heart-outline"}
+          color={poll.isLiked ? colors.accent : colors.text}
+          count={poll.likeCount}
+          disabled={busy}
+          onPress={() => void like()}
+        />
+        <IconAction
           label={poll.isSaved ? "Kaydedilenlerden çıkar" : "Kaydet"}
           icon={poll.isSaved ? "bookmark" : "bookmark-outline"}
           disabled={busy}
@@ -350,12 +374,14 @@ function IconAction({
   icon,
   onPress,
   count,
+  color = colors.text,
   disabled = false,
 }: {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
   count?: number;
+  color?: string;
   disabled?: boolean;
 }) {
   return (
@@ -370,7 +396,7 @@ function IconAction({
         { opacity: disabled ? 0.4 : pressed ? 0.5 : 1 },
       ]}
     >
-      <Ionicons name={icon} size={23} color={colors.text} />
+      <Ionicons name={icon} size={23} color={color} />
       {!!count && <Text style={styles.iconCount}>{count}</Text>}
     </Pressable>
   );

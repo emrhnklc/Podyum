@@ -13,7 +13,8 @@
 | `/comments/:pollId` | polls | Gerçek sayfalı yorumlar, ekle/sil, yazar profili, şikâyet |
 | `/people` | people | Kullanıcı adı önekiyle gerçek arama, profil ve arkadaşlık işlemleri |
 | `/friends` | friends | Arkadaşlar, gelen/giden istekler ve yönetimi |
-| `/profil`, `/u/:username` | profile | Gerçek profil ve paylaşımlar; kendinde kaydedilenler/defile geçmişi; diğerinde arkadaşlık/engel/şikâyet |
+| `/profil`, `/u/:username` | profile | Gerçek profil ve paylaşımlar; Gönderi/Takipçi/Takip sayıları, beğeni sayılı ızgara; kendinde kaydedilenler/arkadaşlar/defile geçmişi; diğerinde Takip Et, arkadaşlık/engel/şikâyet |
+| `/follows?userId=&kind=` | people | Takipçiler / takip edilenler; satırdan takip et/bırak |
 | `/profile/edit` | profile | Kullanıcı adı, ad, bio, stil, avatar onayı ve kalıcı kayıt |
 | `/bildirimler` | notifications | Gerçek liste/okunmamış/okundu/ilgili içerik ve tercihler; sekme çubuğunda gizli |
 | `/settings` | settings | Alt ayarlar ve gerçek çıkış |

@@ -52,6 +52,8 @@ export type ApiPoll = {
   totalVotes?: number;
   commentCount?: number;
   isSaved?: boolean;
+  likeCount?: number;
+  isLiked?: boolean;
 };
 export type PollResults = {
   pollId: string;

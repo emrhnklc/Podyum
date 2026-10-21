@@ -11,7 +11,11 @@ import { ApiImage } from "@/components/media/ApiImage";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useApiList, useApiQuery } from "@/hooks/use-api-query";
 import { RelationshipActions } from "@/features/people/components/RelationshipActions";
-import type { Relationship, SocialPage } from "@/features/people/api/social";
+import { FollowButton } from "@/features/people/components/FollowButton";
+import type {
+  RelationshipDetail,
+  SocialPage,
+} from "@/features/people/api/social";
 import type { ApiPoll } from "@/features/polls/api/types";
 import { initialsOf, type MyProfile, type PublicProfile } from "../api/profile";
 import { compactCount } from "@/lib/format";
@@ -21,7 +25,10 @@ import { brand, colors, common, fonts, serif } from "@/theme";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 type Tab = "POSTS" | "POLLS" | "SAVED";
-type ProfilePoll = Pick<ApiPoll, "id" | "question" | "effectiveStatus"> & {
+type ProfilePoll = Pick<
+  ApiPoll,
+  "id" | "question" | "effectiveStatus" | "likeCount"
+> & {
   thumbnailPath?: string | null;
   options?: ApiPoll["options"];
 };
@@ -59,7 +66,7 @@ export function ProfileScreen({
       ? profileQuery.data.profile
       : profileQuery.data
     : undefined;
-  const relationship = useApiQuery<{ state: Relationship }>(
+  const relationship = useApiQuery<RelationshipDetail>(
     targetId && !mine ? `/users/${targetId}/relationship` : null,
   );
   const list = useApiList<ProfilePoll>(
@@ -191,14 +198,29 @@ export function ProfileScreen({
                 <View style={styles.stats}>
                   {[
                     { label: "Gönderi", value: user.counts.polls },
-                    { label: "Arkadaş", value: user.counts.friends },
+                    {
+                      label: "Takipçi",
+                      value: user.counts.followers,
+                      kind: "followers" as const,
+                    },
+                    {
+                      label: "Takip",
+                      value: user.counts.following,
+                      kind: "following" as const,
+                    },
                   ].map((count, index) => (
                     <Pressable
                       key={count.label}
                       accessibilityRole="button"
                       accessibilityLabel={`${count.value} ${count.label}`}
-                      disabled={!mine || count.label !== "Arkadaş"}
-                      onPress={() => router.push("/friends")}
+                      disabled={!count.kind}
+                      onPress={() =>
+                        count.kind &&
+                        router.push({
+                          pathname: "/follows",
+                          params: { userId: user.id, kind: count.kind },
+                        })
+                      }
                       style={[styles.stat, index > 0 && styles.statDivider]}
                     >
                       <Text style={styles.statValue}>
@@ -226,9 +248,9 @@ export function ProfileScreen({
                 />
                 <View style={common.row}>
                   <Button
-                    title="Kişi ekle"
+                    title={`Arkadaşlar · ${compactCount(user.counts.friends)}`}
                     variant="outline"
-                    onPress={() => router.push("/people")}
+                    onPress={() => router.push("/friends")}
                   />
                   <Button
                     title="Defilelerim"
@@ -244,6 +266,17 @@ export function ProfileScreen({
                   error={relationship.error}
                   retry={relationship.refresh}
                 />
+                {relationship.data && (
+                  <FollowButton
+                    userId={user.id}
+                    isFollowing={relationship.data.isFollowing}
+                    followsYou={relationship.data.followsYou}
+                    onChanged={() => {
+                      void profileQuery.refresh();
+                      return relationship.refresh();
+                    }}
+                  />
+                )}
                 {relationship.data && (
                   <RelationshipActions
                     userId={user.id}
@@ -326,11 +359,20 @@ export function ProfileScreen({
                     }
                   />
                   <View style={styles.likes}>
-                    <Text style={{ fontSize: 11 }}>
-                      {post.effectiveStatus === "DRAFT"
-                        ? "Taslak"
-                        : post.question}
-                    </Text>
+                    {post.effectiveStatus === "DRAFT" ? (
+                      <Text style={{ fontSize: 11 }}>Taslak</Text>
+                    ) : post.likeCount !== undefined ? (
+                      <>
+                        <Ionicons name="heart" size={12} color={brand.accent} />
+                        <Text style={{ fontSize: 11, fontFamily: fonts.bold }}>
+                          {compactCount(post.likeCount)}
+                        </Text>
+                      </>
+                    ) : (
+                      <Text numberOfLines={1} style={{ fontSize: 11 }}>
+                        {post.question}
+                      </Text>
+                    )}
                   </View>
                 </Pressable>
               ))}

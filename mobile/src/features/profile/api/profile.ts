@@ -6,7 +6,13 @@ export type PublicProfile = {
   avatarMediaId: string | null;
   avatarPath: string | null;
   styles: { id: string; label: string }[];
-  counts: { polls: number; friends: number; stars: number };
+  counts: {
+    polls: number;
+    friends: number;
+    followers: number;
+    following: number;
+    stars: number;
+  };
 };
 export type MyProfile = {
   profile: PublicProfile;

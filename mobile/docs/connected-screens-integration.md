@@ -43,7 +43,7 @@ Defile ana ekranındaki canlı ve Sonbahar görselleri, kartları ve stilleri ko
 - Affiliate/Plus/reklam ve ayrı haftalık yarışma API’leri. Katalog, mobil ürün seçimi ve Trendler gerçek API’ye bağlıdır; ödeme/abonelik hakkı oluşturulmaz.
 - Google/Apple sağlayıcı kurulumu; gerçek e-posta ve telefona push teslimi. Şifre sıfırlama iletisi geliştirmede backend'in yerel posta kutusundadır; token frontend'den okunmaz.
 - Yüz bölgesi seçme arayüzü. Bulanıklaştırma açıkken “yüz yok” onayı yalnız kullanıcının açık seçimiyle gönderilir; yüz varsa bu onay verilmemelidir.
-- Ürün etiketleme formu, kapak fotoğrafı, DM, takip sistemi, öne çıkanlar ve topluluklar. Bunlar için çalışan API yoksa başarı makbuzu üretilmez.
+- Kapak fotoğrafı, konum, DM, öne çıkanlar ve topluluklar. Bunlar için çalışan API yoksa başarı makbuzu üretilmez. Takip ve beğeni 21 Ekim'de bağlandı (aşağıda).
 - Günlük defile saati ürün kararıdır. Ayarlanmamışsa ekranda belirtilir; istemci rastgele günlük etkinlik yaratmaz.
 - Fiziksel iOS/Android cihazında galeri/kamera izinleri, QR ile uygulamaya dönüş ve paylaşım menüsü testi. Web testi ve native export bu kontrolün yerine geçmez.
 
@@ -88,3 +88,12 @@ Ortak `uploadMedia` artık native/web üzerinde Blob gönderir; `readPhoto` okud
 - Bütün mobil testler **37/37**; TypeScript/lint ve iOS/Android/web export başarılı.
 - Gerçek yerel API'de Expo'nun kodladığı multipart ile iki fotoğraf → işleme → önizleme/onay → taslak → `OPEN` yayın doğrulandı; yalnız testin kendi özel yayın/hesap/fotoğraf fixture'ları temizlendi.
 - Kullanıcı Expo'da tekrar deneyerek fotoğraf önizlemesi/yayın akışının açıldığını onayladı. E-posta adımı hâlâ kullanıcının isteğiyle bekliyor.
+
+## Takip ve beğeni (21 Ekim 2026)
+
+- Profil sayıları Gönderi / Takipçi / Takip'tir; Takipçi ve Takip `/follows?userId=&kind=followers|following` listesini açar. Arkadaş sayısı kendi profilinde "Arkadaşlar" düğmesindedir.
+- Başkasının profilinde `FollowButton` `PUT/DELETE /users/:id/follow` çağırır; durum `GET /users/:id/relationship` yanıtındaki `isFollowing`/`followsYou` alanından okunur. Arkadaşlık düğmeleri takipten ayrıdır ve altında kalır. Takip FRIENDS paylaşımlarını açmaz.
+- Keşfet kartındaki kalp `PUT/DELETE /polls/:id/like` çağırır; sayı ve durum sunucu makbuzundan güncellenir. Beğeni tercih oyundan ayrıdır.
+- Profil ızgarasında kartta `likeCount` varsa kalp ve sayı görünür. Kendi `/me/polls` özetinde bu alan yoktur; orada soru metni kalır.
+- Yeni takipçi bildirimi `user.follow.received` türüyle "seni takip etmeye başladı" metnini gösterir.
+
