@@ -860,7 +860,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontFamily: serif,
-    fontStyle: "italic",
     fontWeight: "700",
     fontSize: 32,
     letterSpacing: -1,

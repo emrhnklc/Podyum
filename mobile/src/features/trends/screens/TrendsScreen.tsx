@@ -244,7 +244,7 @@ export function TrendsScreen() {
                   styles.row,
                   {
                     backgroundColor:
-                      item.rank === 1 ? "#EAD7C6" : colors.surface,
+                      item.rank === 1 ? colors.accentSoft : colors.surface,
                     opacity: pressed ? 0.6 : 1,
                   },
                 ]}

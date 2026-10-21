@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from "react";
 import {
   Image,
-  ImageBackground,
   Pressable,
   StyleSheet,
+  useWindowDimensions,
   View,
   type ImageSourcePropType,
   type LayoutChangeEvent,
@@ -18,7 +18,6 @@ import { AppLogo } from "@/components/ui/AppLogo";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
 import { colors, fonts, sand, serif } from "@/theme";
 
-const BACKGROUND = require("../../../../assets/images/auth/background.jpg");
 const WOMAN = require("../../../../assets/images/auth/woman.jpg");
 const MAN = require("../../../../assets/images/auth/man.jpg");
 const GOOGLE_G = require("../../../../assets/images/auth/google-g.png");
@@ -33,6 +32,59 @@ const GOLD = "#F2B627";
 // Çerçeve en/boy oranı ve alttaki "More Style Together" yazısına ayrılan pay.
 const FRAME_RATIO = 0.86;
 const SCRIPT_SPACE = 46;
+
+// Arka plandaki pano: açık kırmızı ve gri karolardan oluşan, alta doğru beyaza eriyen bir
+// "pin duvarı". Görsel dosyası kullanmaz; her ekran genişliğinde yeniden dizilir.
+const PIN_TONES = [colors.accentSoft, colors.chip, "#F5C9CF", colors.surface, "#D6D6D3", colors.accentSoft];
+const PIN_HEIGHTS = [
+  [150, 110, 190, 130, 170],
+  [100, 180, 120, 200, 140],
+  [170, 130, 160, 110, 190],
+  [120, 200, 140, 170, 120],
+];
+const FADE_STEPS = 12;
+
+function PinWall() {
+  const { width, height } = useWindowDimensions();
+  const columns = Math.max(4, Math.ceil(width / 130));
+  return (
+    <View style={[StyleSheet.absoluteFill, styles.wall]}>
+      <View style={[styles.wallGrid, { height: height * 0.78 }]}>
+        {Array.from({ length: columns }, (_, column) => (
+          <View
+            key={column}
+            style={{ flex: 1, gap: 12, marginTop: column % 2 ? -70 : 0 }}
+          >
+            {PIN_HEIGHTS[column % PIN_HEIGHTS.length].map((pin, row) => (
+              <View
+                key={row}
+                style={{
+                  height: pin,
+                  borderRadius: 22,
+                  backgroundColor:
+                    PIN_TONES[(column * 2 + row) % PIN_TONES.length],
+                }}
+              />
+            ))}
+          </View>
+        ))}
+      </View>
+      {/* Gradyan kütüphanesi yok: şeffaftan beyaza basamaklı şeritler. */}
+      <View style={[styles.wallFade, { top: height * 0.3, height: height * 0.34 }]}>
+        {Array.from({ length: FADE_STEPS }, (_, step) => (
+          <View
+            key={step}
+            style={{
+              flex: 1,
+              backgroundColor: `rgba(255,255,255,${((step + 1) / FADE_STEPS).toFixed(2)})`,
+            }}
+          />
+        ))}
+      </View>
+      <View style={[styles.wallFade, { top: height * 0.64, bottom: 0, backgroundColor: colors.background }]} />
+    </View>
+  );
+}
 
 // Karşılama ekranı kaydırmadan tek ekrana sığar. E-posta girişi bağlı;
 // Kayıt/doğrulama bağlı; Apple/Google sonraki adımda. "Başla" önizlemeyi açar.
@@ -65,11 +117,8 @@ export function AuthScreen() {
   const rightTop = topY + rightOffset;
 
   return (
-    <ImageBackground
-      source={BACKGROUND}
-      resizeMode="cover"
-      style={styles.background}
-    >
+    <View style={styles.background}>
+      <PinWall />
       <SafeAreaView
         edges={["top", "left", "right", "bottom"]}
         style={styles.page}
@@ -230,7 +279,7 @@ export function AuthScreen() {
           {"'nı kabul etmiş olursun."}
         </Text>
       </SafeAreaView>
-    </ImageBackground>
+    </View>
   );
 }
 
@@ -284,6 +333,17 @@ function Provider({
 
 const styles = StyleSheet.create({
   background: { flex: 1, backgroundColor: sand.background },
+  wall: { overflow: "hidden", pointerEvents: "none" },
+  wallGrid: {
+    position: "absolute",
+    top: -50,
+    left: -60,
+    right: -60,
+    flexDirection: "row",
+    gap: 12,
+    transform: [{ rotate: "-7deg" }],
+  },
+  wallFade: { position: "absolute", left: 0, right: 0 },
   page: {
     flex: 1,
     width: "100%",
@@ -302,7 +362,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontFamily: serif,
-    fontStyle: "italic",
     fontWeight: "700",
     fontSize: 52,
     letterSpacing: -2,
@@ -340,7 +399,7 @@ const styles = StyleSheet.create({
     width: 70,
     height: 20,
     zIndex: 1,
-    backgroundColor: "rgba(214,182,140,0.75)",
+    backgroundColor: "rgba(17,17,17,0.14)",
     transform: [{ rotate: "-3deg" }],
   },
   likes: {
@@ -361,7 +420,7 @@ const styles = StyleSheet.create({
     bottom: 16,
     flexDirection: "row",
     gap: 1,
-    backgroundColor: "#1F1A16",
+    backgroundColor: colors.text,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
@@ -369,7 +428,6 @@ const styles = StyleSheet.create({
   script: {
     position: "absolute",
     fontFamily: serif,
-    fontStyle: "italic",
     fontSize: 18,
     lineHeight: 20,
     color: sand.brownDark,

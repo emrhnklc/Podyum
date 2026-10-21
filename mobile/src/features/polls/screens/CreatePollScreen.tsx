@@ -41,7 +41,7 @@ import {
 const MAX_OPTIONS = 4;
 const MAX_QUESTION = 100;
 const LETTERS = ["A", "B", "C", "D"];
-const TONES = ["#EAD7C6", "#E4D6CB", "#DDE2E6", "#F1EBDA"];
+const TONES = ["#F6DCDC", "#ECDDF1", "#DDE6F1", "#F1EBDA"];
 const BADGE_TONES = [
   "rgba(183,118,74,0.9)",
   "rgba(107,65,40,0.85)",
