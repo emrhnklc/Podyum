@@ -86,7 +86,7 @@ test("profil endpoint'leri oturum ister; varsayılanlar okuma sırasında DB'ye 
   assert.equal(me.status, 200);
   assert.equal(me.body.profile.id, a.id);
   assert.equal(me.body.profileSetupRequired, true);
-  assert.deepEqual(me.body.profile.counts, { polls: 0, friends: 0, stars: 0 });
+  assert.deepEqual(me.body.profile.counts, { polls: 0, friends: 0, followers: 0, following: 0, stars: 0 });
   assert.deepEqual(me.body.profile.styles, []);
   assert.equal(me.body.profile.bio, null);
   assert.deepEqual((await call("/me/private", a.token)).body, { gender: null, ageBand: null, cityCode: null, analyticsConsent: false, analyticsConsentAt: null, analyticsRevision: 0 });

@@ -25,6 +25,7 @@ type Notification = {
 const labels: Record<string, string> = {
   "friend.request.received": "arkadaşlık isteği gönderdi",
   "friend.request.accepted": "arkadaşlık isteğini kabul etti",
+  "user.follow.received": "seni takip etmeye başladı",
   "poll.comment.received": "paylaşımına yorum yaptı",
   "poll.result.own": "Oylaman sonuçlandı",
   "poll.result.voted": "Oy verdiğin oylama sonuçlandı",

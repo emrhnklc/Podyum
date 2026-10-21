@@ -58,7 +58,77 @@ export class SocialService {
   }
 
   relationship(viewerId: string, targetId: string) {
-    return this.prisma.$transaction(async (tx) => ({ userId: targetId, state: (await this.access.requireUserAccess(tx, viewerId, targetId)).state }), { isolationLevel: "RepeatableRead" });
+    return this.prisma.$transaction(async (tx) => {
+      const { state } = await this.access.requireUserAccess(tx, viewerId, targetId);
+      // Aynı transaction istemcisinde sorgular sıralı çalışır.
+      const isFollowing = await tx.follow.count({ where: { followerId: viewerId, followeeId: targetId } }) > 0;
+      const followsYou = await tx.follow.count({ where: { followerId: targetId, followeeId: viewerId } }) > 0;
+      return { userId: targetId, state, isFollowing, followsYou };
+    }, { isolationLevel: "RepeatableRead" });
+  }
+
+  // ── Takip ─────────────────────────────────────────────────────────────
+  // Tek yönlü ve onaysızdır. Arkadaşlık durumunu, FRIENDS görünürlüğünü veya
+  // socialRevision'ı değiştirmez; yalnız sayaç ve bildirim olayı üretir.
+
+  private async followState(tx: Transaction, actorId: string, targetId: string) {
+    const isFollowing = await tx.follow.count({ where: { followerId: actorId, followeeId: targetId } }) > 0;
+    const followerCount = await tx.follow.count({ where: { followeeId: targetId, follower: this.access.activeUnblockedUserWhere(targetId) } });
+    return { userId: targetId, isFollowing, followerCount };
+  }
+
+  private followEvent(tx: Transaction, followerId: string, followeeId: string, created: boolean) {
+    return tx.outboxEvent.create({ data: {
+      aggregateType: "user-follow", aggregateId: followeeId, aggregateVersion: 1,
+      type: created ? "social.follow.created" : "social.follow.removed",
+      payload: { schemaVersion: 1, followerId, followeeId },
+    } });
+  }
+
+  follow(actorId: string, targetId: string) {
+    return this.mutate(actorId, targetId, async (tx) => {
+      const existing = await tx.follow.findUnique({ where: { followerId_followeeId: { followerId: actorId, followeeId: targetId } } });
+      if (!existing) {
+        await tx.follow.create({ data: { followerId: actorId, followeeId: targetId } });
+        await this.followEvent(tx, actorId, targetId, true);
+      }
+      return this.followState(tx, actorId, targetId);
+    });
+  }
+
+  // Engellenen veya kapanan hesabın takibi de bırakılabilir; olmayan takip hata değildir.
+  unfollow(actorId: string, targetId: string) {
+    return this.mutate(actorId, targetId, async (tx) => {
+      const removed = await tx.follow.deleteMany({ where: { followerId: actorId, followeeId: targetId } });
+      if (removed.count > 0) await this.followEvent(tx, actorId, targetId, false);
+      return this.followState(tx, actorId, targetId);
+    }, false);
+  }
+
+  followers(viewerId: string, targetId: string, query: PageQueryDto) { return this.listFollows(viewerId, targetId, query, "followers"); }
+  following(viewerId: string, targetId: string, query: PageQueryDto) { return this.listFollows(viewerId, targetId, query, "following"); }
+
+  // Hem hedef hem izleyiciyle engelsiz, aktif hesaplar listelenir; createdAt ve karşı kullanıcı id'si cursor'ı.
+  private listFollows(viewerId: string, targetId: string, query: PageQueryDto, kind: "followers" | "following") {
+    const context = { kind: `follows-${kind}`, viewerId, targetId };
+    const cursor = query.cursor ? decodeCursor(query.cursor, context) : undefined;
+    const otherKey = kind === "followers" ? "followerId" : "followeeId";
+    return this.prisma.$transaction(async (tx) => {
+      await this.access.requireUserAccess(tx, viewerId, targetId);
+      const other = { AND: [this.access.activeUnblockedUserWhere(targetId), this.access.activeUnblockedUserWhere(viewerId)] };
+      const rows = await tx.follow.findMany({ where: {
+        ...(kind === "followers" ? { followeeId: targetId, follower: other } : { followerId: targetId, followee: other }),
+        ...(cursor ? { OR: [{ createdAt: { lt: new Date(cursor.createdAt) } }, { createdAt: new Date(cursor.createdAt), [otherKey]: { lt: cursor.id } }] } : {}),
+      }, orderBy: [{ createdAt: "desc" }, { [otherKey]: "desc" }], take: query.limit + 1,
+      select: { createdAt: true, follower: { select: summarySelect }, followee: { select: summarySelect } } });
+      const page = rows.slice(0, query.limit);
+      const user = (row: typeof rows[number]) => kind === "followers" ? row.follower : row.followee;
+      const ids = page.map((row) => user(row).id);
+      const mine = new Set((await tx.follow.findMany({ where: { followerId: viewerId, followeeId: { in: ids } }, select: { followeeId: true } })).map((row) => row.followeeId));
+      const last = page.at(-1);
+      return { items: page.map((row) => ({ user: user(row), followedAt: row.createdAt, isFollowing: mine.has(user(row).id), isSelf: user(row).id === viewerId })),
+        nextCursor: rows.length > query.limit && last ? encodeCursor({ id: user(last).id, createdAt: last.createdAt.toISOString() }, context) : null };
+    }, { isolationLevel: "RepeatableRead" });
   }
 
   request(actorId: string, targetId: string) {
@@ -141,6 +211,10 @@ export class SocialService {
       const existing = await tx.block.findUnique({ where });
       if (!existing) await tx.block.create({ data: { blockerId: actorId, blockedId: targetId } });
       const removed = await tx.friendship.deleteMany({ where: canonicalPair(actorId, targetId) });
+      // Engel iki yöndeki takibi de bitirir; kaldırma sonrası yeniden takip engel kalkana kadar mümkün değildir.
+      const follows = await tx.follow.findMany({ where: { OR: [{ followerId: actorId, followeeId: targetId }, { followerId: targetId, followeeId: actorId }] } });
+      if (follows.length) await tx.follow.deleteMany({ where: { OR: follows.map(({ followerId, followeeId }) => ({ followerId, followeeId })) } });
+      for (const row of follows) await this.followEvent(tx, row.followerId, row.followeeId, false);
       if (!existing || removed.count > 0) await this.changed(tx, actorId, targetId, "BLOCKED");
       return { blockedUserId: targetId, blocked: true };
     }, false);

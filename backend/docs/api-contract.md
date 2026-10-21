@@ -49,7 +49,9 @@ Health, `/v1/auth/*`, profil/ayar, sosyal, yerel medya/avatar ve oylama endpoint
 | GET | `/users/username-availability` | Çalışır: `username` query ile anlık uygunluk; rezervasyon değildir |
 | GET | `/users/:id` | Çalışır: aktif/engelsiz kamusal profil; sayaçlar izleyiciye göre |
 | GET | `/users/search` | Çalışır: `q` ile kullanıcı adı başlangıcı; sayfalı aktif/engelsiz kullanıcı özeti |
-| GET | `/users/:userId/relationship` | Çalışır: izleyiciye göre SELF/NONE/OUTGOING_REQUEST/INCOMING_REQUEST/FRIENDS |
+| GET | `/users/:userId/relationship` | Çalışır: izleyiciye göre SELF/NONE/OUTGOING_REQUEST/INCOMING_REQUEST/FRIENDS; `isFollowing`, `followsYou` |
+| PUT / DELETE | `/users/:userId/follow` | Çalışır: tek yönlü, onaysız takip / bırak; arkadaşlık veya FRIENDS erişimi vermez |
+| GET | `/users/:userId/followers`, `/users/:userId/following` | Çalışır: aktif/engelsiz takipçi ve takip edilenler; cursor |
 | GET | `/users/:id/polls` | Yalnızca izleyicinin görebildiği paylaşımlar |
 | GET | `/me/friends` | Çalışır: kabul edilmiş aktif/engelsiz arkadaşlar; cursor |
 | GET | `/me/friend-requests` | Çalışır: direction=incoming (varsayılan)/outgoing; cursor |
@@ -99,6 +101,7 @@ Upload izni dosyanın uygun olduğu veya paylaşımın tamamlandığı anlamına
 | PUT | `/polls/:id/vote` | Çalışır: tek tercih; aynı oy tekrarında ilk kabul, farklı tercih 409 |
 | GET | `/polls/:id/results` | Çalışır: yazar/oy veren veya kapanış sonrası yetkili izleyici; toplu anlık/kesin sonuç |
 | PUT / DELETE | `/polls/:id/save` | Çalışır: kişisel kaydet/kaldır; doğal tekrar, erişim vermez |
+| PUT / DELETE | `/polls/:id/like` | Çalışır: beğen/kaldır; tercih oyundan ayrı, kartta `likeCount`/`isLiked` |
 | GET | `/me/saved-polls` | Çalışır: hâlâ görünür kayıtlar; limit/cursor |
 | GET | `/users/:id/polls` | Çalışır: o kullanıcının izleyiciye görünür yayınları; limit/cursor |
 | GET / POST | `/polls/:id/comments` | Çalışır: yetkili yorum listesi / yalnız oy veren veya sahip yorum ekler (Idempotency-Key) |

@@ -4,7 +4,7 @@ import type { AuthenticatedUser } from "../../common/http/request-context.js";
 import { PageQueryDto } from "../../common/pagination/page-query.dto.js";
 import { CurrentUser } from "../auth/decorators/current-user.decorator.js";
 import {
-  CommentIdParamsDto, CommentListDto, CommentReceiptDto, CommentRemovedDto, CreateCommentDto, PollCardListDto,
+  CommentIdParamsDto, CommentListDto, CommentReceiptDto, CommentRemovedDto, CreateCommentDto, LikeReceiptDto, PollCardListDto,
   PollReasonReceiptDto, PollReasonsDto, SavedPollListDto, SaveReceiptDto, SetPollReasonDto, UserPollsParamsDto,
 } from "./dto/poll-interactions.dto.js";
 import { PollIdParamsDto } from "./dto/polls.dto.js";
@@ -25,6 +25,16 @@ export class PollInteractionsController {
   @ApiOkResponse({ type: SaveReceiptDto })
   @ApiOperation({ summary: "Kaydı kaldır; kayıt yoksa da başarılıdır" })
   unsave(@CurrentUser() user: AuthenticatedUser, @Param() params: PollIdParamsDto) { return this.interactions.unsave(user.userId, params.id); }
+
+  @Put("polls/:id/like")
+  @ApiOkResponse({ type: LikeReceiptDto })
+  @ApiOperation({ summary: "Görebildiğin yayını beğen; tekrar aynı sonucu döndürür. Tercih oyundan ayrıdır" })
+  like(@CurrentUser() user: AuthenticatedUser, @Param() params: PollIdParamsDto) { return this.interactions.like(user.userId, params.id); }
+
+  @Delete("polls/:id/like")
+  @ApiOkResponse({ type: LikeReceiptDto })
+  @ApiOperation({ summary: "Beğeniyi kaldır; beğeni yoksa da başarılıdır" })
+  unlike(@CurrentUser() user: AuthenticatedUser, @Param() params: PollIdParamsDto) { return this.interactions.unlike(user.userId, params.id); }
 
   @Get("me/saved-polls")
   @ApiOkResponse({ type: SavedPollListDto })

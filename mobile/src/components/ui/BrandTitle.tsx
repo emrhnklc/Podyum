@@ -4,7 +4,7 @@ import { Text } from "./Text";
 import { AppLogo } from "./AppLogo";
 import { brand, colors, serif } from "@/theme";
 
-// Sekme ekranlarının sol üstündeki italik serif başlık ve parıltı.
+// Sekme ekranlarının sol üstündeki kalın başlık ve kırmızı parıltı.
 export function BrandTitle({ title }: { title: string }) {
   return (
     <View
@@ -19,7 +19,6 @@ export function BrandTitle({ title }: { title: string }) {
       <Text
         style={{
           fontFamily: serif,
-          fontStyle: "italic",
           fontWeight: "700",
           fontSize: 40,
           letterSpacing: -1,

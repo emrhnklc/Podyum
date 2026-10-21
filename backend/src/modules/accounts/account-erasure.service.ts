@@ -75,7 +75,9 @@ export class AccountErasureService implements OnModuleInit, OutboxHandler {
       const current = await tx.accountDeletion.findUniqueOrThrow({ where: { id: job.id } }); if (current.completedAt) return;
       await tx.friendship.deleteMany({ where: { OR: [{ userAId: userId }, { userBId: userId }] } });
       await tx.block.deleteMany({ where: { OR: [{ blockerId: userId }, { blockedId: userId }] } });
+      await tx.follow.deleteMany({ where: { OR: [{ followerId: userId }, { followeeId: userId }] } });
       await tx.pollSave.deleteMany({ where: { userId } });
+      await tx.pollLike.deleteMany({ where: { userId } });
       await tx.pollVoteReason.deleteMany({ where: { voterId: userId } });
       await tx.notification.deleteMany({ where: { OR: [{ userId }, { actorId: userId }] } });
       await tx.catalogSuggestion.deleteMany({ where: { submittedById: userId } });

@@ -6,6 +6,14 @@
 @cursor = REPLACE_NEXT_CURSOR
 @commentKey = REPLACE_WITH_NEW_UUID_PER_COMMENT
 
+### Beğen: tercih oyundan ayrıdır; tekrar aynı sonucu döndürür
+PUT {{origin}}/v1/polls/{{pollId}}/like
+Authorization: Bearer {{accessToken}}
+
+### Beğeniyi kaldır: beğeni yoksa da 200
+DELETE {{origin}}/v1/polls/{{pollId}}/like
+Authorization: Bearer {{accessToken}}
+
 ### Kaydet: görebildiğin yayın; tekrar aynı kaydı döndürür
 PUT {{origin}}/v1/polls/{{pollId}}/save
 Authorization: Bearer {{accessToken}}

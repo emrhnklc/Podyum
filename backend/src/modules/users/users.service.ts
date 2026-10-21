@@ -75,10 +75,12 @@ export class UsersService {
       { userAId: targetId, userB: activeUnblockedFriend },
       { userBId: targetId, userA: activeUnblockedFriend },
     ] } });
+    const followers = await tx.follow.count({ where: { followeeId: targetId, follower: activeUnblockedFriend } });
+    const following = await tx.follow.count({ where: { followerId: targetId, followee: activeUnblockedFriend } });
     const ledger = await tx.pointsLedger.aggregate({ where: { userId: targetId }, _sum: { delta: true } });
     const { profileCompletedAt, styles, ...publicFields } = user;
     return {
-      profile: { ...publicFields, avatarPath: user.avatarMediaId ? `/v1/media/${user.avatarMediaId}/content` : null, styles: styles.map(({ style }) => style), counts: { polls, friends, stars: ledger._sum.delta ?? 0 } },
+      profile: { ...publicFields, avatarPath: user.avatarMediaId ? `/v1/media/${user.avatarMediaId}/content` : null, styles: styles.map(({ style }) => style), counts: { polls, friends, followers, following, stars: ledger._sum.delta ?? 0 } },
       profileSetupRequired: profileCompletedAt === null,
     };
   }

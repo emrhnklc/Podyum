@@ -344,7 +344,7 @@ function FeaturedCard({
     <View
       style={[
         styles.featured,
-        tinted && { backgroundColor: "#EAD7C6", borderColor: brand.accentSoft },
+        tinted && { backgroundColor: brand.accentSoft, borderColor: brand.accentSoft },
       ]}
     >
       <Pressable
@@ -459,7 +459,6 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 28, gap: 14 },
   title: {
     fontFamily: serif,
-    fontStyle: "italic",
     fontWeight: "700",
     fontSize: 36,
     letterSpacing: -1,

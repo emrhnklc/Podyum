@@ -1,4 +1,4 @@
-# Etkileşim API'si: kaydetme, yorum, hazır neden, şikâyet
+# Etkileşim API'si: beğeni, kaydetme, yorum, hazır neden, şikâyet
 
 10 Ekim 2026. Yol haritası 11 ve 4. adımın kalan iki profil sekmesi çalışır: kaydet/kaldır, kaydedilenler, başkasının görünür paylaşımları, yorum ekleme/listeleme/kaldırma, oy sonrası hazır neden etiketi ve şikâyet kaydı. Yeni migration: `20261010210000_poll_interactions`. Yorum yanıtları (thread), yorum düzenleme, bildirim tüketicisi ve şikâyetin yönetim tarafı bu teslimde yoktur. `mobile/` değişmedi.
 
@@ -33,7 +33,16 @@ Yalnız yorum oluşturma `Idempotency-Key` ister. Kaydetme, neden ve şikâyet d
 
 ## Kart alanları
 
-Akış, kaydedilenler ve kullanıcı paylaşımları aynı kartı döndürür: [oylama detayı](polls-development.md) + `totalVotes`, `commentCount`, `isSaved`. Kaydedilenler kartında ayrıca `savedAt` vardır. `commentCount` yalnız görünür yorumları sayar; kaldırılmış yorumlar ile askıdaki/iki yönlü engelli yazarların yorumları sayılmaz. Seçenek sayıları ve kazanan bu kartta yoktur; [sonuç ucu](poll-votes-development.md) ayrı yetki denetler.
+Akış, kaydedilenler ve kullanıcı paylaşımları aynı kartı döndürür: [oylama detayı](polls-development.md) + `totalVotes`, `commentCount`, `isSaved`, `likeCount`, `isLiked`. Kaydedilenler kartında ayrıca `savedAt` vardır. `commentCount` yalnız görünür yorumları sayar; kaldırılmış yorumlar ile askıdaki/iki yönlü engelli yazarların yorumları sayılmaz. Seçenek sayıları ve kazanan bu kartta yoktur; [sonuç ucu](poll-votes-development.md) ayrı yetki denetler.
+
+## Beğeni
+
+21 Ekim 2026. `PUT /polls/:id/like` ve `DELETE /polls/:id/like`; yanıt `{ pollId, isLiked, likeCount }`.
+
+- Beğeni tercih oyundan ayrıdır: oy sayısını, sonucu, trend katkısını veya `Poll.version` değerini değiştirmez. Kendi paylaşımını beğenmek serbesttir.
+- Kaydetme gibi doğal anahtarla (kullanıcı + paylaşım) tekildir. Göremediğin yayın 404 alır; erişimi kapanan beğeni `DELETE` ile kaldırılabilir ve o durumda `likeCount` 0 döner.
+- `likeCount` aktif ve izleyiciyle iki yönlü engelsiz kullanıcıların beğenilerini sayar. Kimin beğendiği listelenmez.
+- Hesap silme kullanıcının beğenilerini temizler. Beğeni bildirim üretmez.
 
 ## Kaydetme
 

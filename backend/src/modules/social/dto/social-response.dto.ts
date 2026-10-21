@@ -19,6 +19,40 @@ export class RelationshipResponseDto {
   state!: RelationshipState;
 }
 
+export class RelationshipDetailResponseDto extends RelationshipResponseDto {
+  @ApiProperty({ description: "İzleyici bu kullanıcıyı takip ediyor" })
+  isFollowing!: boolean;
+  @ApiProperty({ description: "Bu kullanıcı izleyiciyi takip ediyor" })
+  followsYou!: boolean;
+}
+
+export class FollowResponseDto {
+  @ApiProperty({ format: "uuid", description: "Takip edilen kullanıcı" })
+  userId!: string;
+  @ApiProperty()
+  isFollowing!: boolean;
+  @ApiProperty({ description: "Takip edilenin aktif ve engelsiz takipçi sayısı" })
+  followerCount!: number;
+}
+
+export class FollowListItemDto {
+  @ApiProperty({ type: SocialUserResponseDto })
+  user!: SocialUserResponseDto;
+  @ApiProperty({ type: String, format: "date-time" })
+  followedAt!: Date;
+  @ApiProperty({ description: "İzleyici bu kullanıcıyı takip ediyor" })
+  isFollowing!: boolean;
+  @ApiProperty({ description: "Satırdaki kullanıcı izleyicinin kendisi" })
+  isSelf!: boolean;
+}
+
+export class FollowListResponseDto {
+  @ApiProperty({ type: [FollowListItemDto] })
+  items!: FollowListItemDto[];
+  @ApiProperty({ type: String, nullable: true })
+  nextCursor!: string | null;
+}
+
 export class SocialListItemDto {
   @ApiProperty({ type: SocialUserResponseDto })
   user!: SocialUserResponseDto;

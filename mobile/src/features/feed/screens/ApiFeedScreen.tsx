@@ -4,9 +4,10 @@ import {
   Pressable,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   View,
 } from "react-native";
-import { BrandTitle } from "@/components/ui/BrandTitle";
+import { router } from "expo-router";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
@@ -15,118 +16,173 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { CATEGORY_LABEL, type PollCategory } from "@/constants/poll-categories";
 import { ApiPollCard } from "@/features/polls/components/ApiPollCard";
-import { useAuth } from "@/features/auth/hooks/use-auth";
 import { useApiFeed } from "../hooks/use-api-feed";
-import { PeopleSearchLink } from "../components/PeopleSearchLink";
 import { NotificationsButton } from "@/features/notifications/components/NotificationsButton";
-import { brand, colors, common } from "@/theme";
+import { brand, colors, fonts } from "@/theme";
 
 export function ApiFeedScreen() {
-  const { me } = useAuth();
   const [scope, setScope] = useState<"everyone" | "friends">("everyone");
   const [category, setCategory] = useState<"ALL" | PollCategory>("ALL");
   const [filtersOpen, setFiltersOpen] = useState(false);
   const feed = useApiFeed(scope, category);
+  const filtered = category !== "ALL";
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
       style={{ flex: 1, backgroundColor: brand.background }}
     >
-      <ScrollView
-        style={{ width: "100%", maxWidth: 520, alignSelf: "center" }}
-        contentContainerStyle={{ padding: 16, paddingBottom: 30, gap: 16 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={feed.busy}
-            onRefresh={() => void feed.refresh()}
-          />
-        }
-      >
-        <View style={common.spread}>
-          <BrandTitle title="Podyum" />
-          <View style={common.row}>
-            <NotificationsButton />
+      <View style={styles.page}>
+        <View style={styles.topBar}>
+          <Text style={styles.logo} accessibilityRole="header">
+            Podyum
+          </Text>
+          <View style={styles.tabs}>
+            {scopes.map((item) => {
+              const active = scope === item.value;
+              return (
+                <Pressable
+                  key={item.value}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => setScope(item.value)}
+                  style={styles.tab}
+                >
+                  <Text style={active ? styles.tabTextActive : styles.tabText}>
+                    {item.label}
+                  </Text>
+                  <View
+                    style={[
+                      styles.tabLine,
+                      { backgroundColor: active ? colors.text : "transparent" },
+                    ]}
+                  />
+                </Pressable>
+              );
+            })}
+          </View>
+          <View style={{ flexDirection: "row" }}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Filtreleri aç"
+              accessibilityLabel={
+                filtered
+                  ? `Kategori filtresi: ${CATEGORY_LABEL[category]}`
+                  : "Kategori filtresi"
+              }
               accessibilityState={{ expanded: filtersOpen }}
               onPress={() => setFiltersOpen((row) => !row)}
-              style={{ padding: 12 }}
+              style={styles.iconButton}
             >
-              <Ionicons name="options-outline" size={26} color={colors.text} />
+              <Ionicons
+                name="options-outline"
+                size={22}
+                color={filtered ? colors.accent : colors.text}
+              />
             </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Kişileri keşfet"
+              onPress={() => router.push("/people")}
+              style={styles.iconButton}
+            >
+              <Ionicons name="people-outline" size={22} color={colors.text} />
+            </Pressable>
+            <NotificationsButton />
           </View>
         </View>
-        <Text style={{ color: colors.muted }}>
-          Merhaba, {me?.user.displayName}
-        </Text>
-        <PeopleSearchLink />
-        <View style={common.row}>
-          <PillChip
-            label="Herkes"
-            active={scope === "everyone"}
-            onPress={() => setScope("everyone")}
-          />
-          <PillChip
-            label="Arkadaşlar"
-            active={scope === "friends"}
-            onPress={() => setScope("friends")}
-          />
-        </View>
-        {filtersOpen && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ gap: 8 }}
-          >
-            <PillChip
-              label="Tümü"
-              active={category === "ALL"}
-              onPress={() => setCategory("ALL")}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 30, gap: 12 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={feed.busy}
+              onRefresh={() => void feed.refresh()}
             />
-            {Object.entries(CATEGORY_LABEL).map(([value, label]) => (
+          }
+        >
+          {filtersOpen && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: 8, paddingHorizontal: 16 }}
+            >
               <PillChip
-                key={value}
-                label={label}
-                active={category === value}
-                onPress={() => setCategory(value as PollCategory)}
+                label="Tümü"
+                active={category === "ALL"}
+                onPress={() => setCategory("ALL")}
               />
-            ))}
-          </ScrollView>
-        )}
-        {feed.busy && !feed.post && <ActivityIndicator color={brand.accent} />}
-        {feed.error && (
-          <>
-            <Text accessibilityRole="alert" style={{ color: colors.accent }}>
-              {feed.error}
-            </Text>
-            <Button title="Tekrar dene" onPress={() => void feed.retry()} />
-          </>
-        )}
-        {feed.post ? (
-          <ApiPollCard
-            key={feed.post.id}
-            initial={feed.post}
-            onSkip={feed.skip}
-          />
-        ) : !feed.busy && !feed.error ? (
-          <>
-            <EmptyState
-              title="Şimdilik bu kadar"
-              message={
-                scope === "friends"
-                  ? "Arkadaşlarının yeni oylamaları burada görünecek."
-                  : "Yeni oylamalar geldiğinde burada göreceksin. Farklı bir kategori de seçebilirsin."
-              }
+              {Object.entries(CATEGORY_LABEL).map(([value, label]) => (
+                <PillChip
+                  key={value}
+                  label={label}
+                  active={category === value}
+                  onPress={() => setCategory(value as PollCategory)}
+                />
+              ))}
+            </ScrollView>
+          )}
+          {feed.busy && !feed.post && <ActivityIndicator color={brand.accent} />}
+          {feed.error && (
+            <View style={{ paddingHorizontal: 16, gap: 12 }}>
+              <Text accessibilityRole="alert" style={{ color: colors.accent }}>
+                {feed.error}
+              </Text>
+              <Button title="Tekrar dene" onPress={() => void feed.retry()} />
+            </View>
+          )}
+          {feed.post ? (
+            <ApiPollCard
+              key={feed.post.id}
+              initial={feed.post}
+              onSkip={feed.skip}
             />
-            <Button
-              title="Yenile"
-              variant="outline"
-              onPress={() => void feed.refresh()}
-            />
-          </>
-        ) : null}
-      </ScrollView>
+          ) : !feed.busy && !feed.error ? (
+            <View style={{ paddingHorizontal: 16, gap: 12 }}>
+              <EmptyState
+                title="Şimdilik bu kadar"
+                message={
+                  scope === "friends"
+                    ? "Arkadaşlarının yeni oylamaları burada görünecek."
+                    : "Yeni oylamalar geldiğinde burada göreceksin. Farklı bir kategori de seçebilirsin."
+                }
+              />
+              <Button
+                title="Yenile"
+                variant="outline"
+                onPress={() => void feed.refresh()}
+              />
+            </View>
+          ) : null}
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
+
+const scopes = [
+  { value: "everyone", label: "Herkes" },
+  { value: "friends", label: "Arkadaşlar" },
+] as const;
+
+const styles = StyleSheet.create({
+  page: { flex: 1, width: "100%", maxWidth: 520, alignSelf: "center" },
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 48,
+    paddingLeft: 16,
+    paddingRight: 2,
+  },
+  logo: { fontFamily: fonts.extraBold, fontSize: 21, letterSpacing: -0.5 },
+  tabs: { flexDirection: "row", gap: 14 },
+  tab: { height: 44, justifyContent: "center", gap: 3 },
+  tabText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.muted },
+  tabTextActive: { fontFamily: fonts.bold, fontSize: 14, color: colors.text },
+  tabLine: { height: 2, borderRadius: 1 },
+  iconButton: {
+    width: 40,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});

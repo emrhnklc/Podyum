@@ -78,6 +78,7 @@ afterEach(async () => {
       await tx.pollVoteReason.deleteMany({ where: { pollId: { in: polls } } });
       await tx.comment.deleteMany({ where: { pollId: { in: polls } } });
       await tx.pollSave.deleteMany({ where: { pollId: { in: polls } } });
+      await tx.pollLike.deleteMany({ where: { pollId: { in: polls } } });
       await tx.pollVote.deleteMany({ where: { pollId: { in: polls } } });
       await tx.pollOption.deleteMany({ where: { pollId: { in: polls } } });
       await tx.poll.deleteMany({ where: { id: { in: polls } } });
@@ -131,6 +132,33 @@ test("kaydet/kaldır doğal tekrardır; kaydetmek erişim vermez ve kart durumun
   assert.equal((await call("DELETE", `/polls/${row.id}/save`, actors[1])).status, 200);
   assert.equal((await call("DELETE", `/polls/${randomUUID()}/save`, actors[1])).status, 200);
   assert.equal(await db.pollSave.count({ where: { pollId: row.id } }), 0);
+});
+
+test("beğeni doğal tekrardır; tercih oyundan ayrıdır, erişim vermez ve kart sayacına yansır", async () => {
+  const row = await poll(); const hidden = await poll(actors[0], { visibility: "FRIENDS" });
+  for (const method of ["PUT", "DELETE"]) assert.equal((await call(method, `/polls/${row.id}/like`, null)).status, 401);
+  assert.equal((await call("PUT", "/polls/invalid/like", actors[1])).status, 400);
+  const first = await call("PUT", `/polls/${row.id}/like`, actors[1]);
+  assert.equal(first.status, 200);
+  assert.deepEqual(first.body, { pollId: row.id, isLiked: true, likeCount: 1 });
+  assert.deepEqual((await call("PUT", `/polls/${row.id}/like`, actors[1])).body, first.body);
+  // Sahibi de beğenebilir; beğeni oy, sonuç veya sürüm üretmez.
+  assert.equal((await call("PUT", `/polls/${row.id}/like`, actors[0])).body.likeCount, 2);
+  const stored = await db.poll.findUniqueOrThrow({ where: { id: row.id } });
+  assert.equal(stored.version, row.version);
+  assert.equal(await db.pollVote.count({ where: { pollId: row.id } }), 0);
+  const card = (actor: Actor) => call("GET", "/feed", actor).then((result) => result.body.items.find((item: any) => item.id === row.id));
+  assert.deepEqual([(await card(actors[1])).likeCount, (await card(actors[1])).isLiked], [2, true]);
+  assert.deepEqual([(await card(actors[2])).likeCount, (await card(actors[2])).isLiked], [2, false]);
+  // Engellenen kullanıcının beğenisi izleyicinin sayacında görünmez.
+  assert.equal((await call("PUT", `/blocks/${actors[1].id}`, actors[2])).status, 200);
+  assert.equal((await card(actors[2])).likeCount, 1);
+  assert.equal((await call("PUT", `/polls/${hidden.id}/like`, actors[1])).status, 404);
+  assert.equal((await call("PUT", `/polls/${randomUUID()}/like`, actors[1])).status, 404);
+  assert.deepEqual((await call("DELETE", `/polls/${row.id}/like`, actors[1])).body, { pollId: row.id, isLiked: false, likeCount: 1 });
+  assert.equal((await call("DELETE", `/polls/${row.id}/like`, actors[1])).status, 200);
+  assert.deepEqual((await call("DELETE", `/polls/${hidden.id}/like`, actors[1])).body, { pollId: hidden.id, isLiked: false, likeCount: 0 });
+  assert.equal(await db.pollLike.count({ where: { pollId: row.id } }), 1);
 });
 
 test("kaydedilenler yalnız hâlâ görünen yayınları kişiye özel cursor ile sayfalar", async () => {
@@ -389,12 +417,13 @@ test("OpenAPI etkileşim ve şikâyet uçlarını belgeler; yalnız yorum oluşt
   const paths = schema.paths;
   assert.ok(paths["/v1/polls/{id}/comments"].post.parameters.some((item: any) => item.name === "Idempotency-Key" && item.required));
   for (const operation of [paths["/v1/polls/{id}/save"].put, paths["/v1/polls/{id}/save"].delete, paths["/v1/comments/{id}"].delete,
+    paths["/v1/polls/{id}/like"].put, paths["/v1/polls/{id}/like"].delete,
     paths["/v1/polls/{id}/reason"].put, paths["/v1/polls/{id}/reason"].delete, paths["/v1/reports"].post]) {
     assert.ok(operation.security.some((item: any) => "bearer" in item));
     assert.ok(!(operation.parameters ?? []).some((item: any) => item.name === "Idempotency-Key"));
   }
   for (const path of ["/v1/me/saved-polls", "/v1/users/{id}/polls", "/v1/polls/{id}/comments", "/v1/polls/{id}/reasons"]) assert.ok(paths[path].get);
-  for (const field of ["totalVotes", "commentCount", "isSaved"]) assert.ok(schema.components.schemas.PollCardDto.properties[field]);
+  for (const field of ["totalVotes", "commentCount", "isSaved", "likeCount", "isLiked"]) assert.ok(schema.components.schemas.PollCardDto.properties[field]);
   assert.ok(!schema.components.schemas.CommentReceiptDto.properties.body);
   assert.deepEqual(schema.components.schemas.SetPollReasonDto.properties.reason.enum,
     ["COLOR_HARMONY", "MORE_STYLISH", "MORE_COMFORTABLE", "FITS_OCCASION", "BETTER_FIT"]);

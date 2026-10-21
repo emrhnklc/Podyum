@@ -1,40 +1,38 @@
-import { Platform, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
-// Podyum kahve/krem paleti; tüm sekme ve ayrıntı ekranları bunu kullanır.
+// Podyum kırmızı-siyah paleti: beyaz zemin, #D00A26 kırmızı, nötr gri yüzeyler.
+// Tüm sekme ve ayrıntı ekranları bunu kullanır.
 export const brand = {
-  background: "#F3ECE6", // genel arka plan
-  surface: "#F1E4D8", // kart arka planları
-  card: "#FAF8F5", // açık yüzeyler
-  line: "#E4D3C3",
-  chip: "#EADACB",
-  accent: "#B7764A", // ana butonlar
-  accentSoft: "#DDBFA5", // seçili kategoriler
-  accentDark: "#6B4128", // seçili öğe yazısı
-  muted: "#9C8576",
+  background: "#FFFFFF", // genel arka plan
+  surface: "#F4F3EF", // kart arka planları
+  card: "#FFFFFF", // açık yüzeyler
+  line: "#DAD9D4",
+  chip: "#E9E9E6",
+  accent: "#D00A26", // ana butonlar
+  accentSoft: "#FBE3E6", // seçili kategoriler, pastel kırmızı
+  accentDark: "#B00820", // seçili öğe yazısı
+  muted: "#5F5F5A",
 };
-// Giriş ekranının kahve/krem görünümü.
+// Giriş ve kayıt ekranları da aynı paleti kullanır.
 export const sand = {
-  background: "#F3ECE6",
-  card: "#FAF8F5",
-  line: "#E4D3C3",
-  brown: "#B7764A",
-  brownDark: "#7A4A22",
-  muted: "#6E6257",
+  background: "#FFFFFF",
+  card: "#FFFFFF",
+  line: "#DAD9D4",
+  brown: "#D00A26",
+  brownDark: "#111111",
+  muted: "#5F5F5A",
 };
-export const serif = Platform.select({
-  ios: "Georgia",
-  android: "serif",
-  default: "Georgia, 'Times New Roman', serif",
-});
 
 export const colors = {
-  background: "#F3ECE6",
-  text: "#25212A",
-  muted: "#6B625D",
-  surface: "#F1E4D8",
-  chip: "#EADACB",
-  line: "#E4D3C3",
-  accent: "#B7764A",
+  background: "#FFFFFF",
+  text: "#111111",
+  muted: "#5F5F5A",
+  surface: "#F4F3EF",
+  chip: "#E9E9E6",
+  line: "#DAD9D4",
+  accent: "#D00A26",
+  // Seçili çip, avatar ve görsel yer tutucularındaki pastel kırmızı.
+  accentSoft: "#FBE3E6",
   onAccent: "#FFFFFF",
   blue: "#0B66D0",
   avatar: "#D9D4CC",
@@ -47,6 +45,8 @@ export const fonts = {
   bold: "HankenGrotesk_700Bold",
   extraBold: "HankenGrotesk_800ExtraBold",
 };
+// Başlıklar serif yerine kalın Hanken Grotesk kullanır.
+export const serif = fonts.extraBold;
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
 export const radius = { sm: 12, md: 18, lg: 24, pill: 999 };
 export const common = StyleSheet.create({

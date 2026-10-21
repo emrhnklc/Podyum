@@ -163,6 +163,9 @@ model User {
   gameLeaguePoints   GameLeaguePoint[]
   hostedSessions     GameSession[]
   activeGame         ActiveGameMembership?
+  following          Follow[]              @relation("Follower")
+  followers          Follow[]              @relation("Followee")
+  pollLikes          PollLike[]
   points             PointsLedger[]
   idempotency        IdempotencyRecord[]
   credential         AuthCredential?
@@ -360,6 +363,7 @@ model Poll {
   author             User           @relation(fields: [authorId], references: [id], onDelete: Restrict)
   options            PollOption[]
   votes              PollVote[]
+  likes              PollLike[]
   saves              PollSave[]
   comments           Comment[]
   reports            Report[]
@@ -423,6 +427,32 @@ model PollVote {
   @@id([pollId, voterId])
   @@index([pollId, optionId])
   @@index([voterId, createdAt(sort: Desc)])
+}
+
+// Tek yönlü takip. Arkadaşlıktan bağımsızdır: FRIENDS görünürlüğü ve yorum/oy
+// hakkı vermez. Engelleme iki yöndeki takibi kaldırır.
+model Follow {
+  followerId String   @db.Uuid
+  followeeId String   @db.Uuid
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  follower   User     @relation("Follower", fields: [followerId], references: [id], onDelete: Restrict)
+  followee   User     @relation("Followee", fields: [followeeId], references: [id], onDelete: Restrict)
+
+  @@id([followerId, followeeId])
+  @@index([followeeId, createdAt(sort: Desc)])
+  @@index([followerId, createdAt(sort: Desc)])
+}
+
+// Paylaşım beğenisi. Tercih oyundan ayrıdır; sonucu, trendi veya Poll.version'ı değiştirmez.
+model PollLike {
+  pollId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Restrict)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@id([pollId, userId])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model PollSave {

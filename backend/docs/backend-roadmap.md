@@ -444,8 +444,10 @@ Günlük etkinlik/lobi, sunucu geri sayımı, QR katılımı ve yeniden bağlanm
 
 Kullanıcının ek fikirleri aşağıda takip edilir; henüz teslim aşaması atanmadı. Ayrıntılar ve açık kararlar: [ek ürün notları](mentor-notes-2026-10-10.md#ek-ürün-fikirleri--kullanıcının-sonraki-notları).
 
-- [ ] Profilde beğenilen kombinler; beğenme/tercih/kaydetme ayrımı ve görünürlük.
-- [ ] Giyilen kombinler için profil highlights alanı.
+- [x] Paylaşım beğenisi (tercih oyundan ve kaydetmeden ayrı) ve tek yönlü takip; 21 Ekim, kırmızı-siyah tasarım için. [Takip](social-development.md#takip), [beğeni](interactions-development.md#beğeni).
+- [ ] Profilde beğenilen kombinler listesi ve görünürlüğü.
+- [ ] Giyilen kombinler için profil highlights (öne çıkanlar) alanı. Kırmızı-siyah profil tasarımında var; ileride yapılacak.
+- [ ] Profilde konum. Kırmızı-siyah profil tasarımında var; ileride yapılacak. Mevcut özel `cityCode` alanı kamusal konum sayılmaz, ayrı bir görünürlük kararı gerekir.
 - [ ] Halloween temalı kombin içeriği / özel gün deneyimi.
 - [ ] Uygulama içi moda toplulukları.
 - [ ] İleride AI ile ürün fikirlerini/görsellerini test edip en çok ilgi görenleri satışa sunmak isteyen üreticilere araçlar.

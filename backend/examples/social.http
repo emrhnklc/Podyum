@@ -58,3 +58,19 @@ Authorization: Bearer {{accessTokenA}}
 ### Engeli kaldır; eski arkadaşlık/istek geri gelmez
 DELETE {{baseUrl}}/blocks/{{userIdB}}
 Authorization: Bearer {{accessTokenA}}
+
+### Takip et; onaysız, tekrar aynı sonucu döndürür
+PUT {{baseUrl}}/users/{{userIdB}}/follow
+Authorization: Bearer {{accessTokenA}}
+
+### B'nin takipçileri
+GET {{baseUrl}}/users/{{userIdB}}/followers?limit=20
+Authorization: Bearer {{accessTokenA}}
+
+### A'nın takip ettikleri
+GET {{baseUrl}}/users/{{userIdA}}/following?limit=20
+Authorization: Bearer {{accessTokenA}}
+
+### Takibi bırak
+DELETE {{baseUrl}}/users/{{userIdB}}/follow
+Authorization: Bearer {{accessTokenA}}
