@@ -114,6 +114,7 @@ afterEach(async () => {
       await tx.poll.deleteMany({ where: { id: { in: polls } } });
       await tx.mediaAsset.deleteMany({ where: { ownerId: { in: ids } } });
       await tx.block.deleteMany({ where: { OR: [{ blockerId: { in: ids } }, { blockedId: { in: ids } }] } });
+      await tx.follow.deleteMany({ where: { OR: [{ followerId: { in: ids } }, { followeeId: { in: ids } }] } });
       await tx.friendship.deleteMany({ where: { OR: [{ userAId: { in: ids } }, { userBId: { in: ids } }] } });
       await tx.userSettings.deleteMany({ where: { userId: { in: ids } } });
       await tx.userPrivate.deleteMany({ where: { userId: { in: ids } } });
@@ -181,6 +182,31 @@ test("arkadaşlık isteği alıcıya, kabul gönderene bildirim ve genel metinli
   assert.equal(await drain(), 0);
   assert.equal(await db.notification.count({ where: { userId: { in: [a.id, b.id] } } }), 1);
   assert.equal((await pushes()).length, 2);
+});
+
+test("yeni takipçi tek bildirimdir; bırakılan takip okunmamış satırı siler, tekrar takip push yağdırmaz", async () => {
+  const [a, b, c] = actors;
+  await device(b);
+  const follow = (from: Actor, to: Actor) => call("PUT", `/users/${to.id}/follow`, from);
+  assert.equal((await follow(a, b)).status, 200); await drain();
+  let rows = (await list(b)).items;
+  assert.deepEqual(rows.map((row: any) => [row.type, row.actor?.id, row.target.type, row.target.id]), [["user.follow.received", a.id, "USER", a.id]]);
+  assert.equal((await pushes()).length, 1);
+  assert.equal((await pushes())[0].body, "Seni takip etmeye başlayan biri var.");
+  // Okunmadan bırakılan takip satırı kaldırır.
+  assert.equal((await call("DELETE", `/users/${b.id}/follow`, a)).status, 200); await drain();
+  assert.deepEqual((await list(b)).items, []);
+  // Okunduktan sonra bırakıp yeniden takip etmek yeni satır veya push üretmez.
+  assert.equal((await follow(a, b)).status, 200); await drain();
+  assert.equal((await call("POST", "/me/notifications/read-all", b)).status, 200);
+  await call("DELETE", `/users/${b.id}/follow`, a); await follow(a, b); await drain();
+  rows = (await list(b)).items;
+  assert.equal(rows.length, 1); assert.equal((await list(b)).unreadCount, 0);
+  assert.equal((await pushes()).length, 2);
+  // İşlenmeden bırakılan veya engellenen takip bildirime dönüşmez.
+  await follow(c, b); await call("DELETE", `/users/${b.id}/follow`, c); await drain();
+  await follow(c, a); assert.equal((await call("PUT", `/blocks/${c.id}`, a)).status, 200); await drain();
+  assert.equal((await list(b)).items.length, 1); assert.deepEqual((await list(a)).items, []);
 });
 
 test("iptal, red ve engel bekleyen istek bildirimini kaldırır; geç işlenen olay geçersiz bildirim üretmez", async () => {
@@ -480,7 +506,7 @@ test("OpenAPI bildirim ve cihaz uçlarını, tür listesini ve oyun bildirimi te
     assert.ok(paths[path][method].security.some((item: any) => "bearer" in item), `${method} ${path}`);
     assert.ok(!(paths[path][method].parameters ?? []).some((item: any) => item.name === "Idempotency-Key"));
   }
-  assert.deepEqual(schema.components.schemas.NotificationDto.properties.type.enum, ["friend.request.received", "friend.request.accepted",
+  assert.deepEqual(schema.components.schemas.NotificationDto.properties.type.enum, ["friend.request.received", "friend.request.accepted", "user.follow.received",
     "poll.comment.received", "poll.result.own", "poll.result.voted", "game.voting.opened", "game.completed"]);
   assert.deepEqual(schema.components.schemas.NotificationTargetDto.properties.type.enum, ["USER", "POLL", "GAME"]);
   assert.ok(!schema.components.schemas.DeviceReceiptDto.properties.token);

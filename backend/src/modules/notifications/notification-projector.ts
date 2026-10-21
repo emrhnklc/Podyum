@@ -18,7 +18,7 @@ type Recipient = { userId: string; resourceId: string; actorId?: string | null; 
 @Injectable()
 export class NotificationProjector implements OutboxHandler, OnModuleInit {
   readonly name = "notification-projector";
-  readonly types = ["social.relationship.changed", "poll.comment.created", "poll.comment.removed", "poll.closed", "game.voting.opened", "game.completed"];
+  readonly types = ["social.relationship.changed", "social.follow.created", "social.follow.removed", "poll.comment.created", "poll.comment.removed", "poll.closed", "game.voting.opened", "game.completed"];
 
   constructor(private readonly registry: OutboxRegistry, private readonly access: SocialAccessService) {}
 
@@ -29,6 +29,8 @@ export class NotificationProjector implements OutboxHandler, OnModuleInit {
     if (now.getTime() - event.createdAt.getTime() > MAX_EVENT_AGE_MS) return;
     const payload = (event.payload ?? {}) as Record<string, unknown>;
     if (event.type === "social.relationship.changed") return this.relationship(tx, event, payload);
+    if (event.type === "social.follow.created") return this.follow(tx, event, payload, true);
+    if (event.type === "social.follow.removed") return this.follow(tx, event, payload, false);
     if (event.type === "poll.comment.created") return this.comments(tx, event, payload, true);
     if (event.type === "poll.comment.removed") return this.comments(tx, event, payload, false);
     if (event.type === "poll.closed") return this.pollClosed(tx, event, payload);
@@ -76,6 +78,20 @@ export class NotificationProjector implements OutboxHandler, OnModuleInit {
     // Reddedilip yeniden gönderilen istek tek satır kalır.
     if (reason === "REQUESTED") await tx.notification.deleteMany({ where: { userId, actorId, type: "friend.request.received" } });
     await this.create(tx, event, reason === "REQUESTED" ? "friend.request.received" : "friend.request.accepted", [{ userId, resourceId: actorId, actorId }]);
+  }
+
+  // Takipçi başına tek satır. Bırakılan takibin okunmamış satırı silinir; aynı kişinin
+  // yeniden takibi eski satır dururken yeni push üretmez.
+  private async follow(tx: OutboxTx, event: OutboxEvent, payload: Record<string, unknown>, created: boolean) {
+    const followerId = text(payload.followerId); const followeeId = text(payload.followeeId);
+    if (!followerId || !followeeId) return;
+    const where = { userId: followeeId, actorId: followerId, type: "user.follow.received" };
+    if (!created || !await tx.follow.count({ where: { followerId, followeeId } })) {
+      await tx.notification.deleteMany({ where: { ...where, readAt: null } });
+      return;
+    }
+    if (await tx.notification.count({ where }) || !await this.visibleTo(tx, followeeId, followerId)) return;
+    await this.create(tx, event, "user.follow.received", [{ userId: followeeId, resourceId: followerId, actorId: followerId }]);
   }
 
   // Paylaşım başına tek okunmamış satır. Sayı saklanan bir sayaç gibi artırılmaz;

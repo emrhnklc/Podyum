@@ -13,6 +13,10 @@ export class ProfileCountsDto {
   polls!: number;
   @ApiProperty({ minimum: 0, description: "Aktif, engel ilişkisi olmayan kabul edilmiş arkadaşlar." })
   friends!: number;
+  @ApiProperty({ minimum: 0, description: "Aktif, profil sahibiyle engel ilişkisi olmayan takipçiler." })
+  followers!: number;
+  @ApiProperty({ minimum: 0, description: "Profil sahibinin takip ettiği aktif, engelsiz hesaplar." })
+  following!: number;
   @ApiProperty({ description: "Mevcut sunucu ledger toplamı. Bu API puan üretmez; oyun ödülleri Faz 2'de." })
   stars!: number;
 }

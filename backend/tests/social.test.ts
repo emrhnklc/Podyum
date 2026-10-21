@@ -59,6 +59,7 @@ afterEach(async () => {
       await db.$transaction(async (tx) => {
         await tx.outboxEvent.deleteMany({ where: { aggregateId: { in: ids } } });
         await tx.block.deleteMany({ where: { OR: [{ blockerId: { in: ids } }, { blockedId: { in: ids } }] } });
+        await tx.follow.deleteMany({ where: { OR: [{ followerId: { in: ids } }, { followeeId: { in: ids } }] } });
         await tx.friendship.deleteMany({ where: { OR: [{ userAId: { in: ids } }, { userBId: { in: ids } }] } });
         await tx.poll.deleteMany({ where: { authorId: { in: ids } } });
         await tx.usedRefreshToken.deleteMany({ where: { session: { userId: { in: ids } } } });
@@ -81,6 +82,10 @@ async function accept(a: Account, b: Account) { return call("POST", `/friend-req
 async function befriend(a: Account, b: Account) {
   assert.equal((await request(a, b)).status, 200);
   assert.equal((await accept(b, a)).status, 200);
+}
+function canonicalWhere(a: Account, b: Account) {
+  const [userAId, userBId] = [a.id, b.id].sort();
+  return { userAId, userBId };
 }
 async function allPages(path: string, actor: Account) {
   const items: any[] = [];
@@ -327,6 +332,78 @@ test("outbox hatasında engel, istek silme ve her iki kullanıcının sürümü 
   }
 });
 
+const follow = (a: Account, b: Account) => call("PUT", `/users/${b.id}/follow`, a);
+const unfollow = (a: Account, b: Account) => call("DELETE", `/users/${b.id}/follow`, a);
+
+test("takip tek yönlü ve onaysızdır; tekrar aynı sonucu döndürür; arkadaşlık veya FRIENDS erişimi vermez", async () => {
+  const [b, a, c] = accounts;
+  for (const [method, path] of [["PUT", `/users/${b.id}/follow`], ["DELETE", `/users/${b.id}/follow`], ["GET", `/users/${b.id}/followers`], ["GET", `/users/${b.id}/following`]]) {
+    assert.equal((await call(method, path, null)).status, 401, path);
+  }
+  assert.equal((await call("PUT", "/users/invalid/follow", a)).status, 400);
+  const self = await follow(a, a);
+  assert.equal(self.status, 400);
+  assert.equal(self.body.error.code, "SELF_RELATIONSHIP_NOT_ALLOWED");
+
+  const first = await follow(a, b);
+  assert.equal(first.status, 200);
+  assert.deepEqual(first.body, { userId: b.id, isFollowing: true, followerCount: 1 });
+  assert.deepEqual((await follow(a, b)).body, first.body);
+  assert.equal(await db.follow.count({ where: { followerId: a.id, followeeId: b.id } }), 1);
+  assert.equal(await db.outboxEvent.count({ where: { aggregateId: b.id, type: "social.follow.created" } }), 1);
+  assert.equal(await db.friendship.count({ where: canonicalWhere(a, b) }), 0);
+
+  const relation = await call("GET", `/users/${b.id}/relationship`, a);
+  assert.deepEqual(relation.body, { userId: b.id, state: "NONE", isFollowing: true, followsYou: false });
+  assert.equal((await call("GET", `/users/${a.id}/relationship`, b)).body.followsYou, true);
+  assert.deepEqual((await call("GET", `/users/${b.id}`, c)).body.counts, { polls: 0, friends: 0, followers: 1, following: 0, stars: 0 });
+  assert.equal((await call("GET", "/me", a)).body.profile.counts.following, 1);
+
+  // Takip, arkadaşlara özel paylaşımı açmaz.
+  const poll = await db.poll.create({ data: { authorId: b.id, question: marker, category: "OUTFIT", visibility: "FRIENDS", status: "OPEN", publishedAt: new Date(), closesAt: new Date(Date.now() + 3_600_000) } });
+  assert.equal(await db.poll.count({ where: { id: poll.id, ...access.visiblePublishedPollWhere(a.id) } }), 0);
+
+  const followers = await call("GET", `/users/${b.id}/followers`, c);
+  assert.deepEqual(followers.body.items.map((row: any) => [row.user.id, row.isFollowing, row.isSelf]), [[a.id, false, false]]);
+  assert.deepEqual(Object.keys(followers.body.items[0].user).sort(), ["displayName", "id", "username"]);
+  assert.deepEqual((await call("GET", `/users/${a.id}/following`, a)).body.items.map((row: any) => [row.user.id, row.isFollowing]), [[b.id, true]]);
+
+  assert.deepEqual((await unfollow(a, b)).body, { userId: b.id, isFollowing: false, followerCount: 0 });
+  assert.deepEqual((await unfollow(a, b)).body, { userId: b.id, isFollowing: false, followerCount: 0 });
+  assert.equal(await db.outboxEvent.count({ where: { aggregateId: b.id, type: "social.follow.removed" } }), 1);
+  assert.equal((await call("GET", `/users/${b.id}/followers`, c)).body.items.length, 0);
+});
+
+test("engel iki yöndeki takibi kaldırır, yeni takibi engeller; takip listeleri engelli hesabı göstermez", async () => {
+  const [b, a, c, d] = accounts;
+  await follow(a, b); await follow(b, a); await follow(c, b); await follow(d, b);
+  assert.equal((await call("GET", `/users/${b.id}`, a)).body.counts.followers, 3);
+  assert.equal((await call("PUT", `/blocks/${a.id}`, b)).status, 200);
+  assert.equal(await db.follow.count({ where: { OR: [{ followerId: a.id, followeeId: b.id }, { followerId: b.id, followeeId: a.id }] } }), 0);
+  assert.equal(await db.outboxEvent.count({ where: { type: "social.follow.removed", aggregateId: { in: [a.id, b.id] } } }), 2);
+  assert.equal((await follow(a, b)).status, 404);
+  assert.equal((await follow(b, a)).status, 404);
+  assert.equal((await call("GET", `/users/${b.id}/followers`, a)).status, 404);
+  // Takipçi listesinde, izleyicinin engellediği takipçi de görünmez.
+  assert.equal((await call("PUT", `/blocks/${d.id}`, c)).status, 200);
+  assert.deepEqual((await call("GET", `/users/${b.id}/followers`, c)).body.items.map((row: any) => row.user.id), [c.id]);
+  assert.equal((await call("GET", `/users/${b.id}/followers`, c)).body.items[0].isSelf, true);
+  // Engel kalktıktan sonra takip yeniden kurulabilir; eski takip kendiliğinden geri gelmez.
+  assert.equal((await call("DELETE", `/blocks/${a.id}`, b)).status, 200);
+  assert.equal((await call("GET", `/users/${b.id}/relationship`, a)).body.isFollowing, false);
+  assert.equal((await follow(a, b)).body.isFollowing, true);
+});
+
+test("takipçi cursor'ı eşit zamanlı kayıtlarda boşluk veya tekrar üretmez", async () => {
+  const [b, a, c, d] = accounts;
+  const at = new Date("2026-10-01T10:00:00.000Z");
+  await db.follow.createMany({ data: [a, c, d].map((row) => ({ followerId: row.id, followeeId: b.id, createdAt: at })) });
+  const items = await allPages(`/users/${b.id}/followers`, a);
+  assert.deepEqual(items.map((row) => row.user.id).sort(), [a.id, c.id, d.id].sort());
+  const bad = await call("GET", `/users/${b.id}/following?cursor=${(await call("GET", `/users/${b.id}/followers?limit=1`, a)).body.nextCursor}`, a);
+  assert.equal(bad.status, 400, "cursor liste türüne bağlıdır");
+});
+
 test("OpenAPI sosyal endpoint'leri, sayfalama ve Bearer sözleşmesini içerir", async () => {
   const { body: spec } = await call("GET", "/openapi.json", null);
   for (const [path, method] of [
@@ -334,6 +411,7 @@ test("OpenAPI sosyal endpoint'leri, sayfalama ve Bearer sözleşmesini içerir",
     ["/v1/me/friend-requests", "get"], ["/v1/friend-requests", "post"], ["/v1/friend-requests/{userId}", "delete"],
     ["/v1/friend-requests/{userId}/accept", "post"], ["/v1/friend-requests/{userId}/decline", "post"],
     ["/v1/friends/{userId}", "delete"], ["/v1/me/blocks", "get"], ["/v1/blocks/{userId}", "put"], ["/v1/blocks/{userId}", "delete"],
+    ["/v1/users/{userId}/follow", "put"], ["/v1/users/{userId}/follow", "delete"], ["/v1/users/{userId}/followers", "get"], ["/v1/users/{userId}/following", "get"],
   ]) {
     assert.ok(spec.paths[path][method].security.some((item: any) => "bearer" in item), path);
     assert.ok(spec.paths[path][method].responses[200].content["application/json"].schema, path);

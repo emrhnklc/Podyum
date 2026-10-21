@@ -18,6 +18,10 @@
 | GET | `/me/blocks` | Kendi engellediğin hesaplar |
 | PUT | `/blocks/:userId` | Engelle; ilişkiyi ve bekleyen isteği aynı transaction'da kaldır |
 | DELETE | `/blocks/:userId` | Yalnız kendi engelini kaldır |
+| PUT | `/users/:userId/follow` | Takip et; onaysız, doğal tekrar |
+| DELETE | `/users/:userId/follow` | Takibi bırak; takip yoksa da 200 |
+| GET | `/users/:userId/followers` | Takipçiler; createdAt + kullanıcı id cursor'ı |
+| GET | `/users/:userId/following` | Takip edilenler; aynı cursor kuralı |
 
 Komutlar başarılıysa 200 döner. İstek/arkadaşlık komutu yanıtı `{ userId, state }`; engel yanıtı `{ blockedUserId, blocked }`. İlişki durumları SELF, NONE, OUTGOING_REQUEST, INCOMING_REQUEST ve FRIENDS'tir. Engellenmiş hedefte ilişki endpoint'i 404 verir; karşı tarafın engel durumunu açmaz.
 
@@ -31,6 +35,19 @@ Komutlar başarılıysa 200 döner. İstek/arkadaşlık komutu yanıtı `{ userI
 - UserId ile gelen kabul/red komutları o çiftin **mevcut** istek durumuna uygulanır; geçmiş bir istek kimliği veya sürümüne bağlanmaz. Mobil güncel durumu okuyarak butonları yönetir.
 - Engel arkadaşlığı ve bekleyen/reddedilmiş istek satırını kaldırır. İki yönde arama/profil/ilişki görünürlüğü kapanır. Karşılıklı engeller bağımsızdır; birini açmak diğerini açmaz. Engel açmak eski arkadaşlığı veya isteği geri getirmez.
 - İstek işlemlerinde aktif/engelsiz hedef gerekir. İnaktif veya bulunamayan hedef ve engel aynı 404 kuralıyla ele alınır. Engelleme aktif hedefe yapılır; karşılıklı engel koyulabilir. Kendi engelini kaldırma, hedef hesabı inaktif olsa da yapılabilir; olmayan engeli kaldırmak 200 ve blocked=false döner.
+
+## Takip
+
+21 Ekim 2026. Kırmızı-siyah profil tasarımındaki takipçi/takip sayıları için eklendi. Takip arkadaşlığın **yanındadır**, yerine geçmez:
+
+- Tek yönlüdür ve onay istemez. Takip `FRIENDS` görünürlüğünü, yorum/oy hakkını veya arkadaşlık durumunu değiştirmez; `socialRevision` artmaz.
+- Komut yanıtı `{ userId, isFollowing, followerCount }`. `followerCount` hedefin aktif ve onunla engelsiz takipçileridir. Kendini takip 400 `SELF_RELATIONSHIP_NOT_ALLOWED`; veritabanında da `Follow_not_self` kuralı vardır.
+- Takip için hedef aktif ve iki yönlü engelsiz olmalıdır, aksi 404. Takibi bırakmak hedef inaktif veya engelli olsa da yapılabilir.
+- Engel iki yöndeki takibi aynı transaction'da siler. Engel açılınca takip geri gelmez.
+- `GET /users/:userId/relationship` yanıtına `isFollowing` (izleyici takip ediyor) ve `followsYou` (hedef izleyiciyi takip ediyor) eklendi. Profil `counts` alanında `followers` ve `following` vardır.
+- Liste satırı `{ user, followedAt, isFollowing, isSelf }`. Hedefle veya izleyiciyle engelli ya da aktif olmayan hesaplar listelenmez. Cursor liste türüne, izleyiciye ve hedefe bağlıdır.
+- Her yeni/bırakılan takip `social.follow.created` / `social.follow.removed` outbox olayı yazar. Bildirim işleyicisi takip edilen kişiye `user.follow.received` bildirimi üretir (arkadaşlık bildirimi ayarını kullanır). Bırakılan takibin okunmamış bildirimi silinir; aynı kişinin tekrar takibi eski satır dururken yeni push üretmez.
+- Hesap silme iki yöndeki takip kayıtlarını temizler.
 
 ## Liste ve arama yanıtları
 

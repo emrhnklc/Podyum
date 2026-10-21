@@ -29,6 +29,12 @@ export class PollCardDto extends PollResponseDto {
 
   @ApiProperty({ description: "İzleyicinin kişisel kayıt durumu." })
   isSaved!: boolean;
+
+  @ApiProperty({ minimum: 0, description: "Aktif ve izleyiciyle engelsiz kullanıcıların beğenileri." })
+  likeCount!: number;
+
+  @ApiProperty({ description: "İzleyici bu paylaşımı beğendi." })
+  isLiked!: boolean;
 }
 
 export class PollCardListDto {
@@ -51,6 +57,12 @@ export class SaveReceiptDto {
   @ApiProperty({ format: "uuid" }) pollId!: string;
   @ApiProperty() isSaved!: boolean;
   @ApiProperty({ type: String, format: "date-time", nullable: true }) savedAt!: Date | null;
+}
+
+export class LikeReceiptDto {
+  @ApiProperty({ format: "uuid" }) pollId!: string;
+  @ApiProperty() isLiked!: boolean;
+  @ApiProperty({ minimum: 0 }) likeCount!: number;
 }
 
 export class CreateCommentDto {

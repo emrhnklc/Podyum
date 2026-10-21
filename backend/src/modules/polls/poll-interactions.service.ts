@@ -64,6 +64,33 @@ export class PollInteractionsService {
     }, { isolationLevel: "RepeatableRead" });
   }
 
+  // ── Beğeni ────────────────────────────────────────────────────────────
+  // Tercih oyundan ayrıdır: sonucu, trendi veya Poll.version'ı değiştirmez.
+  // Kendi paylaşımını beğenmek serbesttir; oy kuralları uygulanmaz.
+
+  private likeCount(tx: Tx, userId: string, pollId: string) {
+    return tx.pollLike.count({ where: { pollId, user: this.access.activeUnblockedUserWhere(userId) } });
+  }
+
+  like(userId: string, pollId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT "id" FROM "Poll" WHERE "id" = ${pollId}::uuid FOR SHARE`;
+      await this.activeActor(tx, userId);
+      await this.access.requirePublishedPollAccess(tx, userId, pollId);
+      await tx.pollLike.upsert({ where: { pollId_userId: { pollId, userId } }, create: { pollId, userId }, update: {} });
+      return { pollId, isLiked: true, likeCount: await this.likeCount(tx, userId, pollId) };
+    });
+  }
+
+  // Erişimi sonradan kapanan beğeni de kaldırılabilir; sayaç yalnız erişim sürüyorsa döner.
+  unlike(userId: string, pollId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.pollLike.deleteMany({ where: { pollId, userId } });
+      const visible = await tx.poll.count({ where: { id: pollId, ...this.access.visiblePublishedPollWhere(userId) } });
+      return { pollId, isLiked: false, likeCount: visible ? await this.likeCount(tx, userId, pollId) : 0 };
+    });
+  }
+
   // ── Başkasının görünür paylaşımları ───────────────────────────────────
 
   listUserPolls(viewerId: string, authorId: string, query: PageQueryDto) {

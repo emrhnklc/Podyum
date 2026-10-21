@@ -15,6 +15,8 @@ const DAY = 86_400;
 export const NOTIFICATIONS = {
   "friend.request.received": { resourceType: "user", preference: "friendRequestNotifications", push: { body: "Yeni bir arkadaşlık isteğin var.", ttlSeconds: DAY } },
   "friend.request.accepted": { resourceType: "user", preference: "friendRequestNotifications", push: { body: "Arkadaşlık isteğin kabul edildi.", ttlSeconds: DAY } },
+  // Takip ayrı bir ayar açmaz; arkadaşlık bildirimleriyle aynı sosyal tercihi kullanır.
+  "user.follow.received": { resourceType: "user", preference: "friendRequestNotifications", push: { body: "Seni takip etmeye başlayan biri var.", ttlSeconds: DAY } },
   "poll.comment.received": { resourceType: "poll", preference: "commentNotifications", push: { body: "Paylaşımına yeni yorum geldi.", ttlSeconds: DAY } },
   "poll.result.own": { resourceType: "poll", preference: "pollResultNotifications", push: { body: "Oylaman sonuçlandı.", ttlSeconds: DAY } },
   "poll.result.voted": { resourceType: "poll", preference: "pollResultNotifications", push: null },
