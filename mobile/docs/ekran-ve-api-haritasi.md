@@ -26,6 +26,8 @@
 | `/defile` | games | Görseller korunur; gerçek lig, hızlı eşleş, davetli oda, Sonbahar temalı odalar, arkadaşlar ve geçmiş |
 | `/games/browse` | games | Açık/günlük odalar, tema araması, katılım ve oda oluşturma |
 | `/games/history`, `/games/league` | games | Katılım geçmişi ve gerçek lig puanları |
+| `/games/modes/budget`, `/games/modes/sponsored` | games | Konsept: bütçe meydan okuması ve sponsorlu yarışma; örnek veri, katılım kapalı. [Konsept](../../backend/docs/game-modes-concept.md) |
+| `/try-on` | try-on | Konsept/DEMO: Plus "Üzerimde dene"; ödeme ve yapay zekâ yok |
 | `/games/new` | games | Tema, katılımcı sayısı, süre, planlı/elle başlangıç, herkese açık/davetli oda |
 | `/games/:id` | games | Oda, QR, başlat/erken bitir/ayrıl, fotoğraf önizleme/onay/teslim, 1–5 yıldız turu, sonuç |
 | `/games/join?token=` | games | Davet önizleme → giriş → davete dön → kullanıcı onayıyla katıl |
