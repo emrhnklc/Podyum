@@ -35,7 +35,7 @@ export type TryOnProduct = {
 type Step = "outfits" | "options" | "working" | "result";
 // Seçilen fotoğraf: profildeki bir kombin (sunucu yolu) ya da galeriden yerel dosya.
 type Photo =
-  | { kind: "outfit"; path: string | null; question: string; position: number }
+  | { kind: "outfit"; path: string | null }
   | { kind: "local"; uri: string };
 type OwnPoll = {
   id: string;
@@ -47,8 +47,8 @@ type OwnPoll = {
 const WORK_MS = 2400;
 
 // Plus konsepti: ürünü kendi kombin fotoğrafında deneme. Bu ekran DEMODUR;
-// ödeme alınmaz ve yapay zekâ görsel üretmez. Demo ürünü demo kombininde
-// denenirse önceden hazırlanmış mock sonuç gösterilir.
+// ödeme alınmaz ve yapay zekâ görsel üretmez. Demo ürünü hangi fotoğrafta
+// denenirse denensin önceden hazırlanmış mock sonuç gösterilir.
 export function TryOnScreen({ product }: { product: TryOnProduct }) {
   const { client } = useAuth();
   const [step, setStep] = useState<Step>("outfits");
@@ -65,10 +65,7 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
     (poll) => poll.effectiveStatus === "OPEN" || poll.effectiveStatus === "CLOSED",
   );
   const productImage = demoProductImage(product.url);
-  const demoResult =
-    photo?.kind === "outfit"
-      ? demoTryOnResult(product.url, photo)
-      : undefined;
+  const demoResult = demoTryOnResult(product.url);
   useEffect(() => {
     if (step !== "working") return;
     const timer = setTimeout(() => setStep("result"), WORK_MS);
@@ -177,12 +174,7 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
                 accessibilityRole="button"
                 accessibilityLabel={`${option.label} fotoğrafında dene`}
                 onPress={() => {
-                  setPhoto({
-                    kind: "outfit",
-                    path: option.media.displayPath,
-                    question: outfit.question,
-                    position: option.position,
-                  });
+                  setPhoto({ kind: "outfit", path: option.media.displayPath });
                   setStep("working");
                 }}
                 style={styles.optionTile}

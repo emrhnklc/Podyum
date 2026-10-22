@@ -43,7 +43,7 @@ const PRODUCT_PHOTOS: Record<(typeof DEMO_PRODUCTS)[number]["key"], string> = {
   polo: "../mobile/assets/images/try-on/zara-polo.jpg",
   jean: "../mobile/assets/images/try-on/zara-jean.jpg",
 };
-// Mobil demo eşleşmesi bu soruyu arar: aynı metin mobile/src/features/try-on/data/demo-results.ts içinde.
+// Profildeki demo kombin oylamasının sorusu.
 export const DEMO_OUTFIT_QUESTION = "Bugünkü kombinim nasıl?";
 const VOTERS = 6;
 
