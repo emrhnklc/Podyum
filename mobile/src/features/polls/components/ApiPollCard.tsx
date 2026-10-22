@@ -2,7 +2,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Linking,
+  Modal,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
@@ -17,6 +19,8 @@ import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApiError, errorMessage } from "@/lib/api/client";
 import { brand, colors, common, fonts } from "@/theme";
 import type { ApiPoll, PollResults, ProductTag } from "../api/types";
+import { DemoImage } from "@/features/try-on/components/DemoImage";
+import { demoProductImage } from "@/features/try-on/data/demo-results";
 
 export function ApiPollCard({
   initial,
@@ -29,6 +33,8 @@ export function ApiPollCard({
 }) {
   const { client } = useAuth();
   const [poll, setPoll] = useState(initial);
+  // Oy verilen seçeneğin parçaları alttan açılan sayfada gösterilir.
+  const [sheetOptionId, setSheetOptionId] = useState<string | null>(null);
   const [results, setResults] = useState<PollResults | null>(null);
   const [busy, setBusy] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
@@ -118,6 +124,15 @@ export function ApiPollCard({
           canVote: false,
           canViewResults: true,
         }));
+      if (
+        alive.current &&
+        !detail &&
+        poll.options.some(
+          (option) =>
+            option.id === receipt.optionId && option.products.length,
+        )
+      )
+        setSheetOptionId(receipt.optionId);
       await reload();
     });
   const save = () =>
@@ -163,6 +178,7 @@ export function ApiPollCard({
     );
   const soon = !expired && remaining < 600;
   const sections = poll.options.filter((option) => option.products.length);
+  const sheetOption = poll.options.find((option) => option.id === sheetOptionId);
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -365,6 +381,43 @@ export function ApiPollCard({
           ))}
         </View>
       )}
+      <Modal
+        visible={!!sheetOption}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSheetOptionId(null)}
+      >
+        <View style={styles.backdrop}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Parçaları kapat"
+            onPress={() => setSheetOptionId(null)}
+            style={{ flex: 1 }}
+          />
+          {sheetOption && (
+            <View style={styles.sheet}>
+              <View style={styles.handle} />
+              <View style={[common.row, { gap: 8 }]}>
+                <View style={styles.sectionBadge}>
+                  <Text style={styles.sectionBadgeText}>{sheetOption.label}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.sectionTitle}>Seçtiğin kombinin parçaları</Text>
+                  <Text style={{ fontSize: 12, color: colors.muted }}>
+                    Tercihin kaydedildi · {sheetOption.products.length} ürün
+                  </Text>
+                </View>
+              </View>
+              <ScrollView contentContainerStyle={{ gap: 10 }}>
+                {sheetOption.products.map((product) => (
+                  <ProductRow key={product.id} product={product} />
+                ))}
+              </ScrollView>
+              <CardAction onPress={() => setSheetOptionId(null)}>Kapat</CardAction>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -430,7 +483,15 @@ function ProductRow({ product }: { product: ProductTag }) {
         style={({ pressed }) => [styles.productLink, { opacity: pressed ? 0.6 : 1 }]}
       >
         <View style={styles.thumb}>
-          <Ionicons name="shirt-outline" size={26} color={colors.photoText} />
+          {demoProductImage(product.externalUrl) ? (
+            <DemoImage
+              source={demoProductImage(product.externalUrl)!}
+              tone="#E8E6E0"
+              fit="contain"
+            />
+          ) : (
+            <Ionicons name="shirt-outline" size={26} color={colors.photoText} />
+          )}
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Text numberOfLines={2} style={styles.productName}>
@@ -647,9 +708,27 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 12,
+    overflow: "hidden",
     backgroundColor: colors.chip,
     alignItems: "center",
     justifyContent: "center",
   },
   productName: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 18 },
+  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)" },
+  sheet: {
+    maxHeight: "75%",
+    padding: 20,
+    paddingBottom: 32,
+    gap: 16,
+    backgroundColor: colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  handle: {
+    alignSelf: "center",
+    width: 44,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.line,
+  },
 });

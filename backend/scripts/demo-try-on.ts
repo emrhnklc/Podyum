@@ -16,7 +16,7 @@ import type { Session } from "../../mobile/src/features/auth/types.js";
 type Account = { email: string; password: string; userId: string };
 type Fixture = { viewer: Account; author: Account; pollIds: string[] };
 type DemoState = {
-  admin?: Account; voters: Account[]; outfitPollId?: string; outfitVersion?: number;
+  admin?: Account; voters: Account[]; outfitPollId?: string; outfitVersion?: number; trendVersion?: number;
   products?: Record<string, string>; trendPolls?: Record<string, string>;
   // İlk sürümün tek ürünlü alanları; okunup products/trendPolls'a taşınır.
   productId?: string; trendPollId?: string;
@@ -33,6 +33,12 @@ export const DEMO_PRODUCTS = [
 ] as const;
 // Kombin oylaması sürümü: fotoğraflar değişince eski oylama iptal edilip yenisi açılır.
 const OUTFIT_VERSION = 2;
+// Trend oylamaları ürün fotoğraflarıyla kurulur; giriş ekranı görselleri kullanılmaz.
+const TREND_VERSION = 2;
+const PRODUCT_PHOTOS: Record<(typeof DEMO_PRODUCTS)[number]["key"], string> = {
+  polo: "../mobile/assets/images/try-on/zara-polo.jpg",
+  jean: "../mobile/assets/images/try-on/zara-jean.jpg",
+};
 // Mobil demo eşleşmesi bu soruyu arar: aynı metin mobile/src/features/try-on/data/demo-results.ts içinde.
 export const DEMO_OUTFIT_QUESTION = "Bugünkü kombinim nasıl?";
 const VOTERS = 6;
@@ -76,6 +82,11 @@ async function upload(token: string, bytes: Buffer, name: string) {
   await request(`/media/${grant.asset.id}/complete`, token, "POST", {});
   await request(`/media/${grant.asset.id}/accept-preview`, token, "POST", { confirmed: true });
   return grant.asset.id as string;
+}
+
+async function cancel(token: string, pollId: string) {
+  const poll = await request<any>(`/polls/${pollId}`, token);
+  if (poll.effectiveStatus === "OPEN") await request(`/polls/${pollId}/cancel`, token, "POST", { expectedVersion: poll.version }, randomUUID());
 }
 
 async function publish(token: string, body: unknown) {
@@ -129,8 +140,7 @@ try {
   // Kullanıcının kendi kombin oylaması: A ve B kendi fotoğrafları. "Üzerimde dene" A'yı kullanır.
   const viewer = await login(fixture.viewer);
   if (state.outfitPollId && state.outfitVersion !== OUTFIT_VERSION) {
-    const old = await request<any>(`/polls/${state.outfitPollId}`, viewer);
-    if (old.effectiveStatus === "OPEN") await request(`/polls/${state.outfitPollId}/cancel`, viewer, "POST", { expectedVersion: old.version }, randomUUID());
+    await cancel(viewer, state.outfitPollId);
     delete state.outfitPollId; await save();
   }
   if (!state.outfitPollId) {
@@ -141,13 +151,20 @@ try {
     state.outfitVersion = OUTFIT_VERSION; await save();
   }
 
-  // Trend: her ürünü içeren kombini en az 5 farklı hesap seçmeli.
+  // Önizleme oylamaları giriş ekranının model görsellerini kullanır; demo akışında gösterilmez.
   const author = await login(fixture.author);
-  const [man, woman] = await Promise.all(["man.jpg", "woman.jpg"].map((file) => readFile(resolve("../mobile/assets/images/auth", file))));
+  for (const pollId of fixture.pollIds) await cancel(author, pollId);
+
+  // Trend: her ürünü içeren kombini en az 5 farklı hesap seçmeli. Seçenekler ürün fotoğraflarıdır.
+  if (state.trendVersion !== TREND_VERSION) {
+    for (const pollId of Object.values(state.trendPolls)) await cancel(author, pollId);
+    state.trendPolls = {}; state.trendVersion = TREND_VERSION; await save();
+  }
   for (const product of DEMO_PRODUCTS) {
     if (state.trendPolls[product.key]) continue;
-    const a = await upload(author, man, `${product.key}.jpg`);
-    const b = await upload(author, woman, "diger.jpg");
+    const other = DEMO_PRODUCTS.find((row) => row.key !== product.key)!;
+    const a = await upload(author, await readFile(resolve(PRODUCT_PHOTOS[product.key])), `${product.key}.jpg`);
+    const b = await upload(author, await readFile(resolve(PRODUCT_PHOTOS[other.key])), `${other.key}.jpg`);
     state.trendPolls[product.key] = await publish(author, { question: product.trendQuestion, category: "OUTFIT", visibility: "PUBLIC", durationSeconds: 86400,
       options: [{ position: 1, mediaId: a, products: [{ catalogProductId: state.products[product.key] }] }, { position: 2, mediaId: b, products: [] }] });
     await save();
