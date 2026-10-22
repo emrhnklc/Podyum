@@ -32,7 +32,7 @@ export type TryOnProduct = {
   url?: string;
 };
 
-type Step = "intro" | "pick" | "outfits" | "options" | "working" | "result";
+type Step = "outfits" | "options" | "working" | "result";
 // Seçilen fotoğraf: profildeki bir kombin (sunucu yolu) ya da galeriden yerel dosya.
 type Photo =
   | { kind: "outfit"; path: string | null; question: string; position: number }
@@ -51,7 +51,7 @@ const WORK_MS = 2400;
 // denenirse önceden hazırlanmış mock sonuç gösterilir.
 export function TryOnScreen({ product }: { product: TryOnProduct }) {
   const { client } = useAuth();
-  const [step, setStep] = useState<Step>("intro");
+  const [step, setStep] = useState<Step>("outfits");
   const [photo, setPhoto] = useState<Photo | null>(null);
   const [outfit, setOutfit] = useState<ApiPoll | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -127,54 +127,9 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
       </View>
       <ProductCard product={product} image={productImage} />
 
-      {step === "intro" && (
-        <>
-          <View style={[common.card, { gap: 12 }]}>
-            {[
-              ["sparkles-outline", "Trendlerde beğendiğin parçayı kendi kombininde gör."],
-              ["shirt-outline", "Paylaşılan linklerdeki ürünler fotoğrafına giydirilir."],
-              ["shield-checkmark-outline", "Fotoğrafın yalnız deneme için kullanılır, paylaşılmaz."],
-            ].map(([icon, text]) => (
-              <View key={text} style={common.row}>
-                <Ionicons
-                  name={icon as keyof typeof Ionicons.glyphMap}
-                  size={22}
-                  color={brand.accent}
-                />
-                <Text style={{ flex: 1 }}>{text}</Text>
-              </View>
-            ))}
-          </View>
-          <Button
-            title="Plus demosunu başlat"
-            icon={<Ionicons name="sparkles" size={18} color={colors.onAccent} />}
-            onPress={() => setStep("pick")}
-          />
-          <Text style={styles.note}>
-            Plus fiyatı ve deneme hakkı henüz belirlenmedi.
-          </Text>
-        </>
-      )}
-
-      {step === "pick" && (
-        <View style={{ gap: 10 }}>
-          <Text style={styles.label}>Hangi fotoğrafında deneyelim?</Text>
-          <Button
-            title="Profilimdeki kombinlerden seç"
-            icon={<Ionicons name="person-circle-outline" size={20} color={colors.onAccent} />}
-            onPress={() => setStep("outfits")}
-          />
-          <Button
-            title="Galeriden fotoğraf seç"
-            variant="outline"
-            onPress={() => void pickFromGallery()}
-          />
-        </View>
-      )}
-
       {step === "outfits" && (
         <>
-          <Text style={styles.label}>Kombinlerin</Text>
+          <Text style={styles.label}>Profilindeki hangi kombinde deneyelim?</Text>
           <ApiStatus
             loading={outfits.loading}
             error={outfits.error ?? loadError}
@@ -204,9 +159,9 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
             </Text>
           )}
           <Button
-            title="Geri"
+            title="Galeriden fotoğraf seç"
             variant="outline"
-            onPress={() => setStep("pick")}
+            onPress={() => void pickFromGallery()}
           />
         </>
       )}
@@ -286,9 +241,9 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
             <Button title="Ürünü gör" onPress={() => void openProduct()} />
           )}
           <Button
-            title="Başka fotoğrafla dene"
+            title="Başka kombinde dene"
             variant="outline"
-            onPress={() => setStep("pick")}
+            onPress={() => setStep("outfits")}
           />
         </>
       )}

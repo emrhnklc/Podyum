@@ -93,7 +93,7 @@ export function CatalogProductScreen({ id }: { id: string }) {
                 olabilir.
               </Text>
               <Button
-                title="Üzerimde dene · PLUS"
+                title="Plus ile dene"
                 variant="dark"
                 icon={<Ionicons name="sparkles" size={18} color={colors.onAccent} />}
                 onPress={() =>
