@@ -29,7 +29,11 @@ export async function uploadMedia(
   byteSize: number,
   mimeType: string,
   purpose: "AVATAR" | "POLL" | "GAME",
-  blur: { requested: boolean; confirmNoFaces?: boolean } = { requested: false },
+  blur: {
+    requested: boolean;
+    confirmNoFaces?: boolean;
+    regions?: { x: number; y: number; width: number; height: number }[];
+  } = { requested: false },
 ) {
   const check = accountGuard(client);
   check();
@@ -80,8 +84,16 @@ export async function uploadMedia(
   check();
   return client.request<AvatarAsset>(`/media/${grant.asset.id}/complete`, {
     method: "POST",
+    // Bölge seçildiyse sunucu onları bulanıklaştırır; seçilmediyse yalnız
+    // kullanıcının açık "yüz yok" onayı gönderilir. İkisi birlikte gitmez.
     body: JSON.stringify(
-      blur.requested && blur.confirmNoFaces ? { confirmNoFaces: true } : {},
+      !blur.requested
+        ? {}
+        : blur.regions?.length
+          ? { blurRegions: blur.regions }
+          : blur.confirmNoFaces
+            ? { confirmNoFaces: true }
+            : {},
     ),
   });
 }

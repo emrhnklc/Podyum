@@ -134,3 +134,20 @@ for (const purpose of ["POLL", "AVATAR", "GAME"] as const) {
     assert.deepEqual(approved.calls[2].body, { confirmNoFaces: true });
   });
 }
+test("işaretlenen yüz bölgeleri gönderilir; bölge varken yüz-yok onayı gitmez, blur kapalıyken bölge gitmez", async () => {
+  const regions = [{ x: 0.1, y: 0.2, width: 0.25, height: 0.15 }];
+  const marked = fixture();
+  await uploadMedia(marked.manager, photo(), bytes.length, "image/jpeg", "POLL", {
+    requested: true,
+    confirmNoFaces: true,
+    regions,
+  });
+  assert.deepEqual(marked.calls[2].body, { blurRegions: regions });
+  const off = fixture();
+  await uploadMedia(off.manager, photo(), bytes.length, "image/jpeg", "POLL", {
+    requested: false,
+    regions,
+  });
+  assert.equal((off.calls[0].body as any).blurRequested, false);
+  assert.deepEqual(off.calls[2].body, {});
+});

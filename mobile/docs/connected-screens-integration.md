@@ -42,7 +42,7 @@ Defile ana ekranındaki canlı ve Sonbahar görselleri, kartları ve stilleri ko
 
 - Affiliate/Plus/reklam ve ayrı haftalık yarışma API’leri. Katalog, mobil ürün seçimi ve Trendler gerçek API’ye bağlıdır; ödeme/abonelik hakkı oluşturulmaz.
 - Google/Apple sağlayıcı kurulumu; gerçek e-posta ve telefona push teslimi. Şifre sıfırlama iletisi geliştirmede backend'in yerel posta kutusundadır; token frontend'den okunmaz.
-- Yüz bölgesi seçme arayüzü. Bulanıklaştırma açıkken “yüz yok” onayı yalnız kullanıcının açık seçimiyle gönderilir; yüz varsa bu onay verilmemelidir.
+- Otomatik yüz bulma. Bölgeleri şimdilik kullanıcı elle işaretler (aşağıda).
 - Kapak fotoğrafı, konum, DM, öne çıkanlar ve topluluklar. Bunlar için çalışan API yoksa başarı makbuzu üretilmez. Takip ve beğeni 21 Ekim'de bağlandı (aşağıda).
 - Günlük defile saati ürün kararıdır. Ayarlanmamışsa ekranda belirtilir; istemci rastgele günlük etkinlik yaratmaz.
 - Fiziksel iOS/Android cihazında galeri/kamera izinleri, QR ile uygulamaya dönüş ve paylaşım menüsü testi. Web testi ve native export bu kontrolün yerine geçmez.
@@ -96,4 +96,11 @@ Ortak `uploadMedia` artık native/web üzerinde Blob gönderir; `readPhoto` okud
 - Keşfet kartındaki kalp `PUT/DELETE /polls/:id/like` çağırır; sayı ve durum sunucu makbuzundan güncellenir. Beğeni tercih oyundan ayrıdır.
 - Profil ızgarasında kartta `likeCount` varsa kalp ve sayı görünür. Kendi `/me/polls` özetinde bu alan yoktur; orada soru metni kalır.
 - Yeni takipçi bildirimi `user.follow.received` türüyle "seni takip etmeye başladı" metnini gösterir.
+
+## Yüz bulanıklaştırma (22 Ekim 2026)
+
+- Paylaş'ta bulanıklaştırma açıkken her fotoğrafın altında "Yüzleri işaretle" düğmesi vardır. `FaceRegionEditor` fotoğrafı oranını bozmadan gösterir; dokunulan yere kare ekler, seçili kare büyütülür/küçültülür/silinir. En fazla 10 bölge.
+- Dokunma noktası fotoğrafın ekrandaki konumu ölçülerek hesaplanır (`measure` + `pageX/pageY`); web'de `locationX` gelmez.
+- Bölgeler 0–1 oranlarıyla `complete.blurRegions` olarak gider; bölge varken `confirmNoFaces` gönderilmez. İşaretlenmemiş fotoğraf için kullanıcı "İşaretlemediğim fotoğraflarda yüz yok" onayını açıkça verir. Fotoğraf değişince bölgeler sıfırlanır.
+- Bulanıklaştırmayı sunucu yapar; sonuç mevcut onay ekranında görünür. `npm run test:media-upload` gönderim kuralını denetler.
 
