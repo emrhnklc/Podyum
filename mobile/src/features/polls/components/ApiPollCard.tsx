@@ -420,39 +420,64 @@ function ProductRow({ product }: { product: ProductTag }) {
       setError(true);
     }
   }
+  // Bağlantı ve "Üzerimde dene" yan yana iki ayrı düğmedir; iç içe düğme web'de geçersiz.
   return (
-    <Pressable
-      accessibilityRole="link"
-      accessibilityLabel={`${product.title}, ${price}. Ürünü gör`}
-      onPress={() => void open()}
-      style={({ pressed }) => [styles.productRow, { opacity: pressed ? 0.6 : 1 }]}
-    >
-      <View style={styles.thumb}>
-        <Ionicons name="shirt-outline" size={26} color={colors.photoText} />
-      </View>
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text numberOfLines={2} style={styles.productName}>
-          {product.title}
-        </Text>
-        <Text style={{ fontSize: 13, color: colors.muted }}>
-          {[product.brand, price].filter(Boolean).join(" · ")}
-        </Text>
-        <Text style={{ fontSize: 11, color: colors.muted }}>
-          {product.source === "CATALOG"
-            ? "Katalogdan · yayın anındaki bilgiler"
-            : "Paylaşan kişinin ürün bilgisi"}
-        </Text>
-        {error && (
-          <Text style={{ color: colors.accent, fontSize: 12 }}>
-            Bağlantı açılamadı. Tekrar dene.
+    <View style={styles.productRow}>
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={`${product.title}, ${price}. Ürünü gör`}
+        onPress={() => void open()}
+        style={({ pressed }) => [styles.productLink, { opacity: pressed ? 0.6 : 1 }]}
+      >
+        <View style={styles.thumb}>
+          <Ionicons name="shirt-outline" size={26} color={colors.photoText} />
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text numberOfLines={2} style={styles.productName}>
+            {product.title}
           </Text>
-        )}
-      </View>
-      <View style={[common.row, { gap: 4 }]}>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 12 }}>Ürünü gör</Text>
-        <Ionicons name="open-outline" size={15} color={colors.text} />
-      </View>
-    </Pressable>
+          <Text style={{ fontSize: 13, color: colors.muted }}>
+            {[product.brand, price].filter(Boolean).join(" · ")}
+          </Text>
+          <Text style={{ fontSize: 11, color: colors.muted }}>
+            {product.source === "CATALOG"
+              ? "Katalogdan · yayın anındaki bilgiler"
+              : "Paylaşan kişinin ürün bilgisi"}
+          </Text>
+          <View style={[common.row, { gap: 4 }]}>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 12 }}>
+              Ürünü gör
+            </Text>
+            <Ionicons name="open-outline" size={13} color={colors.text} />
+          </View>
+          {error && (
+            <Text style={{ color: colors.accent, fontSize: 12 }}>
+              Bağlantı açılamadı. Tekrar dene.
+            </Text>
+          )}
+        </View>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${product.title} ürününü üzerimde dene, Plus`}
+        onPress={() =>
+          router.push({
+            pathname: "/try-on",
+            params: {
+              title: product.title,
+              ...(product.brand ? { brand: product.brand } : {}),
+              ...(product.priceMinor !== null ? { price } : {}),
+              url: product.externalUrl,
+            },
+          })
+        }
+        style={({ pressed }) => [styles.tryOn, { opacity: pressed ? 0.7 : 1 }]}
+      >
+        <Ionicons name="sparkles" size={16} color={colors.onAccent} />
+        <Text style={styles.tryOnText}>Dene</Text>
+        <Text style={styles.tryOnPlus}>PLUS</Text>
+      </Pressable>
+    </View>
   );
 }
 export function CardAction({
@@ -600,12 +625,24 @@ const styles = StyleSheet.create({
   productRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
     padding: 8,
-    paddingRight: 12,
+    paddingRight: 10,
     borderRadius: 16,
     backgroundColor: colors.surface,
   },
+  productLink: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12 },
+  tryOn: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 1,
+    width: 58,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: colors.text,
+  },
+  tryOnText: { fontFamily: fonts.bold, fontSize: 12, color: colors.onAccent },
+  tryOnPlus: { fontFamily: fonts.extraBold, fontSize: 9, color: colors.accentSoft },
   thumb: {
     width: 60,
     height: 60,

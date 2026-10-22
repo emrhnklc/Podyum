@@ -104,3 +104,9 @@ Ortak `uploadMedia` artık native/web üzerinde Blob gönderir; `readPhoto` okud
 - Bölgeler 0–1 oranlarıyla `complete.blurRegions` olarak gider; bölge varken `confirmNoFaces` gönderilmez. İşaretlenmemiş fotoğraf için kullanıcı "İşaretlemediğim fotoğraflarda yüz yok" onayını açıkça verir. Fotoğraf değişince bölgeler sıfırlanır.
 - Bulanıklaştırmayı sunucu yapar; sonuç mevcut onay ekranında görünür. `npm run test:media-upload` gönderim kuralını denetler.
 
+## Üzerimde dene — Plus konsepti, DEMO (22 Ekim 2026)
+
+- Keşfet kartındaki her etiketli parçanın yanında "Dene · PLUS" düğmesi `/try-on` ekranını açar (ürün adı, marka, fiyat, bağlantı parametreyle gelir).
+- Ekran yalnız konsepttir: ödeme veya Plus hakkı denetimi yoktur, fotoğraf sunucuya gönderilmez, yapay zekâ görsel üretmez. Sonuç seçilen fotoğrafın kendisidir ve üzerinde "KONSEPT ÖNİZLEME" yazar.
+- Gerçek akış için gerekenler: Plus abonelik/hak denetimi, bir sanal deneme (virtual try-on) servisi ve ürün görseli. Katalogdaki ürünlerin henüz görseli yoktur.
+
