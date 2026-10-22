@@ -1,21 +1,31 @@
+import type { ImageSourcePropType } from "react-native";
+
 // Yatırımcı demosu için hazır "üzerimde dene" sonuçları. Yapay zekâ çağrısı
 // yoktur: ürün + kullanıcının belirli kombini eşleşirse önceden hazırlanmış
-// mock görsel gösterilir. Görseller Git dışındadır (public/demo/try-on/);
-// backend/scripts/demo-try-on.ts aynı ürün ve kombin sorusunu kurar.
+// mock görsel gösterilir. Görseller uygulamaya gömülüdür (assets/images/try-on);
+// backend/scripts/demo-try-on.ts aynı ürünleri ve kombin sorusunu kurar.
 type DemoTryOn = {
   // Ürün sayfası yolunda geçen mağaza ürün kimliği.
   productKey: string;
-  productImage: string;
+  productImage: ImageSourcePropType;
   outfitQuestion: string;
-  result: string;
+  result: ImageSourcePropType;
 };
+
+export const DEMO_OUTFIT_QUESTION = "Bugünkü kombinim nasıl?";
 
 const DEMOS: DemoTryOn[] = [
   {
     productKey: "p00526325",
-    productImage: "/demo/try-on/zara-polo.jpg",
-    outfitQuestion: "Bugünkü kombinim nasıl?",
-    result: "/demo/try-on/zara-polo-result.jpg",
+    productImage: require("../../../../assets/images/try-on/zara-polo.jpg"),
+    outfitQuestion: DEMO_OUTFIT_QUESTION,
+    result: require("../../../../assets/images/try-on/zara-polo-result.jpg"),
+  },
+  {
+    productKey: "p00840333",
+    productImage: require("../../../../assets/images/try-on/zara-jean.jpg"),
+    outfitQuestion: DEMO_OUTFIT_QUESTION,
+    result: require("../../../../assets/images/try-on/zara-jean-result.jpg"),
   },
 ];
 

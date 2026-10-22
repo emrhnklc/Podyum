@@ -12,7 +12,7 @@ import { ApiStatus } from "@/components/ui/ApiStatus";
 import { CATEGORY_LABEL, type PollCategory } from "@/constants/poll-categories";
 import { catalogPrice } from "@/features/catalog/catalog-product";
 import { colors, common, fonts } from "@/theme";
-import { PreviewImage } from "@/components/media/PreviewImage";
+import { DemoImage } from "@/features/try-on/components/DemoImage";
 import { demoProductImage } from "@/features/try-on/data/demo-results";
 import { useTrends } from "../hooks/use-trends";
 import type {
@@ -270,9 +270,10 @@ export function TrendsScreen() {
                   ]}
                 >
                   {demoProductImage(product.canonicalUrl) ? (
-                    <PreviewImage
-                      uri={demoProductImage(product.canonicalUrl)}
-                      tone={colors.background}
+                    <DemoImage
+                      source={demoProductImage(product.canonicalUrl)!}
+                      tone="#E8E6E0"
+                      fit="contain"
                     />
                   ) : (
                     <Ionicons

@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   View,
+  type ImageSourcePropType,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,7 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
 import { ApiStatus } from "@/components/ui/ApiStatus";
 import { ApiImage } from "@/components/media/ApiImage";
-import { PreviewImage } from "@/components/media/PreviewImage";
+import { DemoImage } from "../components/DemoImage";
 import { useApiQuery } from "@/hooks/use-api-query";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
@@ -260,7 +261,7 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
         <>
           <View style={styles.frame}>
             {demoResult ? (
-              <PreviewImage uri={demoResult} tone={colors.surface} />
+              <DemoImage source={demoResult} tone={colors.surface} />
             ) : (
               <PhotoView photo={photo} />
             )}
@@ -306,11 +307,21 @@ function PhotoView({ photo, blurred = false }: { photo: Photo; blurred?: boolean
   );
 }
 
-function ProductCard({ product, image }: { product: TryOnProduct; image?: string }) {
+function ProductCard({
+  product,
+  image,
+}: {
+  product: TryOnProduct;
+  image?: ImageSourcePropType;
+}) {
   return (
     <View style={styles.product}>
       <View style={styles.thumb}>
-        <PreviewImage uri={image} tone={colors.chip} />
+        {image ? (
+          <DemoImage source={image} tone="#E8E6E0" fit="contain" />
+        ) : (
+          <Ionicons name="shirt-outline" size={28} color={colors.photoText} />
+        )}
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text numberOfLines={2} style={{ fontFamily: fonts.semibold }}>
@@ -356,6 +367,9 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 12,
     overflow: "hidden",
+    backgroundColor: colors.chip,
+    alignItems: "center",
+    justifyContent: "center",
   },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tile: {
