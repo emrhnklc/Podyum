@@ -13,7 +13,7 @@
 | `/comments/:pollId` | polls | Gerçek sayfalı yorumlar, ekle/sil, yazar profili, şikâyet |
 | `/people` | people | Kullanıcı adı önekiyle gerçek arama, profil ve arkadaşlık işlemleri |
 | `/friends` | friends | Arkadaşlar, gelen/giden istekler ve yönetimi |
-| `/profil`, `/u/:username` | profile | Gerçek profil ve paylaşımlar; Gönderi/Takipçi/Takip sayıları, beğeni sayılı ızgara; kendinde kaydedilenler/arkadaşlar/defile geçmişi; diğerinde Takip Et, arkadaşlık/engel/şikâyet |
+| `/profil`, `/u/:username` | profile | Gerçek profil ve paylaşımlar; her oylama tek kare, kapak en çok oy alan kombin (sonuç görülemiyorsa A); iptal edilenler gizli; dokununca iki kombin ve "Kombin detayları"; Gönderi/Takipçi/Takip sayıları, beğeni sayılı ızgara; kendinde kaydedilenler/arkadaşlar/defile geçmişi; diğerinde Takip Et, arkadaşlık/engel/şikâyet |
 | `/follows?userId=&kind=` | people | Takipçiler / takip edilenler; satırdan takip et/bırak |
 | `/profile/edit` | profile | Kullanıcı adı, ad, bio, stil, avatar onayı ve kalıcı kayıt |
 | `/bildirimler` | notifications | Gerçek liste/okunmamış/okundu/ilgili içerik ve tercihler; sekme çubuğunda gizli |
@@ -26,6 +26,8 @@
 | `/defile` | games | Görseller korunur; gerçek lig, hızlı eşleş, davetli oda, Sonbahar temalı odalar, arkadaşlar ve geçmiş |
 | `/games/browse` | games | Açık/günlük odalar, tema araması, katılım ve oda oluşturma |
 | `/games/history`, `/games/league` | games | Katılım geçmişi ve gerçek lig puanları |
+| `/games/modes/budget`, `/games/modes/sponsored` | games | Konsept: bütçe meydan okuması ve sponsorlu yarışma; örnek veri, katılım kapalı. [Konsept](../../backend/docs/game-modes-concept.md) |
+| `/try-on` | try-on | Konsept/DEMO: Plus "Üzerimde dene"; ödeme ve yapay zekâ yok |
 | `/games/new` | games | Tema, katılımcı sayısı, süre, planlı/elle başlangıç, herkese açık/davetli oda |
 | `/games/:id` | games | Oda, QR, başlat/erken bitir/ayrıl, fotoğraf önizleme/onay/teslim, 1–5 yıldız turu, sonuç |
 | `/games/join?token=` | games | Davet önizleme → giriş → davete dön → kullanıcı onayıyla katıl |
@@ -51,7 +53,7 @@ Normal oy kişisel tercihtir. +10/çoğunluğu bil tahmini kaldırıldı. Aynı 
 
 **Kombindeki parçalar ve trendler:** Her seçenek, parça kimliklerinin listesini taşır (`products: string[]`); parça adı, kategori, örnek fiyat, küçük görsel ve arama sorgusu `features/polls/data/demo-products.ts` içindedir. Gerçek bağlantıda bunların karşılığı seçenek başına ProductTag ve katalogdaki ortak ürün kimliğidir; "Benzerlerini gör" yerine etiketin `externalUrl` adresi açılır. Demo trend listesi aynı parçalardan hesaplanır: parçanın etiketlendiği seçeneklere verilen oyların toplamı. Bu, mentör notundaki "seçilen kombinlerde yer alan ürünler" ölçümüdür; ürün oyu ya da satış değildir.
 
-**Keşfet düzeni:** Kırmızı-siyah tasarım: tek satırlık üst çubukta Podyum, altı çizili Herkes/Arkadaşlar sekmeleri ve filtre/Kişiler/Bildirim ikonları. Oylama çerçevesizdir; 9:16 seçenekler ekran genişliğini kullanır. Kaydet/yorum/sonuç ikon, sıradaki kombin kırmızı yuvarlak düğmedir. Etiketli parçalar kartın altında liste olarak görünür. "Senin oylaman" şeridi Keşfet'te yoktur; kendi oylamalarına Profil'den ulaşılır.
+**Keşfet düzeni:** Üst satırda Podyum, "Kişi ara" kutusu (Kişiler ekranı) ve bildirim; alt satırda altı çizili Herkes/Arkadaşlar sekmeleri ve filtre. Oylama çerçevesizdir; 9:16 seçenekler ekran genişliğini kullanır. Beğeni/kaydet/yorum ikon, sıradaki kombin kırmızı yuvarlak düğmedir. Oy verilince ve istatistik ikonuyla "Kombin detayları" sayfası açılır: A/B sekmeleri, kombin fotoğrafı ve "Bu kombini kaydet", etiketli parçalar (ürüne git, üzerimde dene), Paylaş ve açılır istatistikler. Oranlar ve toplam oy sunucudandır; cinsiyet/yaş dağılımı örnek veridir ve ekranda öyle yazar. Kendi oylamalarına Profil'den ulaşılır.
 
 Trend sayıları ürünün seçilen kombinlerde yer almasını anlatır; doğrudan ürün oyu veya satış değildir. Filtre uygulandığında genel sıra değişimi gösterilmez. Demo eşik/formül gerçek trend ve gizlilik kararı sayılmaz. Günlük/yaş/marka/para birimi filtreleri ve gerçek katalog kimliği 20 Ekim’de bağlandı; mevcut ekran demo hesap kullanmaz.
 

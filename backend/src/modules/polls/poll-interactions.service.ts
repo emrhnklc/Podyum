@@ -7,7 +7,7 @@ import { PrismaService } from "../../database/prisma.service.js";
 import type { Prisma } from "../../generated/prisma/client.js";
 import { PollReasonCode } from "../../generated/prisma/enums.js";
 import { SocialAccessService } from "../social/social-access.service.js";
-import { pollCardInclude, presentPollCard } from "./poll-card.js";
+import { leadingOptions, pollCardInclude, presentPollCard } from "./poll-card.js";
 import { effectivePollStatus, pollServerNow } from "./polls-internals.js";
 
 type Tx = Prisma.TransactionClient;
@@ -59,7 +59,8 @@ export class PollInteractionsService {
         include: { poll: { include: pollCardInclude(this.access, userId) } },
       });
       const page = rows.slice(0, query.limit); const last = page.at(-1);
-      return { items: page.map((row) => ({ ...presentPollCard(row.poll, userId, now), savedAt: row.createdAt })), serverNow: now,
+      const leading = await leadingOptions(tx, page.map((row) => row.pollId));
+      return { items: page.map((row) => ({ ...presentPollCard(row.poll, userId, now, leading), savedAt: row.createdAt })), serverNow: now,
         nextCursor: rows.length > query.limit && last ? encodeCursor({ id: last.pollId, createdAt: last.createdAt.toISOString() }, context) : null };
     }, { isolationLevel: "RepeatableRead" });
   }
@@ -107,7 +108,8 @@ export class PollInteractionsService {
         orderBy: [{ publishedAt: "desc" }, { id: "desc" }], take: query.limit + 1, include: pollCardInclude(this.access, viewerId),
       });
       const page = rows.slice(0, query.limit); const last = page.at(-1);
-      return { items: page.map((poll) => presentPollCard(poll, viewerId, now)), serverNow: now,
+      const leading = await leadingOptions(tx, page.map((poll) => poll.id));
+      return { items: page.map((poll) => presentPollCard(poll, viewerId, now, leading)), serverNow: now,
         nextCursor: rows.length > query.limit && last ? encodeCursor({ id: last.id, createdAt: last.publishedAt!.toISOString() }, context) : null };
     }, { isolationLevel: "RepeatableRead" });
   }

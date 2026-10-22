@@ -42,7 +42,7 @@ Defile ana ekranındaki canlı ve Sonbahar görselleri, kartları ve stilleri ko
 
 - Affiliate/Plus/reklam ve ayrı haftalık yarışma API’leri. Katalog, mobil ürün seçimi ve Trendler gerçek API’ye bağlıdır; ödeme/abonelik hakkı oluşturulmaz.
 - Google/Apple sağlayıcı kurulumu; gerçek e-posta ve telefona push teslimi. Şifre sıfırlama iletisi geliştirmede backend'in yerel posta kutusundadır; token frontend'den okunmaz.
-- Yüz bölgesi seçme arayüzü. Bulanıklaştırma açıkken “yüz yok” onayı yalnız kullanıcının açık seçimiyle gönderilir; yüz varsa bu onay verilmemelidir.
+- Otomatik yüz bulma. Bölgeleri şimdilik kullanıcı elle işaretler (aşağıda).
 - Kapak fotoğrafı, konum, DM, öne çıkanlar ve topluluklar. Bunlar için çalışan API yoksa başarı makbuzu üretilmez. Takip ve beğeni 21 Ekim'de bağlandı (aşağıda).
 - Günlük defile saati ürün kararıdır. Ayarlanmamışsa ekranda belirtilir; istemci rastgele günlük etkinlik yaratmaz.
 - Fiziksel iOS/Android cihazında galeri/kamera izinleri, QR ile uygulamaya dönüş ve paylaşım menüsü testi. Web testi ve native export bu kontrolün yerine geçmez.
@@ -97,3 +97,22 @@ Ortak `uploadMedia` artık native/web üzerinde Blob gönderir; `readPhoto` okud
 - Profil ızgarasında kartta `likeCount` varsa kalp ve sayı görünür. Kendi `/me/polls` özetinde bu alan yoktur; orada soru metni kalır.
 - Yeni takipçi bildirimi `user.follow.received` türüyle "seni takip etmeye başladı" metnini gösterir.
 
+## Yüz bulanıklaştırma (22 Ekim 2026)
+
+- Paylaş'ta bulanıklaştırma açıkken her fotoğrafın altında "Yüzleri işaretle" düğmesi vardır. `FaceRegionEditor` fotoğrafı oranını bozmadan gösterir; dokunulan yere kare ekler, seçili kare büyütülür/küçültülür/silinir. En fazla 10 bölge.
+- Dokunma noktası fotoğrafın ekrandaki konumu ölçülerek hesaplanır (`measure` + `pageX/pageY`); web'de `locationX` gelmez.
+- Bölgeler 0–1 oranlarıyla `complete.blurRegions` olarak gider; bölge varken `confirmNoFaces` gönderilmez. İşaretlenmemiş fotoğraf için kullanıcı "İşaretlemediğim fotoğraflarda yüz yok" onayını açıkça verir. Fotoğraf değişince bölgeler sıfırlanır.
+- Bulanıklaştırmayı sunucu yapar; sonuç mevcut onay ekranında görünür. `npm run test:media-upload` gönderim kuralını denetler.
+
+## Üzerimde dene — Plus konsepti, DEMO (22 Ekim 2026)
+
+- `/try-on` ekranını ürün detayındaki "Plus ile dene" düğmesi ve "Kombin detayları" sayfasındaki parça kartının deneme ikonu açar (ürün adı, marka, fiyat, bağlantı parametreyle gelir). Ekran doğrudan kullanıcının profilindeki kombinleri listeler; kombin seçilince A/B fotoğrafı seçilir. Galeriden fotoğraf seçmek ikinci seçenektir.
+- Ekran yalnız konsepttir: ödeme veya Plus hakkı denetimi yoktur, fotoğraf sunucuya gönderilmez, yapay zekâ görsel üretmez. Sonuç seçilen fotoğrafın kendisidir ve üzerinde "KONSEPT ÖNİZLEME" yazar.
+- Gerçek akış için gerekenler: Plus abonelik/hak denetimi, bir sanal deneme (virtual try-on) servisi ve ürün görseli. Katalogdaki ürünlerin henüz görseli yoktur.
+
+### Hazır mock sonuçlu demo (Zara polo ve jean)
+
+- Demo ürünleri `features/try-on/data/demo-results.ts` içinde mağaza ürün kimliğiyle eşleşir: Zara çizgili polo (`p00526325`) ve Zara çan paça jean (`p00840333`). Trendler ve ürün detayı ürün görselini gösterir; akış Trendler → ürün → "Plus ile dene" → profildeki kombin → fotoğraf şeklindedir.
+- Profil listesi kullanıcının yayındaki kombinleridir. Demo ürünü "Bugünkü kombinim nasıl?" kombininin A fotoğrafında denenirse önceden hazırlanmış görsel "MOCK SONUÇ" etiketiyle görünür; diğer seçimlerde konsept önizleme kalır.
+- Ürün ve mock sonuç görselleri uygulamaya gömülüdür (`assets/images/try-on/`); ek ortam değişkeni gerekmez. Kullanıcının kombin fotoğrafları `backend/demo/try-on/outfit-a.jpg` ve `outfit-b.jpg` dosyalarıdır. Bu görseller gerçek kişi fotoğraflarıdır ve kullanıcının isteğiyle herkese açık repoya eklenmiştir.
+- Kurulum: backend çalışırken `backend` klasöründe `npm run preview:mobile`, sonra `npm run demo:try-on`. Script Zara mağazasını ve iki ürünü (fiyat boş), kullanıcının iki fotoğraflı kombin oylamasını ve ürünleri trende sokacak oyları kurar; tekrar çalıştırılabilir. Eski tek fotoğraflı demo oylaması varsa iptal edilip yenisi açılır. Trend oylamaları ürün fotoğraflarıyla kurulur; giriş ekranı model görsellerini kullanan `preview:mobile` oylamaları demo sırasında iptal edilir.

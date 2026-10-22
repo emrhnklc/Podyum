@@ -54,6 +54,8 @@ export type ApiPoll = {
   isSaved?: boolean;
   likeCount?: number;
   isLiked?: boolean;
+  // En çok oy alan seçenek; yalnız sonucu görebilen izleyiciye gelir.
+  coverOptionId?: string | null;
 };
 export type PollResults = {
   pollId: string;

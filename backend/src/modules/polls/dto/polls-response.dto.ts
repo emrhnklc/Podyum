@@ -77,7 +77,7 @@ export class PollResponseDto extends PollSummaryDto {
 
 export class MyPollListItemDto extends PollSummaryDto {
   @ApiProperty() optionCount!: number;
-  @ApiProperty({ type: String, nullable: true }) thumbnailPath!: string | null;
+  @ApiProperty({ type: String, nullable: true, description: "Kapak: en çok oy alan seçeneğin küçük görseli; oy yoksa ilk seçenek." }) thumbnailPath!: string | null;
 }
 
 export class MyPollsResponseDto {

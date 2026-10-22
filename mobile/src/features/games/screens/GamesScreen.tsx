@@ -16,6 +16,7 @@ import { errorMessage } from "@/lib/api/client";
 import { quickMatch as findMatch } from "../api/games";
 import { brand, colors, common, fonts, serif } from "@/theme";
 import { liveGame, weeklyTheme } from "../data/demo-defile";
+import { MODES, type GameMode } from "../data/demo-modes";
 
 const GOLD = "#F2B627";
 const MEDALS = ["#F2B627", "#B9BCC6", "#D08A55"];
@@ -211,6 +212,38 @@ export function GamesScreen() {
             </Text>
           </View>
           <Cta label="Katıl" icon="sparkles" filled onPress={openTheme} />
+        </View>
+
+        <View style={[styles.box, { gap: 10 }]}>
+          <View style={[common.row, { gap: 8 }]}>
+            <Ionicons name="flask-outline" size={20} color={brand.accentDark} />
+            <Text style={{ flex: 1, fontFamily: fonts.bold, color: brand.accentDark }}>
+              Yeni modlar
+            </Text>
+            <Text style={{ fontSize: 12, color: colors.muted }}>Konsept</Text>
+          </View>
+          {(Object.keys(MODES) as GameMode[]).map((mode) => (
+            <Pressable
+              key={mode}
+              accessibilityRole="button"
+              accessibilityLabel={`${MODES[mode].title}, konsept`}
+              onPress={() =>
+                router.push({ pathname: "/games/modes/[mode]", params: { mode } })
+              }
+              style={styles.modeRow}
+            >
+              <View style={styles.modeIcon}>
+                <Ionicons name={MODES[mode].icon} size={22} color={brand.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontFamily: fonts.bold }}>{MODES[mode].title}</Text>
+                <Text style={{ fontSize: 13, color: colors.muted }}>
+                  {MODES[mode].tagline}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.text} />
+            </Pressable>
+          ))}
         </View>
 
         <View style={[styles.box, { gap: 12 }]}>
@@ -486,6 +519,22 @@ function Sticker({
 }
 
 const styles = StyleSheet.create({
+  modeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    padding: 10,
+    borderRadius: 18,
+    backgroundColor: brand.card,
+  },
+  modeIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: brand.accentSoft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   safe: { flex: 1, backgroundColor: brand.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 14 },

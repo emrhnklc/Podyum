@@ -29,6 +29,10 @@ import { usePreviewMessage } from "@/hooks/use-preview-message";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { errorMessage } from "@/lib/api/client";
 import { ProductTagEditor } from "../components/ProductTagEditor";
+import {
+  FaceRegionEditor,
+  type BlurRegion,
+} from "../components/FaceRegionEditor";
 import { productTitle, type ProductTagDraft } from "../product-tags";
 import {
   newProgress,
@@ -54,7 +58,12 @@ const DURATIONS = [
   { value: 86400, label: "24 saat" },
 ];
 
-type Option = { id: number; photo?: PickedPhoto; products?: ProductTagDraft[] };
+type Option = {
+  id: number;
+  photo?: PickedPhoto;
+  products?: ProductTagDraft[];
+  regions?: BlurRegion[];
+};
 
 export function CreatePollScreen() {
   const [options, setOptions] = useState<Option[]>([{ id: 1 }, { id: 2 }]);
@@ -69,6 +78,7 @@ export function CreatePollScreen() {
   const [busyStep, setBusyStep] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editingProducts, setEditingProducts] = useState<number | null>(null);
+  const [editingFaces, setEditingFaces] = useState<number | null>(null);
   const { client } = useAuth();
   const defaults = useApiQuery<{
     defaultPollVisibility: "PUBLIC" | "FRIENDS";
@@ -103,7 +113,12 @@ export function CreatePollScreen() {
     options.length >= 2 &&
     options.every((option) => option.photo) &&
     question.trim().length > 0 &&
-    (!blur || noFaces);
+    // Bulanıklaştırma açıksa her fotoğraf ya işaretlenmiş olmalı ya da
+    // kullanıcı işaretlenmeyenlerde yüz olmadığını onaylamalı.
+    (!blur || noFaces || options.every((option) => option.regions?.length));
+  const unmarked = options.filter(
+    (option) => option.photo && !option.regions?.length,
+  ).length;
 
   async function publish(confirmed = false) {
     if (!canPublish || publishing.current) return;
@@ -117,6 +132,7 @@ export function CreatePollScreen() {
       blur,
       confirmNoFaces: blur && noFaces,
       photos: options.map((option) => option.photo!),
+      regions: options.map((option) => (blur ? (option.regions ?? []) : [])),
       products: options.map((option) => option.products ?? []),
     };
     const signature = JSON.stringify(input);
@@ -182,7 +198,8 @@ export function CreatePollScreen() {
       };
       setOptions((previous) =>
         previous.map((option) =>
-          option.id === id ? { ...option, photo } : option,
+          // Yeni fotoğrafta eski yüz bölgeleri geçersizdir.
+          option.id === id ? { ...option, photo, regions: undefined } : option,
         ),
       );
     } catch {
@@ -311,6 +328,31 @@ export function CreatePollScreen() {
               }}
             />
           )}
+        {editingFaces !== null &&
+          (() => {
+            const index = options.findIndex(
+              (option) => option.id === editingFaces,
+            );
+            const option = options[index];
+            if (!option?.photo) return null;
+            return (
+              <FaceRegionEditor
+                key={editingFaces}
+                uri={option.photo.uri}
+                label={`${LETTERS[index]} Kombini`}
+                initial={option.regions ?? []}
+                onClose={() => setEditingFaces(null)}
+                onSave={(regions) => {
+                  setOptions((current) =>
+                    current.map((row) =>
+                      row.id === editingFaces ? { ...row, regions } : row,
+                    ),
+                  );
+                  setEditingFaces(null);
+                }}
+              />
+            );
+          })()}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -393,6 +435,29 @@ export function CreatePollScreen() {
                     : "+ Ürün etiketle"}
                 </Text>
               </Pressable>
+              {blur && option.photo && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${LETTERS[index]} fotoğrafında yüzleri işaretle`}
+                  disabled={busy}
+                  onPress={() => setEditingFaces(option.id)}
+                  style={[
+                    styles.faceButton,
+                    !!option.regions?.length && styles.faceButtonDone,
+                  ]}
+                >
+                  <Ionicons
+                    name={option.regions?.length ? "eye-off" : "eye-off-outline"}
+                    size={15}
+                    color={option.regions?.length ? brand.accent : colors.text}
+                  />
+                  <Text style={{ fontFamily: fonts.semibold, fontSize: 13 }}>
+                    {option.regions?.length
+                      ? `${option.regions.length} yüz · Düzenle`
+                      : "Yüzleri işaretle"}
+                  </Text>
+                </Pressable>
+              )}
               {!!option.products?.length && (
                 <Text
                   style={{ fontSize: 12, color: colors.muted }}
@@ -529,19 +594,19 @@ export function CreatePollScreen() {
           <View style={styles.divider} />
           <SwitchRow
             icon="eye-off-outline"
-            title="Yüzümü bulanıklaştır"
-            detail="Yüz bölgesi seçme ekranı henüz yok."
+            title="Yüzleri bulanıklaştır"
+            detail="Her fotoğrafta yüzleri işaretle; sunucu yayından önce bulanıklaştırır."
             value={blur}
             onChange={(value) => {
               setBlur(value);
               setNoFaces(false);
             }}
           />
-          {blur && (
+          {blur && unmarked > 0 && (
             <SwitchRow
               icon="checkmark-circle-outline"
-              title="Fotoğraflarımda yüz görünmüyor"
-              detail="Yüzün görünüyorsa bulanıklaştırmayı kapat ya da yüzsüz bir fotoğraf seç; bölge seçimi gelince yüzünü işaretleyebileceksin."
+              title="İşaretlemediğim fotoğraflarda yüz yok"
+              detail={`${unmarked} fotoğrafta bölge işaretlenmedi. Yüz görünüyorsa önce işaretle.`}
               value={noFaces}
               onChange={setNoFaces}
             />
@@ -678,6 +743,18 @@ function SwitchRow({
 }
 
 const styles = StyleSheet.create({
+  faceButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 9,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: brand.line,
+    backgroundColor: brand.card,
+  },
+  faceButtonDone: { borderColor: brand.accent, backgroundColor: brand.accentSoft },
   safe: { flex: 1, backgroundColor: brand.background },
   page: { width: "100%", maxWidth: 520, alignSelf: "center" },
   content: { padding: 16, paddingBottom: 28, gap: 16 },

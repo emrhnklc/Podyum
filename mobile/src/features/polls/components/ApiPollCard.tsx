@@ -12,11 +12,14 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
 import { ApiImage } from "@/components/media/ApiImage";
 import { PollReasons } from "./PollReasons";
+import { OutfitDetailsSheet } from "./OutfitDetailsSheet";
 import { openUser } from "@/features/people/api/social";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApiError, errorMessage } from "@/lib/api/client";
 import { brand, colors, common, fonts } from "@/theme";
 import type { ApiPoll, PollResults, ProductTag } from "../api/types";
+import { DemoImage } from "@/features/try-on/components/DemoImage";
+import { demoProductImage } from "@/features/try-on/data/demo-results";
 
 export function ApiPollCard({
   initial,
@@ -29,6 +32,8 @@ export function ApiPollCard({
 }) {
   const { client } = useAuth();
   const [poll, setPoll] = useState(initial);
+  // Kombin detayları sayfası; açıkken hangi seçenekle açıldığını tutar.
+  const [detailsFor, setDetailsFor] = useState<string | null>(null);
   const [results, setResults] = useState<PollResults | null>(null);
   const [busy, setBusy] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
@@ -118,6 +123,8 @@ export function ApiPollCard({
           canVote: false,
           canViewResults: true,
         }));
+      // Oy verilince seçilen kombinin detayları alttan açılır.
+      if (alive.current && !detail) setDetailsFor(receipt.optionId);
       await reload();
     });
   const save = () =>
@@ -163,6 +170,8 @@ export function ApiPollCard({
     );
   const soon = !expired && remaining < 600;
   const sections = poll.options.filter((option) => option.products.length);
+  const openDetails = () =>
+    setDetailsFor(poll.myOptionId ?? poll.options[0]?.id ?? null);
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -297,15 +306,11 @@ export function ApiPollCard({
             })
           }
         />
-        {!detail && poll.canViewResults && (
-          <IconAction
-            label="Sonuç detayları"
-            icon="stats-chart-outline"
-            onPress={() =>
-              router.push({ pathname: "/polls/[id]", params: { id: poll.id } })
-            }
-          />
-        )}
+        <IconAction
+          label="Kombin detayları"
+          icon="stats-chart-outline"
+          onPress={openDetails}
+        />
         {onSkip && (
           <Pressable
             accessibilityRole="button"
@@ -324,6 +329,19 @@ export function ApiPollCard({
       </View>
       {detail && (
         <View style={{ paddingHorizontal: 16, gap: 14 }}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={openDetails}
+            style={({ pressed }) => [
+              styles.detailsButton,
+              { opacity: pressed ? 0.8 : 1 },
+            ]}
+          >
+            <Ionicons name="stats-chart" size={18} color={colors.onAccent} />
+            <Text style={{ fontFamily: fonts.bold, color: colors.onAccent }}>
+              Kombin detayları
+            </Text>
+          </Pressable>
           {results && (
             <View style={{ gap: 8 }}>
               <Text style={{ fontFamily: fonts.bold }}>
@@ -364,6 +382,16 @@ export function ApiPollCard({
             </View>
           ))}
         </View>
+      )}
+      {detailsFor && (
+        <OutfitDetailsSheet
+          poll={poll}
+          results={results}
+          optionId={detailsFor}
+          busy={busy}
+          onSave={() => void save()}
+          onClose={() => setDetailsFor(null)}
+        />
       )}
     </View>
   );
@@ -420,39 +448,72 @@ function ProductRow({ product }: { product: ProductTag }) {
       setError(true);
     }
   }
+  // Bağlantı ve "Üzerimde dene" yan yana iki ayrı düğmedir; iç içe düğme web'de geçersiz.
   return (
-    <Pressable
-      accessibilityRole="link"
-      accessibilityLabel={`${product.title}, ${price}. Ürünü gör`}
-      onPress={() => void open()}
-      style={({ pressed }) => [styles.productRow, { opacity: pressed ? 0.6 : 1 }]}
-    >
-      <View style={styles.thumb}>
-        <Ionicons name="shirt-outline" size={26} color={colors.photoText} />
-      </View>
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text numberOfLines={2} style={styles.productName}>
-          {product.title}
-        </Text>
-        <Text style={{ fontSize: 13, color: colors.muted }}>
-          {[product.brand, price].filter(Boolean).join(" · ")}
-        </Text>
-        <Text style={{ fontSize: 11, color: colors.muted }}>
-          {product.source === "CATALOG"
-            ? "Katalogdan · yayın anındaki bilgiler"
-            : "Paylaşan kişinin ürün bilgisi"}
-        </Text>
-        {error && (
-          <Text style={{ color: colors.accent, fontSize: 12 }}>
-            Bağlantı açılamadı. Tekrar dene.
+    <View style={styles.productRow}>
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={`${product.title}, ${price}. Ürünü gör`}
+        onPress={() => void open()}
+        style={({ pressed }) => [styles.productLink, { opacity: pressed ? 0.6 : 1 }]}
+      >
+        <View style={styles.thumb}>
+          {demoProductImage(product.externalUrl) ? (
+            <DemoImage
+              source={demoProductImage(product.externalUrl)!}
+              tone="#E8E6E0"
+              fit="contain"
+            />
+          ) : (
+            <Ionicons name="shirt-outline" size={26} color={colors.photoText} />
+          )}
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text numberOfLines={2} style={styles.productName}>
+            {product.title}
           </Text>
-        )}
-      </View>
-      <View style={[common.row, { gap: 4 }]}>
-        <Text style={{ fontFamily: fonts.bold, fontSize: 12 }}>Ürünü gör</Text>
-        <Ionicons name="open-outline" size={15} color={colors.text} />
-      </View>
-    </Pressable>
+          <Text style={{ fontSize: 13, color: colors.muted }}>
+            {[product.brand, price].filter(Boolean).join(" · ")}
+          </Text>
+          <Text style={{ fontSize: 11, color: colors.muted }}>
+            {product.source === "CATALOG"
+              ? "Katalogdan · yayın anındaki bilgiler"
+              : "Paylaşan kişinin ürün bilgisi"}
+          </Text>
+          <View style={[common.row, { gap: 4 }]}>
+            <Text style={{ fontFamily: fonts.bold, fontSize: 12 }}>
+              Ürünü gör
+            </Text>
+            <Ionicons name="open-outline" size={13} color={colors.text} />
+          </View>
+          {error && (
+            <Text style={{ color: colors.accent, fontSize: 12 }}>
+              Bağlantı açılamadı. Tekrar dene.
+            </Text>
+          )}
+        </View>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${product.title} ürününü üzerimde dene, Plus`}
+        onPress={() =>
+          router.push({
+            pathname: "/try-on",
+            params: {
+              title: product.title,
+              ...(product.brand ? { brand: product.brand } : {}),
+              ...(product.priceMinor !== null ? { price } : {}),
+              url: product.externalUrl,
+            },
+          })
+        }
+        style={({ pressed }) => [styles.tryOn, { opacity: pressed ? 0.7 : 1 }]}
+      >
+        <Ionicons name="sparkles" size={16} color={colors.onAccent} />
+        <Text style={styles.tryOnText}>Dene</Text>
+        <Text style={styles.tryOnPlus}>PLUS</Text>
+      </Pressable>
+    </View>
   );
 }
 export function CardAction({
@@ -600,19 +661,41 @@ const styles = StyleSheet.create({
   productRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
     padding: 8,
-    paddingRight: 12,
+    paddingRight: 10,
     borderRadius: 16,
     backgroundColor: colors.surface,
   },
+  productLink: { flex: 1, flexDirection: "row", alignItems: "center", gap: 12 },
+  tryOn: {
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 1,
+    width: 58,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: colors.text,
+  },
+  tryOnText: { fontFamily: fonts.bold, fontSize: 12, color: colors.onAccent },
+  tryOnPlus: { fontFamily: fonts.extraBold, fontSize: 9, color: colors.accentSoft },
   thumb: {
     width: 60,
     height: 60,
     borderRadius: 12,
+    overflow: "hidden",
     backgroundColor: colors.chip,
     alignItems: "center",
     justifyContent: "center",
   },
   productName: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 18 },
+  detailsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    minHeight: 52,
+    borderRadius: 26,
+    backgroundColor: colors.accent,
+  },
 });

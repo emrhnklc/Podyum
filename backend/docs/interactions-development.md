@@ -33,7 +33,7 @@ Yalnız yorum oluşturma `Idempotency-Key` ister. Kaydetme, neden ve şikâyet d
 
 ## Kart alanları
 
-Akış, kaydedilenler ve kullanıcı paylaşımları aynı kartı döndürür: [oylama detayı](polls-development.md) + `totalVotes`, `commentCount`, `isSaved`, `likeCount`, `isLiked`. Kaydedilenler kartında ayrıca `savedAt` vardır. `commentCount` yalnız görünür yorumları sayar; kaldırılmış yorumlar ile askıdaki/iki yönlü engelli yazarların yorumları sayılmaz. Seçenek sayıları ve kazanan bu kartta yoktur; [sonuç ucu](poll-votes-development.md) ayrı yetki denetler.
+Akış, kaydedilenler ve kullanıcı paylaşımları aynı kartı döndürür: [oylama detayı](polls-development.md) + `totalVotes`, `commentCount`, `isSaved`, `likeCount`, `isLiked`, `coverOptionId`. `coverOptionId` en çok oy alan seçenektir (eşitlikte önce gelen); yalnız sonucu görebilen izleyiciye (sahip, oy veren veya kapanmış oylama) ve en az bir oy varsa dolu gelir, profil kapağı içindir. `GET /me/polls` öğesindeki `thumbnailPath` da aynı kurala göre önde giden seçeneğin küçük görselidir; oy yoksa ilk seçenek. Kaydedilenler kartında ayrıca `savedAt` vardır. `commentCount` yalnız görünür yorumları sayar; kaldırılmış yorumlar ile askıdaki/iki yönlü engelli yazarların yorumları sayılmaz. Seçenek sayıları ve kazanan bu kartta yoktur; [sonuç ucu](poll-votes-development.md) ayrı yetki denetler.
 
 ## Beğeni
 

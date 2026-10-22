@@ -138,7 +138,7 @@ Sosyal değişiklik ve kalıcı outbox olayı aynı transaction'dadır. Bildirim
 - [x] Yerel yükleme izni, yükleme tamamlama ve sahiplik kontrolü.
 - [x] Gerçek dosya türü, boyut/piksel sınırı, thumbnail/display üretimi ve EXIF temizleme.
 - [x] Manuel seçilen bölgelerde yüz bulanıklaştırma, kullanıcı önizlemesi ve açık onay.
-- [ ] Otomatik yüz tespit sağlayıcısı/modeli; mobil bölge seçme ve önizleme ekranının cihaz üzerinde doğrulanması.
+- [ ] Otomatik yüz tespit sağlayıcısı/modeli. Mobil elle bölge seçme ekranı 22 Ekim'de bağlandı; fiziksel cihazda doğrulanması bekliyor.
 - [x] İşleniyor/hazır/reddedildi durumları ve geçici hatadan yeniden deneme.
 - [x] Tamamlanmış fotoğrafın yeniden kullanılan upload linkiyle değiştirilememesi.
 - [x] Arkadaş içeriğine yetkili erişim; orijinal dosyaların dışarı açılmaması. Gerçek oylama yayınlama ve sosyal HTTP komutları öncesi/sonrası doğrulandı. Oyun fotoğrafı erişimi aktif 19. adımda ayrı GAME amacı/katılım kurallarıyla bağlanır.

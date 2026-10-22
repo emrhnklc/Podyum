@@ -8,6 +8,7 @@ import {
 import { ApiError } from "@/lib/api/client";
 import type { PollCategory } from "@/constants/poll-categories";
 import { productTagInputs, type ProductTagDraft } from "../product-tags";
+import type { BlurRegion } from "../components/FaceRegionEditor";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -26,9 +27,12 @@ export type PollDraftInput = {
   visibility: "PUBLIC" | "FRIENDS";
   commentsEnabled: boolean;
   blur: boolean;
-  // Bulanıklaştırma açıkken kullanıcının açık "fotoğraflarda yüz yok" onayı.
+  // Bulanıklaştırma açıkken, bölge işaretlenmemiş fotoğraflar için
+  // kullanıcının açık "yüz yok" onayı.
   confirmNoFaces: boolean;
   photos: PickedPhoto[];
+  // Fotoğraf başına elle işaretlenen yüz bölgeleri.
+  regions?: BlurRegion[][];
   products?: ProductTagDraft[][];
 };
 
@@ -96,6 +100,7 @@ export async function preparePollPhotos(
     const asset = await uploadMedia(client, file, byteSize, mimeType, "POLL", {
       requested: input.blur,
       confirmNoFaces: input.confirmNoFaces,
+      regions: input.regions?.[index],
     });
     progress.mediaIds[index] = asset.id;
   }
