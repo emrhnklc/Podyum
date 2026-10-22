@@ -12,11 +12,15 @@ import type { Session } from "../../mobile/src/features/auth/types.js";
 // trendlere girecek kadar oy toplar. Yalnız yerel geliştirme veritabanı
 // içindir; tekrar çalıştırılabilir. Fotoğraflar backend/demo/try-on altındadır.
 // Kullanım: npm run demo:try-on [-- <A fotoğrafı> <B fotoğrafı>]
+// Sunum için sabit giriş: DEMO_LOGIN_EMAIL ve DEMO_LOGIN_PASSWORD verilirse
+// kombin oylaması bu hesapla paylaşılır; hesap yoksa açılır. İsteğe bağlı
+// DEMO_LOGIN_USERNAME (varsayılan podyum_demo) ve DEMO_LOGIN_NAME. Şifre
+// yalnız ortamdan okunur, hiçbir dosyaya yazılmaz.
 
 type Account = { email: string; password: string; userId: string };
 type Fixture = { viewer: Account; author: Account; pollIds: string[] };
 type DemoState = {
-  admin?: Account; voters: Account[]; outfitPollId?: string; outfitVersion?: number; trendVersion?: number;
+  admin?: Account; voters: Account[]; outfitPollId?: string; outfitOwnerId?: string; outfitVersion?: number; trendVersion?: number;
   products?: Record<string, string>; trendPolls?: Record<string, string>;
   // İlk sürümün tek ürünlü alanları; okunup products/trendPolls'a taşınır.
   productId?: string; trendPollId?: string;
@@ -70,6 +74,26 @@ async function account(kind: string, displayName: string): Promise<Account> {
   const email = `demo_${kind}_${suffix}@example.test`, password = randomBytes(20).toString("base64url");
   await request("/auth/register", undefined, "POST", { email, password, username: `demo_${kind}_${suffix}`, displayName });
   const token = await login({ email, password, userId: "" });
+  const me = await request("/auth/me", token);
+  await request("/auth/logout", token, "POST");
+  return { email, password, userId: me.user.id };
+}
+
+// Sabit demo hesabı: varsa giriş yapılır, yoksa açılır. Verilmezse önizleme hesabı kullanılır.
+async function outfitOwner(fallback: Account): Promise<Account> {
+  const email = process.env.DEMO_LOGIN_EMAIL?.trim(), password = process.env.DEMO_LOGIN_PASSWORD;
+  if (!email && !password) return fallback;
+  if (!email || !password) throw new Error("DEMO_LOGIN_EMAIL ve DEMO_LOGIN_PASSWORD birlikte verilmeli.");
+  const token = await login({ email, password, userId: "" }).catch(async (error) => {
+    if (!(error instanceof ApiError) || error.status !== 401) throw error;
+    await request("/auth/register", undefined, "POST", { email, password,
+      username: process.env.DEMO_LOGIN_USERNAME ?? "podyum_demo", displayName: process.env.DEMO_LOGIN_NAME ?? "Podyum Demo" })
+      .catch((cause) => { throw new Error(`Demo hesabı açılamadı: ${cause.message}`); });
+    // Kayıt, e-posta zaten varsa da başarılı döner; o durumda giriş yine reddedilir.
+    return login({ email, password, userId: "" }).catch(() => {
+      throw new Error("Bu e-posta başka bir şifreyle kayıtlı. Başka bir DEMO_LOGIN_EMAIL seç.");
+    });
+  });
   const me = await request("/auth/me", token);
   await request("/auth/logout", token, "POST");
   return { email, password, userId: me.user.id };
@@ -138,9 +162,13 @@ try {
   }
 
   // Kullanıcının kendi kombin oylaması: A ve B kendi fotoğrafları. "Üzerimde dene" A'yı kullanır.
-  const viewer = await login(fixture.viewer);
-  if (state.outfitPollId && state.outfitVersion !== OUTFIT_VERSION) {
-    await cancel(viewer, state.outfitPollId);
+  const owner = await outfitOwner(fixture.viewer);
+  const viewer = await login(owner);
+  const previousOwner = state.outfitOwnerId ?? fixture.viewer.userId;
+  if (state.outfitPollId && (state.outfitVersion !== OUTFIT_VERSION || previousOwner !== owner.userId)) {
+    // Eski oylama yalnız sahibi tarafından iptal edilebilir; sahibi bilinmiyorsa yerinde bırakılır.
+    const token = previousOwner === owner.userId ? viewer : previousOwner === fixture.viewer.userId ? await login(fixture.viewer) : null;
+    if (token) await cancel(token, state.outfitPollId);
     delete state.outfitPollId; await save();
   }
   if (!state.outfitPollId) {
@@ -148,7 +176,7 @@ try {
     const b = await upload(viewer, photoB, "kombin-b.jpg");
     state.outfitPollId = await publish(viewer, { question: DEMO_OUTFIT_QUESTION, category: "OUTFIT", visibility: "PUBLIC", durationSeconds: 86400,
       options: [{ position: 1, mediaId: a, products: [] }, { position: 2, mediaId: b, products: [] }] });
-    state.outfitVersion = OUTFIT_VERSION; await save();
+    state.outfitVersion = OUTFIT_VERSION; state.outfitOwnerId = owner.userId; await save();
   }
 
   // Önizleme oylamaları giriş ekranının model görsellerini kullanır; demo akışında gösterilmez.
@@ -192,5 +220,5 @@ try {
   }
   for (const token of [viewer, author, admin]) await request("/auth/logout", token, "POST");
   console.log(JSON.stringify({ ready: !missing.length, products: state.products, outfitPollId: state.outfitPollId, trendPolls: state.trendPolls,
-    loginEmail: fixture.viewer.email, note: missing.length ? "Bazı ürünler henüz trendde değil: backend OUTBOX_WORKER_ENABLED=true ile çalışıyor mu?" : "Ürünler trendlerde." }, null, 2));
+    loginEmail: owner.email, note: missing.length ? "Bazı ürünler henüz trendde değil: backend OUTBOX_WORKER_ENABLED=true ile çalışıyor mu?" : "Ürünler trendlerde." }, null, 2));
 } finally { await db.$disconnect(); }
