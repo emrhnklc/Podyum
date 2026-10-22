@@ -1,5 +1,3 @@
-import type { DemoPost } from "../types";
-
 export type DemoBreakdownRow = { label: string; count: number; percent: number };
 export type DemoDemographics = {
   gender: DemoBreakdownRow[];
@@ -9,7 +7,7 @@ export type DemoDemographics = {
 // Mock: oy verenlerin toplu dağılımı. Paylar gönderi kimliğinden türetilir ki
 // her açılışta aynı kalsın. Gerçek veri değildir; backend'in ilk sonuç
 // sözleşmesinde demografik kırılım yoktur.
-export function demoDemographics(post: DemoPost, total: number): DemoDemographics {
+export function demoDemographics(post: { id: string }, total: number): DemoDemographics {
   const seed = [...post.id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
   const women = 0.45 + (seed % 30) / 100;
   const unspecified = 0.03 + (seed % 5) / 100;

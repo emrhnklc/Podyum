@@ -36,6 +36,18 @@ export function ApiFeedScreen() {
           <Text style={styles.logo} accessibilityRole="header">
             Podyum
           </Text>
+          <Pressable
+            accessibilityRole="search"
+            accessibilityLabel="Kişi ara"
+            onPress={() => router.push("/people")}
+            style={styles.search}
+          >
+            <Ionicons name="search" size={18} color={colors.muted} />
+            <Text style={{ color: colors.muted }}>Kişi ara</Text>
+          </Pressable>
+          <NotificationsButton />
+        </View>
+        <View style={styles.tabBar}>
           <View style={styles.tabs}>
             {scopes.map((item) => {
               const active = scope === item.value;
@@ -60,34 +72,23 @@ export function ApiFeedScreen() {
               );
             })}
           </View>
-          <View style={{ flexDirection: "row" }}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={
-                filtered
-                  ? `Kategori filtresi: ${CATEGORY_LABEL[category]}`
-                  : "Kategori filtresi"
-              }
-              accessibilityState={{ expanded: filtersOpen }}
-              onPress={() => setFiltersOpen((row) => !row)}
-              style={styles.iconButton}
-            >
-              <Ionicons
-                name="options-outline"
-                size={22}
-                color={filtered ? colors.accent : colors.text}
-              />
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Kişileri keşfet"
-              onPress={() => router.push("/people")}
-              style={styles.iconButton}
-            >
-              <Ionicons name="people-outline" size={22} color={colors.text} />
-            </Pressable>
-            <NotificationsButton />
-          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              filtered
+                ? `Kategori filtresi: ${CATEGORY_LABEL[category]}`
+                : "Kategori filtresi"
+            }
+            accessibilityState={{ expanded: filtersOpen }}
+            onPress={() => setFiltersOpen((row) => !row)}
+            style={styles.iconButton}
+          >
+            <Ionicons
+              name="options-outline"
+              size={22}
+              color={filtered ? colors.accent : colors.text}
+            />
+          </Pressable>
         </View>
         <ScrollView
           showsVerticalScrollIndicator={false}
@@ -168,13 +169,30 @@ const styles = StyleSheet.create({
   topBar: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    height: 48,
+    gap: 10,
+    height: 56,
     paddingLeft: 16,
-    paddingRight: 2,
+    paddingRight: 4,
+  },
+  search: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    height: 40,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+  },
+  tabBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingLeft: 16,
+    paddingRight: 4,
   },
   logo: { fontFamily: fonts.extraBold, fontSize: 21, letterSpacing: -0.5 },
-  tabs: { flexDirection: "row", gap: 14 },
+  tabs: { flexDirection: "row", gap: 18 },
   tab: { height: 44, justifyContent: "center", gap: 3 },
   tabText: { fontFamily: fonts.semibold, fontSize: 14, color: colors.muted },
   tabTextActive: { fontFamily: fonts.bold, fontSize: 14, color: colors.text },

@@ -9,6 +9,7 @@ import { SocialAccessService } from "../social/social-access.service.js";
 import type { CreatePollDto, MyPollsQueryDto, PollOptionInputDto, UpdateCommentSettingsDto, UpdatePollDto } from "./dto/polls.dto.js";
 import { pollServerNow as serverNow, effectivePollStatus as effectiveStatus, writePollEvent } from "./polls-internals.js";
 import { pollDetailInclude, presentPoll } from "./poll-read-model.js";
+import { leadingOptions } from "./poll-card.js";
 import { PollProductTagsService } from "./poll-product-tags.service.js";
 
 type Tx = Prisma.TransactionClient;
@@ -192,15 +193,18 @@ export class PollsService {
       const rows = await tx.poll.findMany({ where: { authorId: userId, AND: [status, ...(cursor ? [{ OR: [
         { createdAt: { lt: new Date(cursor.createdAt) } }, { createdAt: new Date(cursor.createdAt), id: { lt: cursor.id } },
       ] }] : [])] }, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: query.limit + 1,
-      include: { _count: { select: { options: true } }, options: { orderBy: { position: "asc" }, take: 1, select: {
-        mediaId: true, media: { select: { status: true, thumbnailKey: true } },
+      include: { _count: { select: { options: true } }, options: { orderBy: { position: "asc" }, select: {
+        id: true, mediaId: true, media: { select: { status: true, thumbnailKey: true } },
       } } } });
-      const items = rows.slice(0, query.limit).map((poll) => ({
+      const page = rows.slice(0, query.limit);
+      // Kapak: sahibi sonucu her zaman görür; en çok oy alan seçenek, oy yoksa ilk seçenek.
+      const leading = await leadingOptions(tx, page.map((poll) => poll.id));
+      const items = page.map((poll) => ({ poll, cover: poll.options.find((option) => option.id === leading.get(poll.id)) ?? poll.options[0] })).map(({ poll, cover }) => ({
         id: poll.id, question: poll.question, category: poll.category, visibility: poll.visibility, status: poll.status,
         effectiveStatus: effectiveStatus(poll, now), contentStatus: poll.contentStatus, version: poll.version,
         createdAt: poll.createdAt, updatedAt: poll.updatedAt, publishedAt: poll.publishedAt, closesAt: poll.closesAt,
-        optionCount: poll._count.options, thumbnailPath: poll.options[0]?.media.status === "READY" && poll.options[0].media.thumbnailKey
-          ? `/v1/media/${poll.options[0].mediaId}/content?variant=thumbnail` : null,
+        optionCount: poll._count.options, thumbnailPath: cover?.media.status === "READY" && cover.media.thumbnailKey
+          ? `/v1/media/${cover.mediaId}/content?variant=thumbnail` : null,
       }));
       const last = items.at(-1);
       return { items, serverNow: now, nextCursor: rows.length > query.limit && last ? encodeCursor({ id: last.id, createdAt: last.createdAt.toISOString() }, context) : null };

@@ -35,6 +35,9 @@ export class PollCardDto extends PollResponseDto {
 
   @ApiProperty({ description: "İzleyici bu paylaşımı beğendi." })
   isLiked!: boolean;
+
+  @ApiProperty({ type: String, format: "uuid", nullable: true, description: "En çok oy alan seçenek (eşitlikte önce gelen). Yalnız sonucu görebilen izleyiciye ve en az bir oy varsa verilir; profil kapağı içindir." })
+  coverOptionId!: string | null;
 }
 
 export class PollCardListDto {

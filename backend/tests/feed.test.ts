@@ -225,7 +225,7 @@ test("kart detayla aynı sözleşmeyi ve yetkili medya yollarını taşır; sonu
   assert.equal(card.likeCount, 0); assert.equal(card.isLiked, false);
   assert.equal(card.serverNow, response.body.serverNow); assert.ok(card.remainingSeconds > 0 && card.remainingSeconds <= 1800);
   const detail = (await call("GET", `/polls/${row.id}`)).body;
-  const { totalVotes, commentCount, isSaved, likeCount, isLiked, ...common } = card;
+  const { totalVotes, commentCount, isSaved, likeCount, isLiked, coverOptionId, ...common } = card;
   const { serverNow: _serverNow, remainingSeconds: _remainingSeconds, ...stableDetail } = detail;
   const { serverNow: _cardNow, remainingSeconds: _cardRemaining, ...stableCard } = common;
   assert.deepEqual(stableCard, stableDetail);

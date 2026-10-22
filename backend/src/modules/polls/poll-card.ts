@@ -20,10 +20,29 @@ export function pollCardInclude(access: SocialAccessService, viewerId: string) {
 
 type PollCardRow = Prisma.PollGetPayload<{ include: ReturnType<typeof pollCardInclude> }>;
 
+// Her oylamada en çok oy alan seçenek; eşitlikte önce gelen sıra kazanır.
+// Profil kapağı içindir; sonuç görünürlüğü presentPollCard'da denetlenir.
+export async function leadingOptions(tx: Prisma.TransactionClient, pollIds: string[]) {
+  if (!pollIds.length) return new Map<string, string>();
+  const counts = await tx.pollVote.groupBy({ by: ["pollId", "optionId"], where: { pollId: { in: pollIds } }, _count: { _all: true } });
+  const options = await tx.pollOption.findMany({ where: { pollId: { in: pollIds } }, select: { id: true, pollId: true, position: true } });
+  const votes = new Map(counts.map((row) => [row.optionId, row._count._all]));
+  const best = new Map<string, { id: string; votes: number; position: number }>();
+  for (const option of options) {
+    const row = { id: option.id, votes: votes.get(option.id) ?? 0, position: option.position };
+    const current = best.get(option.pollId);
+    if (!current || row.votes > current.votes || (row.votes === current.votes && row.position < current.position)) best.set(option.pollId, row);
+  }
+  return new Map([...best].filter(([, row]) => row.votes > 0).map(([pollId, row]) => [pollId, row.id]));
+}
+
 // Yalnız yetkilendirilmiş kayıtları sunar; erişim kontrolü çağıran servistedir.
-export function presentPollCard(poll: PollCardRow, viewerId: string, now: Date) {
+// Önde giden seçenek yalnız sonucu görebilen izleyiciye verilir.
+export function presentPollCard(poll: PollCardRow, viewerId: string, now: Date, leading?: Map<string, string>) {
+  const card = presentPoll(poll, viewerId, now, poll.votes[0]?.optionId ?? null);
   return {
-    ...presentPoll(poll, viewerId, now, poll.votes[0]?.optionId ?? null),
+    ...card,
+    coverOptionId: card.canViewResults ? leading?.get(poll.id) ?? null : null,
     totalVotes: poll._count.votes, commentCount: poll._count.comments, isSaved: poll.saves.length > 0,
     likeCount: poll._count.likes, isLiked: poll.likes.length > 0,
   };

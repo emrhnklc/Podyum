@@ -161,6 +161,25 @@ test("beğeni doğal tekrardır; tercih oyundan ayrıdır, erişim vermez ve kar
   assert.equal(await db.pollLike.count({ where: { pollId: row.id } }), 1);
 });
 
+test("kapak en çok oy alan seçenektir; sonucu göremeyen izleyiciye verilmez", async () => {
+  const row = await poll();
+  const cover = async (actor: Actor) => (await call("GET", `/users/${actors[0].id}/polls`, actor)).body.items.find((item: any) => item.id === row.id).coverOptionId;
+  const thumbnail = async () => (await call("GET", "/me/polls", actors[0])).body.items.find((item: any) => item.id === row.id).thumbnailPath;
+  assert.equal(await cover(actors[3]), null, "oy yokken kapak yok");
+  assert.ok((await thumbnail()).includes(row.options[0].mediaId), "oy yokken sahibine ilk seçenek");
+  assert.equal((await vote(row, actors[1], 1)).status, 200);
+  assert.equal((await vote(row, actors[2], 1)).status, 200);
+  assert.equal(await cover(actors[3]), null, "oy vermemiş izleyiciye açık oylamanın önde gideni sızmaz");
+  assert.equal(await cover(actors[1]), row.options[1].id);
+  assert.ok((await thumbnail()).includes(row.options[1].mediaId), "sahibinin profil kapağı önde giden seçenek");
+  // Eşitlikte önce gelen seçenek kapak olur.
+  assert.equal((await vote(row, actors[3], 0)).status, 200);
+  const tie = await poll();
+  assert.equal((await vote(tie, actors[1], 1)).status, 200);
+  assert.equal((await vote(tie, actors[2], 0)).status, 200);
+  assert.equal((await call("GET", `/users/${actors[0].id}/polls`, actors[1])).body.items.find((item: any) => item.id === tie.id).coverOptionId, tie.options[0].id);
+});
+
 test("kaydedilenler yalnız hâlâ görünen yayınları kişiye özel cursor ile sayfalar", async () => {
   const rows = [await poll(), await poll(), await poll()];
   await vote(rows[0], actors[1], 1);

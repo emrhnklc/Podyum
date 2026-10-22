@@ -2,9 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Linking,
-  Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
@@ -14,6 +12,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Text } from "@/components/ui/Text";
 import { ApiImage } from "@/components/media/ApiImage";
 import { PollReasons } from "./PollReasons";
+import { OutfitDetailsSheet } from "./OutfitDetailsSheet";
 import { openUser } from "@/features/people/api/social";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { ApiError, errorMessage } from "@/lib/api/client";
@@ -33,8 +32,8 @@ export function ApiPollCard({
 }) {
   const { client } = useAuth();
   const [poll, setPoll] = useState(initial);
-  // Oy verilen seçeneğin parçaları alttan açılan sayfada gösterilir.
-  const [sheetOptionId, setSheetOptionId] = useState<string | null>(null);
+  // Kombin detayları sayfası; açıkken hangi seçenekle açıldığını tutar.
+  const [detailsFor, setDetailsFor] = useState<string | null>(null);
   const [results, setResults] = useState<PollResults | null>(null);
   const [busy, setBusy] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
@@ -124,15 +123,8 @@ export function ApiPollCard({
           canVote: false,
           canViewResults: true,
         }));
-      if (
-        alive.current &&
-        !detail &&
-        poll.options.some(
-          (option) =>
-            option.id === receipt.optionId && option.products.length,
-        )
-      )
-        setSheetOptionId(receipt.optionId);
+      // Oy verilince seçilen kombinin detayları alttan açılır.
+      if (alive.current && !detail) setDetailsFor(receipt.optionId);
       await reload();
     });
   const save = () =>
@@ -178,7 +170,8 @@ export function ApiPollCard({
     );
   const soon = !expired && remaining < 600;
   const sections = poll.options.filter((option) => option.products.length);
-  const sheetOption = poll.options.find((option) => option.id === sheetOptionId);
+  const openDetails = () =>
+    setDetailsFor(poll.myOptionId ?? poll.options[0]?.id ?? null);
   return (
     <View style={styles.card}>
       <View style={styles.header}>
@@ -313,15 +306,11 @@ export function ApiPollCard({
             })
           }
         />
-        {!detail && poll.canViewResults && (
-          <IconAction
-            label="Sonuç detayları"
-            icon="stats-chart-outline"
-            onPress={() =>
-              router.push({ pathname: "/polls/[id]", params: { id: poll.id } })
-            }
-          />
-        )}
+        <IconAction
+          label="Kombin detayları"
+          icon="stats-chart-outline"
+          onPress={openDetails}
+        />
         {onSkip && (
           <Pressable
             accessibilityRole="button"
@@ -340,6 +329,19 @@ export function ApiPollCard({
       </View>
       {detail && (
         <View style={{ paddingHorizontal: 16, gap: 14 }}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={openDetails}
+            style={({ pressed }) => [
+              styles.detailsButton,
+              { opacity: pressed ? 0.8 : 1 },
+            ]}
+          >
+            <Ionicons name="stats-chart" size={18} color={colors.onAccent} />
+            <Text style={{ fontFamily: fonts.bold, color: colors.onAccent }}>
+              Kombin detayları
+            </Text>
+          </Pressable>
           {results && (
             <View style={{ gap: 8 }}>
               <Text style={{ fontFamily: fonts.bold }}>
@@ -381,43 +383,16 @@ export function ApiPollCard({
           ))}
         </View>
       )}
-      <Modal
-        visible={!!sheetOption}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSheetOptionId(null)}
-      >
-        <View style={styles.backdrop}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Parçaları kapat"
-            onPress={() => setSheetOptionId(null)}
-            style={{ flex: 1 }}
-          />
-          {sheetOption && (
-            <View style={styles.sheet}>
-              <View style={styles.handle} />
-              <View style={[common.row, { gap: 8 }]}>
-                <View style={styles.sectionBadge}>
-                  <Text style={styles.sectionBadgeText}>{sheetOption.label}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.sectionTitle}>Seçtiğin kombinin parçaları</Text>
-                  <Text style={{ fontSize: 12, color: colors.muted }}>
-                    Tercihin kaydedildi · {sheetOption.products.length} ürün
-                  </Text>
-                </View>
-              </View>
-              <ScrollView contentContainerStyle={{ gap: 10 }}>
-                {sheetOption.products.map((product) => (
-                  <ProductRow key={product.id} product={product} />
-                ))}
-              </ScrollView>
-              <CardAction onPress={() => setSheetOptionId(null)}>Kapat</CardAction>
-            </View>
-          )}
-        </View>
-      </Modal>
+      {detailsFor && (
+        <OutfitDetailsSheet
+          poll={poll}
+          results={results}
+          optionId={detailsFor}
+          busy={busy}
+          onSave={() => void save()}
+          onClose={() => setDetailsFor(null)}
+        />
+      )}
     </View>
   );
 }
@@ -714,21 +689,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   productName: { fontFamily: fonts.semibold, fontSize: 14, lineHeight: 18 },
-  backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.4)" },
-  sheet: {
-    maxHeight: "75%",
-    padding: 20,
-    paddingBottom: 32,
-    gap: 16,
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  handle: {
-    alignSelf: "center",
-    width: 44,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.line,
+  detailsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    minHeight: 52,
+    borderRadius: 26,
+    backgroundColor: colors.accent,
   },
 });

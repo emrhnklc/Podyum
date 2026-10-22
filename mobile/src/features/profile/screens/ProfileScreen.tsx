@@ -27,7 +27,7 @@ type IconName = keyof typeof Ionicons.glyphMap;
 type Tab = "POSTS" | "POLLS" | "SAVED";
 type ProfilePoll = Pick<
   ApiPoll,
-  "id" | "question" | "effectiveStatus" | "likeCount"
+  "id" | "question" | "effectiveStatus" | "likeCount" | "coverOptionId"
 > & {
   thumbnailPath?: string | null;
   options?: ApiPoll["options"];
@@ -78,10 +78,14 @@ export function ProfileScreen({
           : `/users/${targetId}/polls?limit=20`
       : null,
   );
+  // İptal edilen oylama profilde gösterilmez.
+  const visible = list.items.filter(
+    (post) => post.effectiveStatus !== "CANCELLED",
+  );
   const rows =
     tab === "POLLS"
-      ? list.items.filter((post) => post.effectiveStatus === "OPEN")
-      : list.items;
+      ? visible.filter((post) => post.effectiveStatus === "OPEN")
+      : visible;
   const back = () => (router.canGoBack() ? router.back() : router.replace("/"));
   async function block() {
     if (lock.current || !targetId) return;
@@ -350,14 +354,7 @@ export function ProfileScreen({
                   }
                   style={styles.tile}
                 >
-                  <ApiImage
-                    path={
-                      post.thumbnailPath ??
-                      post.options?.[0]?.media.thumbnailPath ??
-                      post.options?.[0]?.media.displayPath ??
-                      null
-                    }
-                  />
+                  <ApiImage path={coverPath(post)} />
                   <View style={styles.likes}>
                     {post.effectiveStatus === "DRAFT" ? (
                       <Text style={{ fontSize: 11 }}>Taslak</Text>
@@ -410,6 +407,20 @@ export function ProfileScreen({
           )}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+// Kapak en çok oy alan kombindir: kendi listende sunucu seçer, kartlarda
+// coverOptionId gelir; sonuç görülemiyorsa ilk kombin kullanılır.
+function coverPath(post: ProfilePoll) {
+  const option =
+    post.options?.find((row) => row.id === post.coverOptionId) ??
+    post.options?.[0];
+  return (
+    post.thumbnailPath ??
+    option?.media.thumbnailPath ??
+    option?.media.displayPath ??
+    null
   );
 }
 
