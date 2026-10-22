@@ -32,7 +32,7 @@ export type TryOnProduct = {
   url?: string;
 };
 
-type Step = "outfits" | "options" | "working" | "result";
+type Step = "outfits" | "working" | "result";
 // Seçilen fotoğraf: profildeki bir kombin (sunucu yolu) ya da galeriden yerel dosya.
 type Photo =
   | { kind: "outfit"; path: string | null }
@@ -53,7 +53,6 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
   const { client } = useAuth();
   const [step, setStep] = useState<Step>("outfits");
   const [photo, setPhoto] = useState<Photo | null>(null);
-  const [outfit, setOutfit] = useState<ApiPoll | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const opening = useRef(false);
   const message = usePreviewMessage();
@@ -90,8 +89,11 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
     opening.current = true;
     setLoadError(null);
     try {
-      setOutfit(await client.request<ApiPoll>(`/polls/${id}`));
-      setStep("options");
+      // Kıyafet kombinin ilk (A) fotoğrafında değiştirilir.
+      const poll = await client.request<ApiPoll>(`/polls/${id}`);
+      const first = [...poll.options].sort((a, b) => a.position - b.position)[0];
+      setPhoto({ kind: "outfit", path: first?.media.displayPath ?? null });
+      setStep("working");
     } catch (error) {
       setLoadError(errorMessage(error));
     } finally {
@@ -159,37 +161,6 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
             title="Galeriden fotoğraf seç"
             variant="outline"
             onPress={() => void pickFromGallery()}
-          />
-        </>
-      )}
-
-      {step === "options" && outfit && (
-        <>
-          <Text style={styles.label}>{outfit.question}</Text>
-          <Text style={styles.note}>Denemek istediğin fotoğrafı seç.</Text>
-          <View style={styles.grid}>
-            {outfit.options.map((option) => (
-              <Pressable
-                key={option.id}
-                accessibilityRole="button"
-                accessibilityLabel={`${option.label} fotoğrafında dene`}
-                onPress={() => {
-                  setPhoto({ kind: "outfit", path: option.media.displayPath });
-                  setStep("working");
-                }}
-                style={styles.optionTile}
-              >
-                <ApiImage path={option.media.displayPath} />
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>{option.label}</Text>
-                </View>
-              </Pressable>
-            ))}
-          </View>
-          <Button
-            title="Başka kombin seç"
-            variant="outline"
-            onPress={() => setStep("outfits")}
           />
         </>
       )}
@@ -333,25 +304,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: colors.background,
   },
-  optionTile: {
-    width: "48.5%",
-    aspectRatio: 9 / 16,
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: colors.surface,
-  },
-  badge: {
-    position: "absolute",
-    top: 8,
-    left: 8,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.text,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: { fontFamily: fonts.extraBold, color: colors.onAccent },
   frame: {
     width: "100%",
     aspectRatio: 920 / 1636,

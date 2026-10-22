@@ -106,14 +106,14 @@ Ortak `uploadMedia` artık native/web üzerinde Blob gönderir; `readPhoto` okud
 
 ## Üzerimde dene — Plus konsepti, DEMO (22 Ekim 2026)
 
-- `/try-on` ekranını ürün detayındaki "Plus ile dene" düğmesi ve "Kombin detayları" sayfasındaki parça kartının deneme ikonu açar (ürün adı, marka, fiyat, bağlantı parametreyle gelir). Ekran doğrudan kullanıcının profilindeki kombinleri listeler; kombin seçilince A/B fotoğrafı seçilir. Galeriden fotoğraf seçmek ikinci seçenektir.
+- `/try-on` ekranını ürün detayındaki "Plus ile dene" düğmesi ve "Kombin detayları" sayfasındaki parça kartının deneme ikonu açar (ürün adı, marka, fiyat, bağlantı parametreyle gelir). Ekran doğrudan kullanıcının profilindeki kombinleri listeler; kombine dokununca ürün o kombinin ilk (A) fotoğrafında denenir. Galeriden fotoğraf seçmek ikinci seçenektir.
 - Ekran yalnız konsepttir: ödeme veya Plus hakkı denetimi yoktur, fotoğraf sunucuya gönderilmez, yapay zekâ görsel üretmez. Sonuç seçilen fotoğrafın kendisidir ve üzerinde "KONSEPT ÖNİZLEME" yazar.
 - Gerçek akış için gerekenler: Plus abonelik/hak denetimi, bir sanal deneme (virtual try-on) servisi ve ürün görseli. Katalogdaki ürünlerin henüz görseli yoktur.
 
 ### Hazır mock sonuçlu demo (Zara polo ve jean)
 
-- Demo ürünleri `features/try-on/data/demo-results.ts` içinde mağaza ürün kimliğiyle eşleşir: Zara çizgili polo (`p00526325`) ve Zara çan paça jean (`p00840333`). Trendler ve ürün detayı ürün görselini gösterir; akış Trendler → ürün → "Plus ile dene" → profildeki kombin → fotoğraf şeklindedir.
-- Profil listesi kullanıcının yayındaki kombinleridir. Demo ürünü hangi fotoğrafta (A, B ya da galeri) denenirse denensin önceden hazırlanmış görsel "MOCK SONUÇ" etiketiyle görünür; diğer ürünlerde konsept önizleme kalır.
+- Demo ürünleri `features/try-on/data/demo-results.ts` içinde mağaza ürün kimliğiyle eşleşir: Zara çizgili polo (`p00526325`) ve Zara çan paça jean (`p00840333`). Trendler ve ürün detayı ürün görselini gösterir; akış Trendler → ürün → "Plus ile dene" → profildeki kombin → sonuç şeklindedir.
+- Profil listesi kullanıcının yayındaki kombinleridir. Demo ürünü hangi fotoğrafta (profildeki kombin ya da galeri) denenirse denensin önceden hazırlanmış görsel "MOCK SONUÇ" etiketiyle görünür; diğer ürünlerde konsept önizleme kalır.
 - Ürün ve mock sonuç görselleri uygulamaya gömülüdür (`assets/images/try-on/`); ek ortam değişkeni gerekmez. Kullanıcının kombin fotoğrafları `backend/demo/try-on/outfit-a.jpg` ve `outfit-b.jpg` dosyalarıdır. Bu görseller gerçek kişi fotoğraflarıdır ve kullanıcının isteğiyle herkese açık repoya eklenmiştir.
 - Kurulum: backend çalışırken `backend` klasöründe `npm run preview:mobile`, sonra `npm run demo:try-on`. Script Zara mağazasını ve iki ürünü (fiyat boş), kullanıcının iki fotoğraflı kombin oylamasını ve ürünleri trende sokacak oyları kurar; tekrar çalıştırılabilir. Eski tek fotoğraflı demo oylaması varsa iptal edilip yenisi açılır. Trend oylamaları ürün fotoğraflarıyla kurulur; giriş ekranı model görsellerini kullanan `preview:mobile` oylamaları demo sırasında iptal edilir.
 - Sunumda hatırlanacak sabit giriş için: `DEMO_LOGIN_EMAIL=... DEMO_LOGIN_PASSWORD=... npm run demo:try-on`. Kombin oylaması bu hesapla paylaşılır; hesap yoksa `podyum_demo` kullanıcı adıyla açılır (`DEMO_LOGIN_USERNAME`, `DEMO_LOGIN_NAME` ile değiştirilebilir). Şifre yalnız ortamdan okunur, dosyaya yazılmaz. E-posta başka bir şifreyle kayıtlıysa script durur ve başka e-posta ister. Hesap verildiği yerel veritabanında açılır; her kurulumda ayrıca oluşur.
