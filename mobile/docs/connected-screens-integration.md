@@ -110,3 +110,10 @@ Ortak `uploadMedia` artık native/web üzerinde Blob gönderir; `readPhoto` okud
 - Ekran yalnız konsepttir: ödeme veya Plus hakkı denetimi yoktur, fotoğraf sunucuya gönderilmez, yapay zekâ görsel üretmez. Sonuç seçilen fotoğrafın kendisidir ve üzerinde "KONSEPT ÖNİZLEME" yazar.
 - Gerçek akış için gerekenler: Plus abonelik/hak denetimi, bir sanal deneme (virtual try-on) servisi ve ürün görseli. Katalogdaki ürünlerin henüz görseli yoktur.
 
+### Hazır mock sonuçlu demo (Zara polo)
+
+- Trendler ve ürün detayı, `features/try-on/data/demo-results.ts` içindeki ürün kimliği eşleşirse ürün görselini gösterir; ürün detayında "Üzerimde dene · PLUS" vardır.
+- "Üzerimde dene"de "Profilimdeki kombinlerden seç" kullanıcının yayındaki kombinlerini listeler. Demo ürünü, "Bugünkü kombinim nasıl?" kombininin A fotoğrafında denenirse önceden hazırlanmış görsel "MOCK SONUÇ" etiketiyle görünür; diğer seçimlerde konsept önizleme kalır.
+- Görseller Git dışındadır: `mobile/public/demo/try-on/zara-polo.jpg` (ürün) ve `zara-polo-result.jpg` (mock sonuç). Expo `EXPO_PUBLIC_DEMO_MEDIA_BASE_URL` ile çalışmalıdır (web: `http://localhost:8081`, telefon: bilgisayarın LAN adresi ve 8081).
+- Kurulum: backend çalışırken `npm run preview:mobile`, sonra `npm run demo:try-on -- <kombin-fotoğrafı.jpg>` (backend klasöründe). Script Zara mağazası/ürününü (fiyat boş), kullanıcının kombinini ve ürünü trende sokacak 6 oyu kurar; tekrar çalıştırılabilir.
+

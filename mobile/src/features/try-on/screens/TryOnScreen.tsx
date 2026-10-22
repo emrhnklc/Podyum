@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
   Linking,
+  Pressable,
   StyleSheet,
   View,
 } from "react-native";
@@ -12,8 +13,16 @@ import { Screen } from "@/components/ui/Screen";
 import { Text } from "@/components/ui/Text";
 import { Button } from "@/components/ui/Button";
 import { BackButton } from "@/components/ui/BackButton";
+import { ApiStatus } from "@/components/ui/ApiStatus";
+import { ApiImage } from "@/components/media/ApiImage";
+import { PreviewImage } from "@/components/media/PreviewImage";
+import { useApiQuery } from "@/hooks/use-api-query";
+import { useAuth } from "@/features/auth/hooks/use-auth";
 import { usePreviewMessage } from "@/hooks/use-preview-message";
+import { errorMessage } from "@/lib/api/client";
+import type { ApiPoll } from "@/features/polls/api/types";
 import { brand, colors, common, fonts } from "@/theme";
+import { demoProductImage, demoTryOnResult } from "../data/demo-results";
 
 export type TryOnProduct = {
   title: string;
@@ -22,34 +31,73 @@ export type TryOnProduct = {
   url?: string;
 };
 
-type Step = "intro" | "pick" | "working" | "result";
+type Step = "intro" | "pick" | "outfits" | "options" | "working" | "result";
+// Seçilen fotoğraf: profildeki bir kombin (sunucu yolu) ya da galeriden yerel dosya.
+type Photo =
+  | { kind: "outfit"; path: string | null; question: string; position: number }
+  | { kind: "local"; uri: string };
+type OwnPoll = {
+  id: string;
+  question: string;
+  thumbnailPath: string | null;
+  effectiveStatus: ApiPoll["effectiveStatus"];
+};
 
 const WORK_MS = 2400;
 
 // Plus konsepti: ürünü kendi kombin fotoğrafında deneme. Bu ekran DEMODUR;
-// ödeme alınmaz, fotoğraf sunucuya gönderilmez ve yapay zekâ görsel üretmez.
-// Gerçek akışta fotoğraf + ürün görseli bir sanal deneme servisine gider.
+// ödeme alınmaz ve yapay zekâ görsel üretmez. Demo ürünü demo kombininde
+// denenirse önceden hazırlanmış mock sonuç gösterilir.
 export function TryOnScreen({ product }: { product: TryOnProduct }) {
+  const { client } = useAuth();
   const [step, setStep] = useState<Step>("intro");
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photo, setPhoto] = useState<Photo | null>(null);
+  const [outfit, setOutfit] = useState<ApiPoll | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const opening = useRef(false);
   const message = usePreviewMessage();
+  const outfits = useApiQuery<{ items: OwnPoll[] }>(
+    step === "outfits" ? "/me/polls?limit=20" : null,
+  );
+  // Taslak ve iptal edilen paylaşımlar denemeye uygun değildir.
+  const ownOutfits = (outfits.data?.items ?? []).filter(
+    (poll) => poll.effectiveStatus === "OPEN" || poll.effectiveStatus === "CLOSED",
+  );
+  const productImage = demoProductImage(product.url);
+  const demoResult =
+    photo?.kind === "outfit"
+      ? demoTryOnResult(product.url, photo)
+      : undefined;
   useEffect(() => {
     if (step !== "working") return;
     const timer = setTimeout(() => setStep("result"), WORK_MS);
     return () => clearTimeout(timer);
   }, [step]);
 
-  async function pick() {
+  async function pickFromGallery() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: "images",
         quality: 0.85,
       });
       if (result.canceled) return;
-      setPhoto(result.assets[0].uri);
+      setPhoto({ kind: "local", uri: result.assets[0].uri });
       setStep("working");
     } catch {
       message("Fotoğraf seçilemedi. Galeri iznini kontrol edip tekrar dene.");
+    }
+  }
+  async function openOutfit(id: string) {
+    if (opening.current) return;
+    opening.current = true;
+    setLoadError(null);
+    try {
+      setOutfit(await client.request<ApiPoll>(`/polls/${id}`));
+      setStep("options");
+    } catch (error) {
+      setLoadError(errorMessage(error));
+    } finally {
+      opening.current = false;
     }
   }
   async function openProduct() {
@@ -67,7 +115,7 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
       <View style={styles.demo}>
         <Ionicons name="flask-outline" size={16} color={brand.accentDark} />
         <Text style={styles.demoText}>
-          Demo: ödeme alınmaz, fotoğrafın cihazından çıkmaz.
+          Demo: ödeme alınmaz, yapay zekâ çalışmaz.
         </Text>
       </View>
       <View style={common.row}>
@@ -76,13 +124,13 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
           <Text style={styles.plusText}>PLUS</Text>
         </View>
       </View>
-      <ProductCard product={product} />
+      <ProductCard product={product} image={productImage} />
 
       {step === "intro" && (
         <>
           <View style={[common.card, { gap: 12 }]}>
             {[
-              ["sparkles-outline", "Beğendiğin parçayı kendi kombin fotoğrafında gör."],
+              ["sparkles-outline", "Trendlerde beğendiğin parçayı kendi kombininde gör."],
               ["shirt-outline", "Paylaşılan linklerdeki ürünler fotoğrafına giydirilir."],
               ["shield-checkmark-outline", "Fotoğrafın yalnız deneme için kullanılır, paylaşılmaz."],
             ].map(([icon, text]) => (
@@ -108,23 +156,102 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
       )}
 
       {step === "pick" && (
-        <View style={[common.card, { alignItems: "center", gap: 14 }]}>
-          <Ionicons name="image-outline" size={44} color={brand.accent} />
-          <Text style={{ textAlign: "center", fontFamily: fonts.semibold }}>
-            Boydan çekilmiş, iyi ışıklı bir kombin fotoğrafı seç.
-          </Text>
-          <Button title="Fotoğrafımı seç" onPress={() => void pick()} />
+        <View style={{ gap: 10 }}>
+          <Text style={styles.label}>Hangi fotoğrafında deneyelim?</Text>
+          <Button
+            title="Profilimdeki kombinlerden seç"
+            icon={<Ionicons name="person-circle-outline" size={20} color={colors.onAccent} />}
+            onPress={() => setStep("outfits")}
+          />
+          <Button
+            title="Galeriden fotoğraf seç"
+            variant="outline"
+            onPress={() => void pickFromGallery()}
+          />
         </View>
+      )}
+
+      {step === "outfits" && (
+        <>
+          <Text style={styles.label}>Kombinlerin</Text>
+          <ApiStatus
+            loading={outfits.loading}
+            error={outfits.error ?? loadError}
+            retry={outfits.refresh}
+          />
+          <View style={styles.grid}>
+            {ownOutfits.map((poll) => (
+              <Pressable
+                key={poll.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Kombin: ${poll.question}`}
+                onPress={() => void openOutfit(poll.id)}
+                style={styles.tile}
+              >
+                <ApiImage path={poll.thumbnailPath} />
+                <View style={styles.tileLabel}>
+                  <Text numberOfLines={2} style={{ fontSize: 11 }}>
+                    {poll.question}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+          {outfits.data && !ownOutfits.length && (
+            <Text style={styles.note}>
+              Henüz paylaştığın bir kombin yok. Galeriden de seçebilirsin.
+            </Text>
+          )}
+          <Button
+            title="Geri"
+            variant="outline"
+            onPress={() => setStep("pick")}
+          />
+        </>
+      )}
+
+      {step === "options" && outfit && (
+        <>
+          <Text style={styles.label}>{outfit.question}</Text>
+          <Text style={styles.note}>Denemek istediğin fotoğrafı seç.</Text>
+          <View style={styles.grid}>
+            {outfit.options.map((option) => (
+              <Pressable
+                key={option.id}
+                accessibilityRole="button"
+                accessibilityLabel={`${option.label} fotoğrafında dene`}
+                onPress={() => {
+                  setPhoto({
+                    kind: "outfit",
+                    path: option.media.displayPath,
+                    question: outfit.question,
+                    position: option.position,
+                  });
+                  setStep("working");
+                }}
+                style={styles.optionTile}
+              >
+                <ApiImage path={option.media.displayPath} />
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{option.label}</Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+          <Button
+            title="Başka kombin seç"
+            variant="outline"
+            onPress={() => setStep("outfits")}
+          />
+        </>
       )}
 
       {step === "working" && photo && (
         <View style={styles.frame}>
-          <Image source={{ uri: photo }} style={styles.photo} blurRadius={8} />
+          <PhotoView photo={photo} blurred />
           <View style={styles.overlay}>
             <ActivityIndicator color={colors.onAccent} size="large" />
-            <Text style={styles.overlayText}>
-              {product.title} deneniyor…
-            </Text>
+            <Text style={styles.overlayText}>{product.title} deneniyor…</Text>
           </View>
         </View>
       )}
@@ -132,7 +259,11 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
       {step === "result" && photo && (
         <>
           <View style={styles.frame}>
-            <Image source={{ uri: photo }} style={styles.photo} />
+            {demoResult ? (
+              <PreviewImage uri={demoResult} tone={colors.surface} />
+            ) : (
+              <PhotoView photo={photo} />
+            )}
             <View style={styles.resultTag}>
               <Ionicons name="sparkles" size={14} color={brand.accent} />
               <Text numberOfLines={1} style={{ fontFamily: fonts.bold, flex: 1 }}>
@@ -140,12 +271,15 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
               </Text>
             </View>
             <View style={styles.conceptBadge}>
-              <Text style={styles.conceptText}>KONSEPT ÖNİZLEME</Text>
+              <Text style={styles.conceptText}>
+                {demoResult ? "MOCK SONUÇ" : "KONSEPT ÖNİZLEME"}
+              </Text>
             </View>
           </View>
           <Text style={styles.note}>
-            Bu bir demo. Gerçek Plus özelliğinde yapay zekâ bu ürünü
-            fotoğrafındaki kombine giydirerek yeni bir görsel üretecek.
+            {demoResult
+              ? "Bu sonuç demo için önceden hazırlandı. Gerçek Plus özelliğinde yapay zekâ ürünü kombinine giydirerek üretecek."
+              : "Bu bir demo. Gerçek Plus özelliğinde yapay zekâ bu ürünü fotoğrafındaki kombine giydirerek yeni bir görsel üretecek."}
           </Text>
           {!!product.url && (
             <Button title="Ürünü gör" onPress={() => void openProduct()} />
@@ -161,11 +295,22 @@ export function TryOnScreen({ product }: { product: TryOnProduct }) {
   );
 }
 
-function ProductCard({ product }: { product: TryOnProduct }) {
+function PhotoView({ photo, blurred = false }: { photo: Photo; blurred?: boolean }) {
+  if (photo.kind === "outfit") return <ApiImage path={photo.path} />;
+  return (
+    <Image
+      source={{ uri: photo.uri }}
+      style={styles.photo}
+      blurRadius={blurred ? 8 : 0}
+    />
+  );
+}
+
+function ProductCard({ product, image }: { product: TryOnProduct; image?: string }) {
   return (
     <View style={styles.product}>
       <View style={styles.thumb}>
-        <Ionicons name="shirt-outline" size={26} color={colors.photoText} />
+        <PreviewImage uri={image} tone={colors.chip} />
       </View>
       <View style={{ flex: 1, gap: 2 }}>
         <Text numberOfLines={2} style={{ fontFamily: fonts.semibold }}>
@@ -197,6 +342,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.text,
   },
   plusText: { fontFamily: fonts.extraBold, fontSize: 12, color: colors.onAccent },
+  label: { fontFamily: fonts.bold, fontSize: 16 },
   product: {
     flexDirection: "row",
     alignItems: "center",
@@ -206,16 +352,48 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   thumb: {
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 80,
     borderRadius: 12,
-    backgroundColor: colors.chip,
+    overflow: "hidden",
+  },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  tile: {
+    width: "31.5%",
+    aspectRatio: 3 / 4,
+    borderRadius: 12,
+    overflow: "hidden",
+    justifyContent: "flex-end",
+    backgroundColor: colors.surface,
+  },
+  tileLabel: {
+    margin: 5,
+    padding: 4,
+    borderRadius: 8,
+    backgroundColor: colors.background,
+  },
+  optionTile: {
+    width: "48.5%",
+    aspectRatio: 9 / 16,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: colors.surface,
+  },
+  badge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.text,
     alignItems: "center",
     justifyContent: "center",
   },
+  badgeText: { fontFamily: fonts.extraBold, color: colors.onAccent },
   frame: {
     width: "100%",
-    aspectRatio: 3 / 4,
+    aspectRatio: 920 / 1636,
     borderRadius: 24,
     overflow: "hidden",
     backgroundColor: colors.surface,
@@ -227,7 +405,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: "rgba(17,17,17,0.35)",
+    backgroundColor: "rgba(17,17,17,0.45)",
     alignItems: "center",
     justifyContent: "center",
     gap: 12,

@@ -60,6 +60,7 @@
     "preaccounts:cleanup": "npm run build",
     "accounts:cleanup": "tsx scripts/cleanup-accounts.ts",
     "preview:mobile": "EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3000/v1 tsx scripts/preview-mobile-home.ts",
+    "demo:try-on": "EXPO_PUBLIC_API_BASE_URL=http://127.0.0.1:3000/v1 tsx scripts/demo-try-on.ts",
     "maintenance:technical": "tsx scripts/cleanup-technical.ts",
     "test:retention": "tsx --test --test-concurrency=1 tests/technical-retention.test.ts",
     "premaintenance:run": "npm run build",

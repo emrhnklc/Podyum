@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Linking, View } from "react-native";
+import { Linking, StyleSheet, View } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Screen } from "@/components/ui/Screen";
@@ -13,6 +13,8 @@ import { CATEGORY_LABEL } from "@/constants/poll-categories";
 import { catalogLink, catalogPrice } from "../catalog-product";
 import { colors, common } from "@/theme";
 import type { CatalogProduct } from "../api/catalog";
+import { PreviewImage } from "@/components/media/PreviewImage";
+import { demoProductImage } from "@/features/try-on/data/demo-results";
 
 export function CatalogProductScreen({ id }: { id: string }) {
   const { session } = useAuth();
@@ -51,7 +53,16 @@ export function CatalogProductScreen({ id }: { id: string }) {
           />
           {product && (
             <View style={[common.card, { gap: 14 }]}>
-              <Ionicons name="shirt-outline" size={54} color={colors.muted} />
+              {demoProductImage(product.canonicalUrl) ? (
+                <View style={styles.image}>
+                  <PreviewImage
+                    uri={demoProductImage(product.canonicalUrl)}
+                    tone={colors.background}
+                  />
+                </View>
+              ) : (
+                <Ionicons name="shirt-outline" size={54} color={colors.muted} />
+              )}
               <Text style={common.title}>{product.title}</Text>
               <Text style={common.subtitle}>
                 {[product.brand, CATEGORY_LABEL[product.category]]
@@ -80,6 +91,24 @@ export function CatalogProductScreen({ id }: { id: string }) {
                 yayımlandığındaki fiyatı kullanır. Mağazadaki fiyat değişmiş
                 olabilir.
               </Text>
+              <Button
+                title="Üzerimde dene · PLUS"
+                variant="dark"
+                icon={<Ionicons name="sparkles" size={18} color={colors.onAccent} />}
+                onPress={() =>
+                  router.push({
+                    pathname: "/try-on",
+                    params: {
+                      title: product.title,
+                      ...(product.brand ? { brand: product.brand } : {}),
+                      ...(product.priceMinor !== null
+                        ? { price: catalogPrice(product.priceMinor, product.currency) }
+                        : {}),
+                      ...(url ? { url } : {}),
+                    },
+                  })
+                }
+              />
               {url ? (
                 <Button title="Mağazada gör" onPress={() => void open()} />
               ) : (
@@ -97,3 +126,12 @@ export function CatalogProductScreen({ id }: { id: string }) {
     </Screen>
   );
 }
+
+const styles = StyleSheet.create({
+  image: {
+    width: "100%",
+    aspectRatio: 382 / 469,
+    borderRadius: 18,
+    overflow: "hidden",
+  },
+});
