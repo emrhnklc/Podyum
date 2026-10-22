@@ -62,7 +62,7 @@ async function account(kind: string, displayName: string): Promise<Account> {
 
 async function upload(token: string, bytes: Buffer, name: string) {
   const grant = await request("/media/uploads", token, "POST", { purpose: "POLL", mimeType: "image/jpeg", byteSize: bytes.length, blurRequested: false });
-  const form = new FormData(); form.append("file", new Blob([bytes], { type: "image/jpeg" }), name);
+  const form = new FormData(); form.append("file", new Blob([new Uint8Array(bytes)], { type: "image/jpeg" }), name);
   await apiFetch(grant.upload.path, { method: "POST", accessToken: token, headers: { "X-Upload-Token": grant.upload.token }, body: form });
   await request(`/media/${grant.asset.id}/complete`, token, "POST", {});
   await request(`/media/${grant.asset.id}/accept-preview`, token, "POST", { confirmed: true });
