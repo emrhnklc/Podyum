@@ -32,7 +32,7 @@ export const DEMO_PRODUCTS = [
     trendQuestion: "Gri çan paça jean nasıl duruyor?" },
 ] as const;
 // Kombin oylaması sürümü: fotoğraflar değişince eski oylama iptal edilip yenisi açılır.
-const OUTFIT_VERSION = 2;
+const OUTFIT_VERSION = 3;
 // Trend oylamaları ürün fotoğraflarıyla kurulur; giriş ekranı görselleri kullanılmaz.
 const TREND_VERSION = 2;
 const PRODUCT_PHOTOS: Record<(typeof DEMO_PRODUCTS)[number]["key"], string> = {
